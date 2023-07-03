@@ -4,19 +4,22 @@
 #define CARGS_H
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 
-struct ArgPackage {
+typedef struct ArgPackage {
     u_int32_t count;
     char** values;
-}
+} ArgPackage;
 
-struct ArgPackageVec {
+typedef struct ArgPackageVec {
     size_t size;
     ArgPackage* arg_pckgs;
-}
+} ArgPackageVec;
 
 static char cargs_identificator = '-';
+static char* cargs_boolean_args = NULL;
+static char* cargs_data_args = NULL;
 
 // Sets the identificator character for arguments. If this function is 
 // not called, by default is '-' like in unix-like systems.

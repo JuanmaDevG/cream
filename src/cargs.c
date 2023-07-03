@@ -7,6 +7,7 @@ void cargs_set_identificator(const char identificator) {
 }
 
 void cargs_set_boolean_args(const u_int32_t count, const char* arg_letters) {
+    // "abcd" ;  'a', 'b', 'c', 'd'
     // TODO
 }
 
