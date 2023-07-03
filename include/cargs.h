@@ -3,8 +3,9 @@
 #ifndef CARGS_H
 #define CARGS_H
 
-#include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 
 typedef struct ArgPackage {
