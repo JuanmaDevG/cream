@@ -7,7 +7,7 @@ static char* boolean_args = NULL;
 static char* data_args = NULL;
 
 void cargs_set_identificator(const char new_identificator) {
-    identificator = identificator;
+    identificator = new_identificator;
 }
 
 void cargs_set_boolean_args(const u_int32_t count, const char* arg_letters) {
