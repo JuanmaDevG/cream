@@ -17,13 +17,9 @@ typedef struct ArgPackageVec {
     ArgPackage* arg_pckgs;
 } ArgPackageVec;
 
-static char cargs_identificator = '-';
-static char* cargs_boolean_args = NULL;
-static char* cargs_data_args = NULL;
-
 // Sets the identificator character for arguments. If this function is 
 // not called, by default is '-' like in unix-like systems.
-void cargs_set_identificator(const char);
+void cargs_set_identificator(const char new_identificator);
 
 // Sets how many boolean (existent or non existent) args and each_one's letter.
 void cargs_set_boolean_args(const u_int32_t count, const char* arg_letters);

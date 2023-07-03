@@ -2,13 +2,21 @@
 
 #include "cargs.h"
 
-void cargs_set_identificator(const char identificator) {
-    cargs_identificator = identificator;
+static char identificator = '-';
+static char* boolean_args = NULL;
+static char* data_args = NULL;
+
+void cargs_set_identificator(const char new_identificator) {
+    identificator = identificator;
 }
 
 void cargs_set_boolean_args(const u_int32_t count, const char* arg_letters) {
     // "abcd" ;  'a', 'b', 'c', 'd'
-    // TODO
+    boolean_args = (char*)malloc(count * sizeof(char));
+    for (int i = 0; i < count; i++) {
+        boolean_args[i] = arg_letters[i];
+    }
+
 }
 
 void cargs_associate_extended(const char** ext_names, const char* arg_letters) {
