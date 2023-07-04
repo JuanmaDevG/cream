@@ -13,9 +13,10 @@ void cargs_set_identificator(const char new_identificator) {
 void cargs_set_boolean_args(const uint32_t count, const char* arg_letters) {
     // "abcd" ;  'a', 'b', 'c', 'd'
     boolean_args = (char*)malloc(count * sizeof(char));
-    for (int i = 0; i < count; i++) {
-        boolean_args[i] = arg_letters[i];
-    }
+    // for (int i = 0; i < count; i++) {
+    //     boolean_args[i] = arg_letters[i];
+    // }
+    memcpy(boolean_args, arg_letters, count * sizeof(char));
 
 }
 
