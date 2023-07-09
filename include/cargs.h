@@ -1,7 +1,4 @@
-// Argument parser library in C
-
-#ifndef CARGS_H
-#define CARGS_H
+#pragma once
 
 #include <stdlib.h>
 #include <stdint.h>     //To have system types (like u_int16_t) include sys/types.h
@@ -10,31 +7,35 @@
 
 
 typedef struct ArgPackage{
-    uint32_t count;
-    //Pointer to first argv value position
-    char** values;
+    uint32_t count = 0;
+    char** values = NULL; //Pointer to first value position in argv
 } ArgPackage;
 
 typedef struct ArgPackageVec {
-    size_t size;
-    ArgPackage* packages;
+    size_t size = 0;
+    ArgPackage* packages = NULL;
 } ArgPackageVec;
 
 
-// Sets the identificator character for arguments. If this function is 
-// not called, by default is '-' like in unix-like systems.
+/*
+    Sets the identificator character for arguments. If this function is 
+    not called, by default is '-' like in unix-like systems.
+*/
 void cargs_set_identificator(const char new_identificator);
 
-// Sets how many boolean (existent or non existent) args and each_one's letter.
+/*
+    Sets how many boolean (existent or non existent) args and each_one's letter.
+*/
 void cargs_set_boolean_args(const char* arg_letters);
 
-// Associates an extended version of an argument letter to make the argument 
-// parsing more verbose.
+/*
+    Associates an extended version of an argument letter to make the argument 
+    parsing more verbose.
+*/
 void cargs_associate_extended(const char** ext_names, const char* arg_letters);
 
-// Arguments that require data, so their extra arguments data will be 
-// grouped.
+/*
+    Arguments that require data, so their extra arguments data will be 
+    grouped.
+*/
 void cargs_set_data_args(const char* arg_letters);
-
-
-#endif // CARGS_H

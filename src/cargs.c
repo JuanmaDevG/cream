@@ -3,23 +3,30 @@
 
 static char arg_id = '-';
 
-//Boolean arguments definitions
+/*
+    Boolean argument structures
+*/
 static size_t _bool_args_count = 0;
 static char* _bool_args = NULL;
 static uint8_t* _bool_args_bit_vec = NULL;
 
-//Data arguments definitions
-static char* _data_args;
+/*
+    Data argument structures
+*/
+static char* _data_args = NULL;
 static ArgPackageVec _data_packs;
 
+/*
+    Library user functions
+*/
 
 void cargs_set_identificator(const char new_id) { arg_id = new_id; }
 
 //Makes the boolean args bit vector
 void cargs_set_boolean_args(const char* arg_letters) {
-    if(!arg_letters) return;
+    if(arg_letters == NULL) return;
     _bool_args_count = strlen(arg_letters);
-    
+
     _bool_args = (char*)malloc(_bool_args_count);
     memcpy(_bool_args, arg_letters, _bool_args_count * sizeof(char));
 
