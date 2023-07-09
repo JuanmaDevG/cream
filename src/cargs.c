@@ -29,6 +29,7 @@ void cargs_set_boolean_args(const char* arg_letters) {
 
     _bool_args = (char*)malloc(_bool_args_count);
     memcpy(_bool_args, arg_letters, _bool_args_count * sizeof(char));
+    remove_redundancies(_data_args, _data_packs.size, _bool_args, _bool_args_count);
 
     //Calculating the bits for bit boolean vector
     _bool_args_bit_vec = (uint8_t*)malloc(

@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "utils.h"
+
 
 typedef struct ArgPackage{
     uint32_t count = 0;

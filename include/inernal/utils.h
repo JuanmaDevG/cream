@@ -14,8 +14,6 @@ typedef struct {
     Removes redundant option letters
 */
 void remove_redundancies(
-    char* _bool_args, 
-    uint64_t* _bool_args_count, 
-    char* _data_args, 
-    uint64_t* _data_args_count
+    const char* _non_reductible_args, const uint64_t* _non_reductible_args_count, 
+    char* _reductible_args, uint64_t* _redutcible_arg_count
 );
