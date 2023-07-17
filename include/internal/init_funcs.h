@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdarg.h>
+
 #include "utils.h"
 #include "shared_data.h"    //To have more types (like u_int16_t) include sys/types.h
 
@@ -19,7 +21,7 @@ void cargs_set_boolean_args(const char* arg_letters);
     Associates an extended version of an argument letter to make the argument 
     parsing more verbose.
 */
-void cargs_associate_extended(const char* arg_letters, const char** ext_names);
+void cargs_associate_extended(const char* arg_letters, ...);
 
 /*
     Arguments that require data, so their extra arguments data will be 

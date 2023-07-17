@@ -17,11 +17,12 @@ void cargs_set_boolean_args(const char* arg_letters) {
     );
 }
 
-void cargs_associate_extended(const char* arg_letters, const char** ext_names) {
+void cargs_associate_extended(const char* arg_letters, ...) {
     size_t count = strlen(arg_letters);
 
     //Buscar las letras
-    //Asociarlas al vector de argumentos
+    
+    //Mirar la va_list para los argumentos a asociar
     //TODO
 }
 
