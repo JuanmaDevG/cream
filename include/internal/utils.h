@@ -9,6 +9,11 @@ typedef struct {
     _redundant_queue* next;
 } _redundant_queue;
 
+/*
+
+*/
+inline _redundant_queue* _create_redundant_queue();
+
 
 /*
     Removes redundant option letters

@@ -3,7 +3,7 @@
 #include <stdarg.h>
 
 #include "utils.h"
-#include "shared_data.h"    //To have more types (like u_int16_t) include sys/types.h
+#include "shared_data.h"
 
 
 /*
@@ -20,6 +20,9 @@ void cargs_set_boolean_args(const char* arg_letters);
 /*
     Associates an extended version of an argument letter to make the argument 
     parsing more verbose.
+
+    Is more efficient to the library to receive the arg_letters string into the order given, 
+    otherwise the loop will be much longer
 */
 void cargs_associate_extended(const char* arg_letters, ...);
 

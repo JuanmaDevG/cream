@@ -46,6 +46,7 @@ extern char* _bool_args;
 extern uint8_t* _bool_args_bit_vec;
 
 extern char* _data_args;
+extern uint8_t* _data_args_bit_vec;
 extern ArgPackageVec _data_packs;
 
 extern ExtArgVec _extended_args;
