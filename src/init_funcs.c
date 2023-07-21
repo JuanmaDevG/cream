@@ -64,6 +64,8 @@ void cargs_associate_extended(const char* arg_letters, ...) {
     size_t length = strlen(arg_letters);
     va_list arg_l;
     va_start(arg_l, length);
+
+    //Extended args vector setting up
     _extended_args.size = length;
     _extended_args.args = (ExtArg*)calloc(length, sizeof(ExtArg));
 
@@ -75,13 +77,13 @@ void cargs_associate_extended(const char* arg_letters, ...) {
         char* checkpoint_read_point = read_point;
         while(found == 0)
         {
+            //Swap read_point cause finished actual
             if(read_point[j] == '\0')
             {
                 j = 0;
                 _swap_read_point(read_point);
             }
 
-            //Change the read point
             if(read_point[j] == arg_letters[i])
             {
                 found = 1;
