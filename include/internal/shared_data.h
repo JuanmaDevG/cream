@@ -23,6 +23,7 @@ typedef struct ArgPackageVec {
 
 //Extended argument name associated to the corresponding char argument argument
 typedef struct {
+    char* read_point;
     uint32_t associated_opt; //Option symbol position (to look into bit vectors and ArgPackage vectors)
     char* name;
 } ExtArg;
