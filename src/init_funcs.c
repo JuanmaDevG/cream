@@ -14,12 +14,6 @@ void cargs_set_boolean_args(const char* arg_letters) {
     _bool_args = (char*)malloc(_bool_args_count +1);
     memcpy(_bool_args, arg_letters, _bool_args_count +1);
     _remove_redundancies(REMOVE_BOOL_REDUNDANCIES);
-
-    //Calculating the bits for bit boolean vector
-    _bool_args_bit_vec = (uint8_t*)calloc(
-        (_bool_args_count >> 3) + (size_t)(_bool_args_count & (size_t)0b111 == 0 ? 0 : 1),
-        sizeof(uint8_t)
-    );
 }
 
 void cargs_associate_extended(const char* arg_letters, ...) {
@@ -80,9 +74,4 @@ void cargs_set_data_args(const char* arg_letters) {
     memcpy(_data_args, arg_letters, _data_packs.size +1);
     _remove_redundancies(REMOVE_DATA_REDUNDANCIES);
     _data_packs.packages = (ArgPackage*)calloc(_data_packs.size, sizeof(ArgPackage));
-
-    _data_args_bit_vec = (uint8_t*)calloc(
-        (_data_packs.size >> 3) + (size_t)(_data_packs.size & (size_t)0b111 == 0 ? 0 : 1),
-        sizeof(uint8_t)
-    );
 }

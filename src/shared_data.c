@@ -8,7 +8,6 @@ char arg_id = '-';
 //
 size_t _bool_args_count = 0;
 char* _bool_args = NULL;
-uint8_t* _bool_args_bit_vec = NULL;
 
 
 /*
@@ -16,7 +15,6 @@ uint8_t* _bool_args_bit_vec = NULL;
 */
 //
 char* _data_args = NULL;
-uint8_t* _data_args_bit_vec = NULL;
 ArgPackageVec _data_packs = {0, NULL};
 
 
