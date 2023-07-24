@@ -1,105 +1,85 @@
 #include "utils.h"
 
+/*
+    ---------------------------
+    Extended argument utilities
+    ---------------------------
+*/
 
-inline _cargs_queue* _create_cargs_queue()
-{
-    _cargs_queue* q = (_cargs_queue*)calloc(1, sizeof(_cargs_queue));
-    q->next = NULL;
-    return q;
+void _push_extended_argument(
+    const char* argument, const uint32_t associated_opt, const char* read_point, 
+    const uint32_t vec_pos
+) {
+    _extended_args.args->associated_opt = associated_opt;
+    _extended_args.args->read_point = read_point;
+
+    size_t length = strlen(argument) +1;
+    _extended_args.args[vec_pos].name = (char*)malloc(length);
+    memcpy(_extended_args.args[vec_pos].name, argument, length);
 }
-
-inline void _push_node(_cargs_queue* last_q_pos, const uint32_t elem)
-{
-    last_q_pos->next = _create_cargs_queue();
-    last_q_pos = last_q_pos->next;
-    last_q_pos->value = elem;
-}
-
-inline void _pop_node(_cargs_queue* head)
-{
-    _cargs_queue* keeper = head->next;
-    free(head);
-    head = keeper;
-}
-
-inline uint8_t _q_is_empty(_cargs_queue* q) { return (q == NULL ? 1 : 0); }
 
 /*
-    Reserve the needed space for the new argument string and copies the values ignoring redundant ones
+    ------------------------------
+    Readpoint/writepoint utilities
+    ------------------------------
 */
-void _transform_redundant_str(
-    _cargs_queue* q, char* _reductible_args, uint64_t* _reductible_arg_count, const uint32_t redundancy_count
-) {
-    char* new_args = (char*)malloc((*_reductible_arg_count) - redundancy_count +1);
-    char* copy_point = new_args, *read_point = _reductible_args;
-    uint32_t offset = 0, diff = 0;
 
-    while(_q_is_empty(q) != (uint8_t)1)
-    {
-        diff = q->value - offset;
-        memcpy(copy_point, read_point, diff);
-        read_point += diff +1;
-        copy_point += diff;
-
-        offset = q->value +1;
-        _pop_node(q);
-    }
-    memcpy(copy_point, read_point, (*_reductible_arg_count) - offset);
-
-    free(_reductible_args);
-    _reductible_args = new_args;
-    *_reductible_arg_count -= redundancy_count;
+inline char* _obtain_read_point()
+{
+    char* read_point = _bool_args;
+    if(read_point == NULL) read_point = _data_args;
+    return read_point;
 }
 
+inline void _swap_read_point(char* read_point)
+{
+    if(_bool_args == NULL) read_point = _data_args;
+    else if(_data_args == NULL) read_point = _bool_args;
+    else    //Both not null
+    {
+        if(read_point == _bool_args) read_point = _data_args;
+        else //is _data_args
+            read_point = _bool_args;
+    }
+}
 
 /*
-    Removes the redundancies found from _non_reductible_args and applies the changes to _reductible_args
-    If any of the arguments is uninitialized (NULL) will do nothing
+    -------------------------
+    General purpose utilities
+    -------------------------
 */
-void remove_redundancies(
-    const char* _non_reductible_args, const uint64_t* _non_reductible_arg_count, 
-    char* _reductible_args, uint64_t* _reductible_arg_count
-) {
-    if(_non_reductible_args == NULL || _reductible_args == NULL) return;
-    uint32_t redundancy_count = 0;
-    _cargs_queue* q = NULL;
-    _cargs_queue* q_pos = NULL;
 
-    //Get first redundance
-    uint32_t i = 0, j;
-    while(i < *_non_reductible_arg_count && redundancy_count == 0)
+void _remove_redundancies(const enum _redundancy_remove_mode mode)
+{
+    if(_bool_args == NULL || _data_args == NULL) return;
+    char const* read_point = NULL;
+    size_t const* read_length = NULL;
+    char* write_point = NULL;
+    size_t* write_length = NULL;
+
+    if(mode == REMOVE_BOOL_REDUNDANCIES)
     {
-        j = 0;
-        while(j < *_reductible_arg_count)
-        {
-            if(_non_reductible_args[i] == _reductible_args[j])
-            {
-                redundancy_count++;
-                _push_node(q, j);
-                q_pos = q;
-                break;
-            }
-            j++;
-        }
-        i++;
+        read_point = _data_args;
+        read_length = &(_data_packs.size);
+        write_point = _bool_args;
+        write_length = &_bool_args_count;
     }
-    if(redundancy_count == 0) return;
-
-    //Obtains the argument redundancies
-    while(i < *_non_reductible_arg_count)
+    else    //REMOVE_DATA_REDUNDANCIES
     {
-        j=0;
-        while(j < *_reductible_arg_count)
-        {
-            if(_non_reductible_args[i] == _reductible_args[j])
-            {
-                redundancy_count++;
-                _push_node(q_pos, j);
-            }
-            j++;
-        }
-        i++;
+        read_point = _bool_args;
+        read_length = &_bool_args_count;
+        write_point = _data_args;
+        write_length = &(_data_packs.size);
     }
 
-    _transform_redundant_str(q, _reductible_args, _reductible_arg_count, redundancy_count);
+    //Look for redundancies and remove them
+    for(uint64_t i=0; i <= *read_length; i++)
+    {
+        for(uint64_t j=0; j <= *write_length; j++)
+            if(read_point[i] == write_point[j]) 
+                memcpy(write_point, write_point+1, (*write_length) - j);
+    }
+
+    //Does not reallocate because the null terminating character is copied and can be a waste of time
+    //It is expected so, that the user does not write a lot of redundancies
 }

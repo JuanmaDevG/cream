@@ -4,36 +4,50 @@
 #include <stdint.h>
 #include <string.h>
 
-typedef struct {
-    uint32_t value;
-    _cargs_queue* next;
-} _cargs_queue;
+#include "shared_data.h"
+
+enum _reduncancy_remove_mode { REMOVE_BOOL_REDUNDANCIES, REMOVE_DATA_REDUNDANCIES, REMOVE_REDUNDANCIES_COUNT};
 
 /*
-    Creates a new queue node
+    ---------------------------
+    Extended argument utilities
+    ---------------------------
 */
-inline _cargs_queue* _create_cargs_queue();
 
-/*
-    Pushes a node to the head of the queue
-*/
-inline void _push_node(_cargs_queue* _last_q_pos, const uint32_t elem);
-
-/*
-    Pops a node from the last position (first insertion)
-*/
-inline void _pop_node(_cargs_queue* q);
-
-/*
-    Returns 1 if empty, otherwise 0
-*/
-inline uint8_t _q_is_empty(_cargs_queue* q);
-
-
-/*
-    Removes redundant option letters
-*/
-void remove_redundancies(
-    const char* _non_reductible_args, const uint64_t* _non_reductible_args_count, 
-    char* _reductible_args, uint64_t* _redutcible_arg_count
+//Pushes an argument string to the shared extended argument vector
+void _push_extended_argument(
+    const char* argument, const uint32_t associated_opt, const char* read_point, 
+    const uint32_t vec_pos
 );
+
+/*
+    ------------------------------
+    Readpoint/writepoint utilities
+    ------------------------------
+*/
+
+/*
+    Obtains a char pointer read point from where to start to read/write information.
+
+    It's priority order is:
+    1. Boolean arguments
+    2. Data need arguments
+
+    If one argument type is not initialized, obtains the remaining type
+*/
+inline char* _obtain_read_point();
+
+/*
+    Swaps a char pointer to the next argument type read point (boolean args -> data args... and viceversa)
+*/
+inline void _swap_read_point(char* read_point);
+
+
+/*
+    -------------------------
+    General purpose utilities
+    -------------------------
+*/
+
+//Removes redundant option letters
+void _remove_redundancies(const enum _redundancy_remove_mode mode);
