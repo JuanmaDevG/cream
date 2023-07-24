@@ -31,3 +31,18 @@ void cargs_associate_extended(const char* arg_letters, ...);
     grouped.
 */
 void cargs_set_data_args(const char* arg_letters);
+
+/*
+    Makes the letters given as parameter mandatory to use
+*/
+void cargs_make_mandatory(const char* arg_letters);
+
+/*
+    Loads the program arguments, checks them and sets the data pointers ready to use.
+    After correctly using this function, you can use get functions
+
+    WARNING: 
+    This function must be called when the argument setters are called, otherwise
+    will have no effect (but of course you can leave boolean or data arguments empty) 
+*/
+void cargs_load_args(const int argc, const char** argv);

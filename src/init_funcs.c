@@ -75,3 +75,11 @@ void cargs_set_data_args(const char* arg_letters) {
     _remove_redundancies(REMOVE_DATA_REDUNDANCIES);
     _data_packs.packages = (ArgPackage*)calloc(_data_packs.size, sizeof(ArgPackage));
 }
+
+void cargs_load_args(const int argc, const char** argv)
+{
+    for(uint32_t i=1; i < argc; i++)
+    {
+        
+    }
+}
