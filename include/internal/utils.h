@@ -49,5 +49,18 @@ inline void _swap_read_point(char* read_point);
     -------------------------
 */
 
-//Removes redundant option letters
+/*
+    Removes redundant option letters
+*/
 void _remove_redundancies(const enum _redundancy_remove_mode mode);
+
+/*
+    Finds the given argument letter looking into the argument letter buffers
+
+    If the argument letter is not found, the checkpoint will be set to zero
+    otherwise the checkpoint will be set to the position next to where the 
+    argument character was found.
+
+    Returns zero if the argument has not been found, otherwise return 1
+*/
+uint8_t _find_argument_letter(const char argument_char, char const* read_point, uint32_t* checkpoint);

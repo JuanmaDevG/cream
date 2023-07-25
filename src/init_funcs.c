@@ -16,11 +16,11 @@ void cargs_set_boolean_args(const char* arg_letters) {
     _remove_redundancies(REMOVE_BOOL_REDUNDANCIES);
 }
 
-void cargs_associate_extended(const char* arg_letters, ...) {
+void cargs_associate_extended(const char* arg_characters, ...) {
     char* read_point = _obtain_read_point(); //To be _bool_args or _data_args
     if(read_point == NULL) return;
 
-    size_t length = strlen(arg_letters);
+    size_t length = strlen(arg_characters);
     va_list arg_l;
     va_start(arg_l, length);
 
@@ -32,34 +32,8 @@ void cargs_associate_extended(const char* arg_letters, ...) {
     uint32_t checkpoint = 0;
     for(uint32_t i=0; i < length; i++)
     {
-        uint8_t found = 0;
-        uint32_t j = checkpoint;
-        char* checkpoint_read_point = read_point;
-        while(found == 0)
-        {
-            //Swap read_point beacause finished actual
-            if(read_point[j] == '\0')
-            {
-                j = 0;
-                _swap_read_point(read_point);
-            }
-
-            //Associated argument letter found
-            if(read_point[j] == arg_letters[i])
-            {
-                found = 1;
-                checkpoint = j+1;
-                checkpoint_read_point = read_point;
-                _push_extended_argument(va_arg(arg_l, char*), j, read_point, i);
-            }
-
-            //Found or not, we're done with the two argument strings so continue
-            else if(j == checkpoint -1 && checkpoint_read_point == read_point) 
-                found = 1;
-            
-            //Increment in case not found, otherwise it will reset to checkpoint
-            j++;
-        }
+        if(_find_argument_letter(arg_characters[i], read_point, &checkpoint) == (uint8_t)1)
+            _push_extended_argument(va_arg(arg_l, char*), checkpoint -1, read_point, i);
     }
 
     va_end(arg_l);
@@ -76,10 +50,23 @@ void cargs_set_data_args(const char* arg_letters) {
     _data_packs.packages = (ArgPackage*)calloc(_data_packs.size, sizeof(ArgPackage));
 }
 
-void cargs_load_args(const int argc, const char** argv)
+void cargs_make_mandatory(const char* arg_characters)
+{
+    //Get the argument characters positions
+
+    //Trigger those vector positions to be confirmed while using cargs_load_args
+}
+
+uint32_t cargs_load_args(const int argc, const char** argv)
 {
     for(uint32_t i=1; i < argc; i++)
     {
-        
+        //Look if extended (double argument identificator) or not
+
+        //Loop with find functions and previously declare read_points
+
+        //Check the boolean arguments or add the data pointers to data argument vector
     }
 }
+
+const char* cargs_get_error(uint32_t err_code) {}

@@ -83,3 +83,34 @@ void _remove_redundancies(const enum _redundancy_remove_mode mode)
     //Does not reallocate because the null terminating character is copied and can be a waste of time
     //It is expected so, that the user does not write a lot of redundancies
 }
+
+uint8_t _find_argument_letter(const char argument_char, char const* read_point, uint32_t* checkpoint)
+{
+    uint8_t found = 0;
+    uint32_t j = checkpoint;
+    char* checkpoint_read_point = read_point;
+    while(found == 0)
+    {
+        //Swap read_point beacause finished actual
+        if(read_point[j] == '\0')
+        {
+            j = 0;
+            _swap_read_point(read_point);
+        }
+
+        if(read_point[j] == argument_char) //Finally found
+        {
+            found = 1;
+            (*checkpoint) = j+1;
+            checkpoint_read_point = read_point;
+        }
+        //Not found, and if looked everywhere, return
+        else if(j == checkpoint -1 && checkpoint_read_point == read_point)
+        {
+            (*checkpoint) = 0;
+            return found;
+        }
+        
+        j++;
+    }
+}

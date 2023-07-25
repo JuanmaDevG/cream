@@ -49,3 +49,8 @@ extern char* _data_args;
 extern ArgPackageVec _data_packs;
 
 extern ExtArgVec _extended_args;
+
+extern char* _cargs_error_buffer_str;
+extern uint8_t _cargs_is_extended;
+extern char* _cargs_error_argument;
+extern const char* _cargs_error_strings[];
