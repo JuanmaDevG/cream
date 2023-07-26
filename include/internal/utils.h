@@ -65,7 +65,16 @@ inline void _reset_finders();
     -----------------------
 */
 
-//...
+/*
+    Returns CARGS_WRONG_ID if the argument has wrong syntax, otherwise returns 
+    CARGS_OK if everything goes well
+*/
+inline enum cargs_error _is_argument_wrong(const char* actual_argument);
+
+/*
+    If the extended argument is not found, returns CARGS_NON_EXISTENT
+*/
+inline enum cargs_error _does_extended_arg_exist(const char* actual_argument);
 
 
 /*
@@ -105,3 +114,13 @@ uint32_t _find_argument_char(const char argument_char);
     Returns 0 if not found and 1 if found
 */
 uint8_t _find_extended_argument(const char* ext_arg);
+
+/*
+    Configures the argument data pointer to store the data position, 
+    counts the number of data strings of the data argument and if there are 
+    zero data strings, sets the pointer to NULL.
+
+    Also advances the argv index position to one before the next argument.
+    It is one before the next because of iteration causes.
+*/
+void _add_argument_data(const char** argv, uint32_t* actual_position, const uint32_t extended_argument_position);

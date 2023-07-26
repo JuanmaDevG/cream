@@ -59,32 +59,22 @@ void cargs_make_mandatory(const char* arg_characters)
 
 uint32_t cargs_load_args(const int argc, const char** argv)
 {
+    enum cargs_error potential_error = CARGS_NO_ERROR;
     for(uint32_t i=1; i < argc; i++)
     {
-        if(argv[i][0] != _arg_id)
-        {
-            _cargs_error_argument = argv[i];
-            _cargs_is_extended = 1; //true to print the whole wrong argument
-            return (uint32_t)CARGS_WRONG_ID;
-        }
+        potential_error = _is_argument_wrong(argv[i]);
+        if(potential_error != CARGS_NO_ERROR) return (uint32_t)potential_error;
 
         if(argv[i][1] == _arg_id)   //Is extended
         {
-            if(_find_extended_argument(argv[i] + 2) != 0)
-            {
-                _cargs_error_argument = argv[i];
-                _cargs_is_extended = 1;
-                return (uint32_t)CARGS_NON_EXISTENT;
-            }
+            potential_error = _does_extended_arg_exist(argv[i]);
+            if(potential_error != CARGS_NO_ERROR) return (uint32_t)potential_error;
 
             uint32_t pos = _get_actual_checkpoint() -1;
+            _reset_finders();
             _extended_args.args[pos].read_point[_extended_args.args[pos].associated_opt] = '\\';
 
-            if(_extended_args.args[pos].read_point == _data_args)
-            {
-                //Assign data to _data_packs correct pointer with associated option position
-                //Count the available arguments before another option is given
-            }
+            if(_extended_args.args[pos].read_point == _data_args) _add_argument_data(argv, i, pos);
         }
         else                        //Is not extended
         {
@@ -95,6 +85,7 @@ uint32_t cargs_load_args(const int argc, const char** argv)
         //Make sure the argument contains data
     }
     _reset_finders();
+    return (uint32_t)CARGS_NO_ERROR;
 }
 
 const char* cargs_get_error(uint32_t err_code) 

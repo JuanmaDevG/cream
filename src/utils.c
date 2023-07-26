@@ -55,10 +55,26 @@ inline void _reset_finders() { _checkpoint = 0; _read_point = NULL; }
     -----------------------
 */
 
-inline void _is_error_arg_extended(const char* argument)
+inline enum cargs_error _is_argument_wrong(const char* actual_argument)
 {
-    _cargs_is_extended = (uint8_t)0;
-    if(argument[1] == _arg_id) _cargs_is_extended = 1;
+    if(actual_argument[0] != _arg_id)
+    {
+        _cargs_error_argument = actual_argument;
+        _cargs_is_extended = 1; //true to print the whole wrong argument
+        return CARGS_WRONG_ID;
+    }
+    return CARGS_NO_ERROR;
+}
+
+inline enum cargs_error _does_extended_arg_exist(const char* actual_argument)
+{
+    if(_find_extended_argument(actual_argument + 2) == 0)
+    {
+        _cargs_error_argument = actual_argument;
+        _cargs_is_extended = 1;
+        return CARGS_NON_EXISTENT;
+    }
+    return CARGS_NO_ERROR;
 }
 
 /*
@@ -162,4 +178,16 @@ uint8_t _find_extended_argument(const char* ext_arg)
 
         j++;
     }
+}
+
+void _add_argument_data(const char** argv, uint32_t* index, const uint32_t ext_arg_position)
+{
+    const char** data_pointer = argv + (*index) + 1;
+    uint32_t count = 0;
+    while(data_pointer[count][0] != _arg_id) count++;
+    _data_packs.packages[_extended_args.args[ext_arg_position].associated_opt].count = count;
+    _data_packs.packages[_extended_args.args[ext_arg_position].associated_opt].values = (count == 0 ? NULL : data_pointer);
+
+    //Set offset to argument iterator
+    (*index) += count;
 }
