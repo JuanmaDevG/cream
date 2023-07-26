@@ -51,3 +51,8 @@ void cargs_make_mandatory(const char* arg_characters);
     will have no effect (but of course you can leave boolean or data arguments empty) 
 */
 uint32_t cargs_load_args(const int argc, const char** argv);
+
+/*
+    Gets the pointer to a loaded error string
+*/
+const char* cargs_get_error(uint32_t err_code);

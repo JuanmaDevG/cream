@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 
 /*
@@ -39,8 +41,7 @@ typedef struct {
     Shared data declarations
 */
 
-//
-extern char arg_id;
+extern char _arg_id;
 
 extern size_t _bool_args_count;
 extern char* _bool_args;
@@ -50,7 +51,24 @@ extern ArgPackageVec _data_packs;
 
 extern ExtArgVec _extended_args;
 
+extern char* _mandatory_arguments;
+
+/*
+    Error managing declarations
+*/
+
+enum cargs_error { CARGS_NO_ERROR, CARGS_NON_EXISTENT, CARGS_MANDATORY, CARGS_WRONG_ID };
+
 extern char* _cargs_error_buffer_str;
+
 extern uint8_t _cargs_is_extended;
 extern char* _cargs_error_argument;
+
 extern const char* _cargs_error_strings[];
+
+/*
+    Utility pointers
+*/
+
+extern char* _read_point;
+extern uint32_t _checkpoint;

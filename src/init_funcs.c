@@ -1,7 +1,7 @@
 #include "init_funcs.h"
 
 
-void cargs_set_identificator(const char new_id) { arg_id = new_id; }
+void cargs_set_identificator(const char new_id) { _arg_id = new_id; }
 
 /*
     Sets the boolean arguments to be detected
@@ -17,8 +17,8 @@ void cargs_set_boolean_args(const char* arg_letters) {
 }
 
 void cargs_associate_extended(const char* arg_characters, ...) {
-    char* read_point = _obtain_read_point(); //To be _bool_args or _data_args
-    if(read_point == NULL) return;
+    _obtain_read_point();
+    if(_get_actual_read_point() == NULL) return;
 
     size_t length = strlen(arg_characters);
     va_list arg_l;
@@ -28,13 +28,13 @@ void cargs_associate_extended(const char* arg_characters, ...) {
     _extended_args.size = length;
     _extended_args.args = (ExtArg*)calloc(length, sizeof(ExtArg));
 
-    //Loops over the argument buffers finding the argument letters to associate
-    uint32_t checkpoint = 0;
+    //Loops over the argument buffers finding the argument characters to associate
     for(uint32_t i=0; i < length; i++)
     {
-        if(_find_argument_letter(arg_characters[i], read_point, &checkpoint) == (uint8_t)1)
-            _push_extended_argument(va_arg(arg_l, char*), checkpoint -1, read_point, i);
+        if(_find_argument_char(arg_characters[i]) != 0)
+            _push_extended_argument(va_arg(arg_l, char*), _get_actual_checkpoint() -1, _get_actual_read_point(), i);
     }
+    _reset_finders();
 
     va_end(arg_l);
 }
@@ -52,21 +52,73 @@ void cargs_set_data_args(const char* arg_letters) {
 
 void cargs_make_mandatory(const char* arg_characters)
 {
-    //Get the argument characters positions
-
-    //Trigger those vector positions to be confirmed while using cargs_load_args
+    size_t length = strlen(arg_characters) +1;
+    _mandatory_arguments = (char*)malloc(length);
+    memcpy(_mandatory_arguments, arg_characters, length);
 }
 
 uint32_t cargs_load_args(const int argc, const char** argv)
 {
     for(uint32_t i=1; i < argc; i++)
     {
-        //Look if extended (double argument identificator) or not
+        if(argv[i][0] != _arg_id)
+        {
+            _cargs_error_argument = argv[i];
+            _cargs_is_extended = 1; //true to print the whole wrong argument
+            return (uint32_t)CARGS_WRONG_ID;
+        }
 
-        //Loop with find functions and previously declare read_points
+        if(argv[i][1] == _arg_id)   //Is extended
+        {
+            if(_find_extended_argument(argv[i] + 2) != 0)
+            {
+                _cargs_error_argument = argv[i];
+                _cargs_is_extended = 1;
+                return (uint32_t)CARGS_NON_EXISTENT;
+            }
 
-        //Check the boolean arguments or add the data pointers to data argument vector
+            uint32_t pos = _get_actual_checkpoint() -1;
+            _extended_args.args[pos].read_point[_extended_args.args[pos].associated_opt] = '\\';
+
+            if(_extended_args.args[pos].read_point == _data_args)
+            {
+                //Assign data to _data_packs correct pointer with associated option position
+                //Count the available arguments before another option is given
+            }
+        }
+        else                        //Is not extended
+        {
+            //Search the arg
+            //Confirm with a backslash (con read_point y checkpoint -1)
+        }
+        //If is data_arg, configure the ExtArgVec position
+        //Make sure the argument contains data
     }
+    _reset_finders();
 }
 
-const char* cargs_get_error(uint32_t err_code) {}
+const char* cargs_get_error(uint32_t err_code) 
+{
+    uint32_t null_location = 0; //First null location is where to place the argument
+    size_t char_count = 0;
+
+    for(uint32_t i=0; _cargs_error_strings[err_code][i] != '\0'; i++)
+    {
+        char_count++;
+        if(null_location == 0 && _cargs_error_strings[err_code][i+1] == '\0')
+        {
+            null_location == i+1;
+            i++;
+        }
+    }
+
+    size_t err_arg_length = strlen(_cargs_error_argument);
+    char_count += err_arg_length +1;
+    if(_cargs_error_buffer_str != NULL) free(_cargs_error_buffer_str);
+    _cargs_error_buffer_str = (char*)malloc(char_count);
+    
+    //Copy the error with it's offsets to write the argument that caused the error
+    memcpy(_cargs_error_buffer_str, _cargs_error_strings[err_code], null_location);
+    memcpy(_cargs_error_buffer_str + null_location, _cargs_error_argument, err_arg_length);
+    strcpy(_cargs_error_buffer_str + null_location + err_arg_length, _cargs_error_strings[err_code] + null_location +1);
+}

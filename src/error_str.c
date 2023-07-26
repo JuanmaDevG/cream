@@ -6,8 +6,8 @@ uint8_t _cargs_is_extended = 0;
 char* _cargs_error_argument = NULL;
 
 const char* _cargs_error_strings[] = {
-    "There was no error",
-    "The boolean argument <a> does not exist",
-    "The data argument <a> does not exist",
-    "The argument <a> is required"
+    "No errors, argument load finished successfully",
+    "The argument \0 does not exist",
+    "The argument \0 is required",
+    "The argument \0 has a wrong identificator"
 };

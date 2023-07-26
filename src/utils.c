@@ -24,23 +24,41 @@ void _push_extended_argument(
     ------------------------------
 */
 
-inline char* _obtain_read_point()
+inline void _obtain_read_point()
 {
-    char* read_point = _bool_args;
-    if(read_point == NULL) read_point = _data_args;
-    return read_point;
+    _read_point = _bool_args;
+    if(_read_point == NULL) _read_point = _data_args;
+    return _read_point;
 }
 
-inline void _swap_read_point(char* read_point)
+inline void _swap_read_point()
 {
-    if(_bool_args == NULL) read_point = _data_args;
-    else if(_data_args == NULL) read_point = _bool_args;
+    if(_bool_args == NULL) _read_point = _data_args;
+    else if(_data_args == NULL) _read_point = _bool_args;
     else    //Both not null
     {
-        if(read_point == _bool_args) read_point = _data_args;
+        if(_read_point == _bool_args) _read_point = _data_args;
         else //is _data_args
-            read_point = _bool_args;
+            _read_point = _bool_args;
     }
+}
+
+inline char* _get_actual_read_point() { return _read_point; }
+
+inline uint32_t _get_actual_checkpoint() { return _checkpoint; }
+
+inline void _reset_finders() { _checkpoint = 0; _read_point = NULL; }
+
+/*
+    -----------------------
+    Error control utilities
+    -----------------------
+*/
+
+inline void _is_error_arg_extended(const char* argument)
+{
+    _cargs_is_extended = (uint8_t)0;
+    if(argument[1] == _arg_id) _cargs_is_extended = 1;
 }
 
 /*
@@ -84,33 +102,64 @@ void _remove_redundancies(const enum _redundancy_remove_mode mode)
     //It is expected so, that the user does not write a lot of redundancies
 }
 
-uint8_t _find_argument_letter(const char argument_char, char const* read_point, uint32_t* checkpoint)
+uint32_t _find_argument_char(const char argument_char)
 {
-    uint8_t found = 0;
-    uint32_t j = checkpoint;
-    char* checkpoint_read_point = read_point;
-    while(found == 0)
+    if(_read_point == NULL)
+    {
+        _obtain_read_point();
+        //If read_point still null, cannot find anything
+        if(_read_point == NULL) return 0;
+    }
+
+    uint32_t j = _checkpoint;
+    char* checkpoint_read_point = _read_point;
+    while(1)
     {
         //Swap read_point beacause finished actual
-        if(read_point[j] == '\0')
+        if(_read_point[j] == '\0')
         {
             j = 0;
-            _swap_read_point(read_point);
+            _swap_read_point();
         }
 
-        if(read_point[j] == argument_char) //Finally found
+        if(_read_point[j] == argument_char) //Finally found
         {
-            found = 1;
-            (*checkpoint) = j+1;
-            checkpoint_read_point = read_point;
+            _checkpoint = j+1;
+            checkpoint_read_point = _read_point;
+            return _checkpoint;
         }
         //Not found, and if looked everywhere, return
-        else if(j == checkpoint -1 && checkpoint_read_point == read_point)
+        else if(j == _checkpoint -1 && checkpoint_read_point == _read_point) 
         {
-            (*checkpoint) = 0;
-            return found;
+            _reset_finders();
+            return _checkpoint;
         }
         
+        j++;
+    }
+}
+
+uint8_t _find_extended_argument(const char* ext_arg)
+{
+    if(_extended_args.size == 0 || ext_arg == NULL) return 0;
+
+    uint32_t j = _checkpoint;
+    while(1)
+    {
+        if(j == _extended_args.size -1) j = 0;
+
+        if(strcmp(_extended_args.args[j].name, ext_arg) == 0)
+        {
+            _checkpoint = j+1;
+            return 1;
+        }
+        //Not found, and if we're done with all the vector, reset and return
+        else if(j == _checkpoint -1)
+        {
+            _checkpoint = 0;
+            return 0;
+        }
+
         j++;
     }
 }
