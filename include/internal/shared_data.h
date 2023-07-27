@@ -70,5 +70,6 @@ extern const char* _cargs_error_strings[];
     Utility pointers
 */
 
-extern char* _read_point;
-extern uint32_t _checkpoint;
+extern char* _read_point;               //Pointer where to start to read an option char buffer
+extern uint32_t _checkpoint;            //Position of the character next to the one that was found
+extern uint32_t _extended_checkpoint;   //Checkpoint just made for extended arguments

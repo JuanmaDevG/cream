@@ -34,5 +34,6 @@ char* _mandatory_arguments = NULL;
     Utility pointers
 */
 
-char* _read_point;       //Pointer where to start to read a buffer
-uint32_t _checkpoint;    //Position of the character next to the one that was found
+char* _read_point = NULL;
+uint32_t _checkpoint = 0;
+uint32_t _extended_checkpoint = 0;

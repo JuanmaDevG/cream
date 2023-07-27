@@ -47,7 +47,11 @@ inline char* _get_actual_read_point() { return _read_point; }
 
 inline uint32_t _get_actual_checkpoint() { return _checkpoint; }
 
+inline uint32_t _get_actual_ext_checkpoint() { return _extended_checkpoint; }
+
 inline void _reset_finders() { _checkpoint = 0; _read_point = NULL; }
+
+inline void _reset_ext_finders() { _extended_checkpoint = 0; }
 
 /*
     -----------------------
@@ -159,20 +163,20 @@ uint8_t _find_extended_argument(const char* ext_arg)
 {
     if(_extended_args.size == 0 || ext_arg == NULL) return 0;
 
-    uint32_t j = _checkpoint;
+    uint32_t j = _extended_checkpoint;
     while(1)
     {
         if(j == _extended_args.size -1) j = 0;
 
         if(strcmp(_extended_args.args[j].name, ext_arg) == 0)
         {
-            _checkpoint = j+1;
+            _extended_checkpoint = j+1;
             return 1;
         }
         //Not found, and if we're done with all the vector, reset and return
-        else if(j == _checkpoint -1)
+        else if(j == _extended_checkpoint -1)
         {
-            _checkpoint = 0;
+            _extended_checkpoint = 0;
             return 0;
         }
 
@@ -184,9 +188,11 @@ void _add_argument_data(const char** argv, uint32_t* index, const uint32_t ext_a
 {
     const char** data_pointer = argv + (*index) + 1;
     uint32_t count = 0;
+    uint32_t assocaited_option = _extended_args.args[ext_arg_position].associated_opt;
+
     while(data_pointer[count][0] != _arg_id) count++;
-    _data_packs.packages[_extended_args.args[ext_arg_position].associated_opt].count = count;
-    _data_packs.packages[_extended_args.args[ext_arg_position].associated_opt].values = (count == 0 ? NULL : data_pointer);
+    _data_packs.packages[assocaited_option].count = count;
+    _data_packs.packages[assocaited_option].values = (count == 0 ? NULL : data_pointer);
 
     //Set offset to argument iterator
     (*index) += count;

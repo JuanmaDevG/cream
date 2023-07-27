@@ -54,9 +54,24 @@ inline char* _get_actual_read_point();
 inline uint32_t _get_actual_checkpoint();
 
 /*
+    Gets the actual state of the extended argument searcher 
+    checkpoint
+*/
+inline uint32_t _get_actual_ext_checkpoint();
+
+/*
     Resets the finder checkpoint and read_point
 */
 inline void _reset_finders();
+
+/*
+    Resets the extended argument buffer finders
+
+    Note:
+    For the moment just one, there probably will be more in 
+    later versions
+*/
+inline void _reset_ext_finders();
 
 
 /*
