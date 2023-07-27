@@ -28,7 +28,6 @@ inline void _obtain_read_point()
 {
     _read_point = _bool_args;
     if(_read_point == NULL) _read_point = _data_args;
-    return _read_point;
 }
 
 inline void _swap_read_point()
