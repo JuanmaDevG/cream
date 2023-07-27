@@ -81,15 +81,9 @@ inline void _reset_ext_finders();
 */
 
 /*
-    Returns CARGS_WRONG_ID if the argument has wrong syntax, otherwise returns 
-    CARGS_OK if everything goes well
+    Sets the error configuration that will stop cargs from working
 */
-inline enum cargs_error _is_argument_wrong(const char* actual_argument);
-
-/*
-    If the extended argument is not found, returns CARGS_NON_EXISTENT
-*/
-inline enum cargs_error _does_extended_arg_exist(const char* actual_argument);
+inline void _cargs_declare_error(const char* error_arg, const uint8_t is_extended, const enum cargs_error error_code);
 
 
 /*
@@ -132,10 +126,23 @@ uint8_t _find_extended_argument(const char* ext_arg);
 
 /*
     Configures the argument data pointer to store the data position, 
-    counts the number of data strings of the data argument and if there are 
-    zero data strings, sets the pointer to NULL.
+    count, the number of data strings of the data argument and if there are 
+    zero (or not enough) data strings throws an error leaving the pointers 
+    to NULL and does nothing more.
+
+    The extended_argument position pointer can be set to NULL if the data argument 
+    found is not an extended arg, this way, the function will use the checkpoint 
+    to determine the argument data location, respecting the argument buffers order.
 
     Also advances the argv index position to one before the next argument.
     It is one before the next because of iteration causes.
 */
-void _add_argument_data(const char** argv, uint32_t* actual_position, const uint32_t extended_argument_position);
+uint8_t _add_argument_data(const char** argv, uint32_t* actual_position, const uint32_t* extended_argument_position);
+
+/*
+    Scans a non-extended argument string
+
+    Supports multiple boolean argument values like -abcdf but if there is any data argument
+    into the multi-boolean argument string, it will notify and throw a cargs_error
+*/
+uint8_t _read_non_extended_argument(const char** argv, uint32_t* index);

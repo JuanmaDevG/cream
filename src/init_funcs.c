@@ -53,54 +53,59 @@ void cargs_set_data_args(const char* arg_letters) {
 void cargs_make_mandatory(const char* arg_characters)
 {
     size_t length = strlen(arg_characters) +1;
-    _mandatory_arguments = (char*)malloc(length);
-    memcpy(_mandatory_arguments, arg_characters, length);
+    _mandatory_arg_count = length;
+    _mandatory_args = (_cargs_mandatory_position*)malloc(length * sizeof(_cargs_mandatory_position));
+    for(uint32_t i=0; i < length; i++)
+    {
+        if(_find_argument_char(arg_characters[i]) == 0)
+        {
+            _mandatory_args[i].position = UINT32_MAX;
+            _mandatory_args[i].read_point = NULL;
+        }
+        else
+        {
+            _mandatory_args[i].position = _get_actual_checkpoint() -1;
+            _mandatory_args[i].read_point = _get_actual_read_point();
+        }
+    }
 }
 
-uint32_t cargs_load_args(const int argc, const char** argv)
+void cargs_load_args(const int argc, const char** argv)
 {
-    enum cargs_error potential_error = CARGS_NO_ERROR;
     for(uint32_t i=1; i < argc; i++)
     {
-        potential_error = _is_argument_wrong(argv[i]);
-        if(potential_error) return (uint32_t)potential_error;
+        if(argv[i][0] != _arg_id)
+        {
+            _cargs_declare_error(argv[i], 1, CARGS_WRONG_ID);
+            return;
+        }
 
         if(argv[i][1] == _arg_id)   //Is extended
         {
-            potential_error = _does_extended_arg_exist(argv[i]);
-            if(potential_error) return (uint32_t)potential_error;
+            if(!_find_extended_argument(argv[i] +2))
+            {
+                _cargs_declare_error(argv[i] +2, 1, CARGS_NON_EXISTENT);
+            }
 
             uint32_t pos = _get_actual_ext_checkpoint() -1;
             //Check the argument into the buffer
             _extended_args.args[pos].read_point[_extended_args.args[pos].associated_opt] = '\\';
             //If is data args, fill data pointers to _data_packs
-            if(_extended_args.args[pos].read_point == _data_args) _add_argument_data(argv, i, pos);
+            if(_extended_args.args[pos].read_point == _data_args && !_add_argument_data(argv, &i, &pos)) return;
         }
-        else                        //Is not extended
-        {
-            //Loop that supports multiple boolean argument values like -abcdf but if there is any data argument
-            //into the multi-boolean argument string, it will notify and throw an error
-            for(uint32_t j=1; argv[i][j] != '\0'; j++)
-            {
-                if(_find_argument_char(argv[i][j]))
-                {
-                    //TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                }
-                else
-                {
-                    _cargs_error_argument = argv[i] + j;
-                    _cargs_is_extended = 1;
-                    return (uint32_t)CARGS_NON_EXISTENT;
-                }
-            }
-            //Search the arg
-            //Confirm with a backslash (con read_point y checkpoint -1)
-        }
-        //If is data_arg, configure the ExtArgVec position
-        //Make sure the argument contains data
+        else if(!_read_non_extended_argument(argv, &i)) return;
     }
     _reset_ext_finders();
     _reset_finders();
+
+    //Checking that mandatory arguments have been written within the program input
+    for(uint32_t i=0; i < _mandatory_arg_count; i++)
+    {
+        if(_mandatory_args[i].read_point != NULL)
+            if(_mandatory_args[i].read_point[_mandatory_args[i].position] != '\\')
+                return (uint32_t)CARGS_MANDATORY;
+    }
+
     return (uint32_t)CARGS_NO_ERROR;
 }
 

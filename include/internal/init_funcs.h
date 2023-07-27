@@ -37,6 +37,8 @@ void cargs_set_data_args(const char* arg_characters);
 
     This makes cargs to throw an error code while trying to execute 
     cargs_load_args function and the specified arguments are not found
+
+    If a char argument does not exist, cargs will just ignore it
 */
 void cargs_make_mandatory(const char* arg_characters);
 
@@ -44,13 +46,14 @@ void cargs_make_mandatory(const char* arg_characters);
     Loads the program arguments, checks them and sets the data pointers ready to use.
     After correctly using this function, you can use get functions.
 
-    If any argument error is given, it will return the argument
+    If any argument error is given, it will stop and store the error code in 
+    cargs_error_code
 
     WARNING: 
     This function must be called when the argument setters are called, otherwise
     will have no effect (but of course you can leave boolean or data arguments empty) 
 */
-uint32_t cargs_load_args(const int argc, const char** argv);
+void cargs_load_args(const int argc, const char** argv);
 
 /*
     Gets the pointer to a loaded error string

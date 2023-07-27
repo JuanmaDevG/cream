@@ -59,27 +59,13 @@ inline void _reset_ext_finders() { _extended_checkpoint = 0; }
     -----------------------
 */
 
-inline enum cargs_error _is_argument_wrong(const char* actual_argument)
+inline void _cargs_declare_error(const char* error_arg, const uint8_t is_extended, const enum cargs_error error_code)
 {
-    if(actual_argument[0] != _arg_id)
-    {
-        _cargs_error_argument = actual_argument;
-        _cargs_is_extended = 1; //true to print the whole wrong argument
-        return CARGS_WRONG_ID;
-    }
-    return CARGS_NO_ERROR;
+    _cargs_error_argument = error_arg;
+    _cargs_is_extended = is_extended;
+    cargs_error_code = error_code;
 }
 
-inline enum cargs_error _does_extended_arg_exist(const char* actual_argument)
-{
-    if(_find_extended_argument(actual_argument + 2) == 0)
-    {
-        _cargs_error_argument = actual_argument;
-        _cargs_is_extended = 1;
-        return CARGS_NON_EXISTENT;
-    }
-    return CARGS_NO_ERROR;
-}
 
 /*
     -------------------------
@@ -184,16 +170,51 @@ uint8_t _find_extended_argument(const char* ext_arg)
     }
 }
 
-void _add_argument_data(const char** argv, uint32_t* index, const uint32_t ext_arg_position)
+uint8_t _add_argument_data(const char** argv, uint32_t* index, const uint32_t* ext_arg_position)
 {
     const char** data_pointer = argv + (*index) + 1;
     uint32_t count = 0;
-    uint32_t assocaited_option = _extended_args.args[ext_arg_position].associated_opt;
+    uint8_t is_extended = (ext_arg_position == NULL ? 0 : 1);
+    uint32_t associated_option = 
+        (!is_extended ? _get_actual_checkpoint() -1 : _extended_args.args[*ext_arg_position].associated_opt);
 
     while(data_pointer[count][0] != _arg_id) count++;
-    _data_packs.packages[assocaited_option].count = count;
-    _data_packs.packages[assocaited_option].values = (count == 0 ? NULL : data_pointer);
+    if(count == 0)
+    {
+        _cargs_declare_error(argv[(*index)] + (is_extended ? 2 : 1), is_extended, CARGS_NOT_ENOUGH_DATA);
+        return 0;
+    }
+
+    _data_packs.packages[associated_option].count = count;
+    _data_packs.packages[associated_option].values = (count == 0 ? NULL : data_pointer);
 
     //Set offset to argument iterator
     (*index) += count;
+
+    return 1;
+}
+
+uint8_t _read_non_extended_argument(const char** argv, uint32_t* index)
+{
+    uint8_t data_arg_found = 0;
+    for(uint32_t j=1; argv[(*index)][j] != '\0'; j++)
+    {
+        if(_find_argument_char(argv[(*index)][j]))
+        {
+            if(j > 1 && _get_actual_read_point() == _data_args && data_arg_found) 
+            {
+                _cargs_declare_error(argv[(*index)] +j, 0, CARGS_MULTI_BOOL_ARG_ISSUE);
+                return 0;
+            }
+            _get_actual_read_point()[_get_actual_checkpoint() -1] = '\\';
+            if(_get_actual_read_point() == _data_args && !_add_argument_data(argv, index, NULL)) return 0;
+        }
+        else
+        {
+            _cargs_declare_error(argv[(*index)] +j, 0, CARGS_NON_EXISTENT);
+            return 0;
+        }
+    }
+
+    return 1;
 }

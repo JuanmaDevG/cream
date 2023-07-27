@@ -3,7 +3,9 @@
 #include <stdint.h>
 
 /*
+    -----------------
     Argument packages
+    -----------------
 */
 
 //Argument package associated to a single option
@@ -20,7 +22,9 @@ typedef struct ArgPackageVec {
 
 
 /*
+    ----------------------------
     Extended argument structures
+    ----------------------------
 */
 
 //Extended argument name associated to the corresponding char argument argument
@@ -38,7 +42,9 @@ typedef struct {
 
 
 /*
+    ------------------------
     Shared data declarations
+    ------------------------
 */
 
 extern char _arg_id;
@@ -51,14 +57,38 @@ extern ArgPackageVec _data_packs;
 
 extern ExtArgVec _extended_args;
 
-extern char* _mandatory_arguments;
 
 /*
-    Error managing declarations
+    ------------------------------------------
+    Mandatory application arguments management
+    ------------------------------------------
 */
 
-enum cargs_error { CARGS_NO_ERROR, CARGS_NON_EXISTENT, CARGS_MANDATORY, CARGS_WRONG_ID };
+typedef struct {
+    char* read_point;
+    uint32_t position;
+} _cargs_mandatory_position;
 
+extern _cargs_mandatory_position* _mandatory_args;
+extern uint32_t _mandatory_arg_count;
+
+
+/*
+    ---------------------------
+    Error managing declarations
+    ---------------------------
+*/
+
+enum cargs_error { 
+    CARGS_NO_ERROR, 
+    CARGS_NON_EXISTENT, 
+    CARGS_MANDATORY, 
+    CARGS_WRONG_ID, 
+    CARGS_MULTI_BOOL_ARG_ISSUE,
+    CARGS_NOT_ENOUGH_DATA
+};
+
+extern enum cargs_error cargs_error_code;
 extern char* _cargs_error_buffer_str;
 
 extern uint8_t _cargs_is_extended;
@@ -67,7 +97,9 @@ extern char* _cargs_error_argument;
 extern const char* _cargs_error_strings[];
 
 /*
+    ----------------
     Utility pointers
+    ----------------
 */
 
 extern char* _read_point;               //Pointer where to start to read an option char buffer
