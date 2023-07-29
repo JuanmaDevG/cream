@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CARGS_SHARED_DATA
+#define CARGS_SHARED_DATA
 
 #include <stdint.h>
 
@@ -105,3 +106,6 @@ extern const char* _cargs_error_strings[];
 extern char* _read_point;               //Pointer where to start to read an option char buffer
 extern uint32_t _checkpoint;            //Position of the character next to the one that was found
 extern uint32_t _extended_checkpoint;   //Checkpoint just made for extended arguments
+
+
+#endif

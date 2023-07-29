@@ -1,7 +1,7 @@
-#pragma once
+#ifndef CARGS_UTILS_H
+#define CARGS_UTILS_H
 
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 
 #include "shared_data.h"
@@ -35,34 +35,34 @@ void _push_extended_argument(
 
     If one argument type is not initialized, obtains the remaining type
 */
-inline void _obtain_read_point();
+extern inline void _obtain_read_point();
 
 /*
     Swaps the buffer _read_point to the next argument type read point 
     (boolean args -> data args... and viceversa)
 */
-inline void _swap_read_point();
+extern inline void _swap_read_point();
 
 /*
     Gets the actual state of the read_point
 */
-inline char* _get_actual_read_point();
+extern inline char* _get_actual_read_point();
 
 /*
     Gets the actual state of the checkpoint
 */
-inline uint32_t _get_actual_checkpoint();
+extern inline uint32_t _get_actual_checkpoint();
 
 /*
     Gets the actual state of the extended argument searcher 
     checkpoint
 */
-inline uint32_t _get_actual_ext_checkpoint();
+extern inline uint32_t _get_actual_ext_checkpoint();
 
 /*
     Resets the finder checkpoint and read_point
 */
-inline void _reset_finders();
+extern inline void _reset_finders();
 
 /*
     Resets the extended argument buffer finders
@@ -71,7 +71,7 @@ inline void _reset_finders();
     For the moment just one, there probably will be more in 
     later versions
 */
-inline void _reset_ext_finders();
+extern inline void _reset_ext_finders();
 
 
 /*
@@ -82,8 +82,10 @@ inline void _reset_ext_finders();
 
 /*
     Sets the error configuration that will stop cargs from working
+
+    The error_core must be a cargs_error enum type to work
 */
-inline void _cargs_declare_error(const char* error_arg, const uint8_t is_extended, const enum cargs_error error_code);
+extern inline void _cargs_declare_error(const char* error_arg, const uint8_t is_extended, const uint32_t error_code);
 
 
 /*
@@ -94,8 +96,10 @@ inline void _cargs_declare_error(const char* error_arg, const uint8_t is_extende
 
 /*
     Removes redundant option letters
+
+    The mode must be a _redunancy_remove_mode enum type
 */
-void _remove_redundancies(const enum _redundancy_remove_mode mode);
+void _remove_redundancies(const uint32_t mode);
 
 /*
     Finds the given argument char looking into the argument buffers
@@ -146,3 +150,6 @@ uint8_t _add_argument_data(const char** argv, uint32_t* actual_position, const u
     into the multi-boolean argument string, it will notify and throw a cargs_error
 */
 uint8_t _read_non_extended_argument(const char** argv, uint32_t* index);
+
+
+#endif

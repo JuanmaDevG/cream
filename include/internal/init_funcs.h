@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CARGS_INIT_FUNCS
+#define CARGS_INIT_FUNCS
 
 #include <stdarg.h>
 
@@ -59,3 +60,6 @@ void cargs_load_args(const int argc, const char** argv);
     Gets the pointer to a loaded error string
 */
 const char* cargs_get_error(uint32_t err_code);
+
+
+#endif

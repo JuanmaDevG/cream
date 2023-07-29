@@ -11,7 +11,7 @@ void _push_extended_argument(
     const uint32_t vec_pos
 ) {
     _extended_args.args->associated_opt = associated_opt;
-    _extended_args.args->read_point = read_point;
+    _extended_args.args->read_point = (char*)read_point;
 
     size_t length = strlen(argument) +1;
     _extended_args.args[vec_pos].name = (char*)malloc(length);
@@ -58,9 +58,9 @@ inline void _reset_ext_finders() { _extended_checkpoint = 0; }
     -----------------------
 */
 
-inline void _cargs_declare_error(const char* error_arg, const uint8_t is_extended, const enum cargs_error error_code)
+inline void _cargs_declare_error(const char* error_arg, const uint8_t is_extended, const uint32_t error_code)
 {
-    _cargs_error_argument = error_arg;
+    _cargs_error_argument = (char*)error_arg;
     _cargs_is_extended = is_extended;
     cargs_error_code = error_code;
 }
@@ -72,7 +72,7 @@ inline void _cargs_declare_error(const char* error_arg, const uint8_t is_extende
     -------------------------
 */
 
-void _remove_redundancies(const enum _redundancy_remove_mode mode)
+void _remove_redundancies(const uint32_t mode)
 {
     if(_bool_args == NULL || _data_args == NULL) return;
     char const* read_point = NULL;
@@ -185,7 +185,7 @@ uint8_t _add_argument_data(const char** argv, uint32_t* index, const uint32_t* e
     }
 
     _data_packs.packages[associated_option].count = count;
-    _data_packs.packages[associated_option].values = (count == 0 ? NULL : data_pointer);
+    _data_packs.packages[associated_option].values = (count == 0 ? NULL : (char**)data_pointer);
 
     //Set offset to argument iterator
     (*index) += count;
