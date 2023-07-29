@@ -8,6 +8,8 @@ rem (Note:) do not use space when declaring a variable because print functions c
 rem     Avoid: set my_var = Some value
 rem     Prefer: set my_var=Some value
 rem (Note:) use %var% calls for variables that were created with set, otherwise use %%var calls with loop local volatile variables
+rem (Note:) is very important to respect the compiler arguments order
+rem     LIKE: compiler_call [config_options] [source_files] [header_files_dirs and lib_dirs] [lib_activation_options (-lglfw)]
 
 
 rem This can be changed to gcc if you prefer to use MinGW compiler interface, should not but might produce any error
@@ -18,8 +20,12 @@ set include_dir=..\include\internal\
 set source_dir=..\src\
 
 rem There here will be more source files with more updates TODO: make a cleaner syntax
-set sources=%source_dir%shared_data.c %source_dir%utils.c
+set sources=%source_dir%error_str.c %source_dir%shared_data.c %source_dir%utils.c
 
-for %%f in (.\src\*) do (
-    %compiler% %options% -I%include_dir% %%f -o test.exe
+
+rem Compile object files
+for %%f in (%sources%) do (
+    %compiler% %options% -o tmp_test.exe %%f %sources% -I%include_dir%
 )
+
+if exist test.exe (del tmp_test.exe)
