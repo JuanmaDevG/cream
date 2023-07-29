@@ -47,7 +47,7 @@ int main()
     assert(_read_point == NULL);
 
     _reset_ext_finders();
-    assert(_extended_checkpoint);
+    assert(_extended_checkpoint == 0);
 
     return 0;
 }
