@@ -18,13 +18,14 @@ set compiler=clang
 set options=-Wall -Wextra -Werror -O3
 set include_dir=..\include\internal\
 set source_dir=..\src\
+set test_sources=.\src\*
 
 rem There here will be more source files with more updates TODO: make a cleaner syntax
 set sources=%source_dir%error_str.c %source_dir%shared_data.c %source_dir%utils.c
 
 
 rem Compile object files
-for %%f in (%sources%) do (
+for %%f in (%test_sources%) do (
     %compiler% %options% -o tmp_test.exe %%f %sources% -I%include_dir%
 )
 
