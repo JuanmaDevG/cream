@@ -38,5 +38,16 @@ int main()
     _swap_read_point();
     assert(_read_point == _bool_args);
 
+    assert(_get_actual_read_point() == _bool_args);
+    assert(_get_actual_checkpoint() == 0);
+    assert(_get_actual_ext_checkpoint() == 0);
+    
+    _reset_finders();
+    assert(_checkpoint == 0);
+    assert(_read_point == NULL);
+
+    _reset_ext_finders();
+    assert(_extended_checkpoint);
+
     return 0;
 }
