@@ -54,3 +54,6 @@ dkms.conf
 
 #Configuration files
 .vs*
+
+#Developer notes
+*.devnotes

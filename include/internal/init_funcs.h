@@ -1,5 +1,4 @@
-#ifndef CARGS_INIT_FUNCS
-#define CARGS_INIT_FUNCS
+#pragma once
 
 #include <stdarg.h>
 
@@ -57,9 +56,8 @@ void cargs_make_mandatory(const char* arg_characters);
 void cargs_load_args(const int argc, const char** argv);
 
 /*
-    Gets the pointer to a loaded error string
+    Gets the pointer to a a loaded error string
+
+    If the pointer is NULL, there are no errors
 */
-const char* cargs_get_error(uint32_t err_code);
-
-
-#endif
+const char* cargs_get_error();

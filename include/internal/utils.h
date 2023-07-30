@@ -1,5 +1,4 @@
-#ifndef CARGS_UTILS_H
-#define CARGS_UTILS_H
+#pragma once
 
 #include <stdlib.h>
 #include <string.h>
@@ -150,6 +149,3 @@ uint8_t _add_argument_data(const char** argv, uint32_t* actual_position, const u
     into the multi-boolean argument string, it will notify and throw a cargs_error
 */
 uint8_t _read_non_extended_argument(const char** argv, uint32_t* index);
-
-
-#endif

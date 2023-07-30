@@ -103,16 +103,22 @@ void cargs_load_args(const int argc, const char** argv)
     {
         if(_mandatory_args[i].read_point != NULL)
             if(_mandatory_args[i].read_point[_mandatory_args[i].position] != '\\')
-                return (uint32_t)CARGS_MANDATORY;
+            {
+                _cargs_declare_error(
+                    _mandatory_args[i].read_point[_mandatory_args[i].position],
+                    0, CARGS_MANDATORY
+                );
+                return;
+            }
     }
-
-    return (uint32_t)CARGS_NO_ERROR;
 }
 
-const char* cargs_get_error(uint32_t err_code)
+const char* cargs_get_error()
 {
-    size_t char_count = strlen(_cargs_error_strings[err_code]);
-    uint32_t null_location = 1 + (uint32_t)char_count;  //First null location is where to place the argument
+    if(cargs_error_code == 0) return NULL;
+
+    size_t char_count = strlen(_cargs_error_strings[cargs_error_code]);
+    uint32_t null_location = 1 + (uint32_t)char_count;      //First null location is where to place the argument
 
     size_t err_arg_length = (_cargs_is_extended ? strlen(_cargs_error_argument) : /*Non extended means just one char opt*/ 1 );
     char_count += err_arg_length +1;
@@ -120,7 +126,7 @@ const char* cargs_get_error(uint32_t err_code)
     _cargs_error_buffer_str = (char*)malloc(char_count);
     
     //Copy the error till the first null char
-    memcpy(_cargs_error_buffer_str, _cargs_error_strings[err_code], null_location);
+    memcpy(_cargs_error_buffer_str, _cargs_error_strings[cargs_error_code], null_location);
     //Copy the error content into the null character position
     if(_cargs_is_extended)
         memcpy(_cargs_error_buffer_str + null_location, _cargs_error_argument, err_arg_length);
@@ -130,6 +136,6 @@ const char* cargs_get_error(uint32_t err_code)
         offset_pointer[0] = _cargs_error_argument[0]; //Just write the option character
     }
     //Copy the rest of the error message
-    strcpy(_cargs_error_buffer_str + null_location + err_arg_length, _cargs_error_strings[err_code] + null_location +1);
+    strcpy(_cargs_error_buffer_str + null_location + err_arg_length, _cargs_error_strings[cargs_error_code] + null_location +1);
     return (const char*)_cargs_error_buffer_str;
 }
