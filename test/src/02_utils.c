@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 
 #include "utils.h"
 
@@ -29,5 +30,6 @@ int main()
     assert(_extended_args.args[1].read_point == _data_args);
 
     free(_extended_args.args);
+    printf("Finished test 2\n");
     return 0;
 }

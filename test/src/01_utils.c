@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 
 #include "utils.h"
 
@@ -49,5 +50,6 @@ int main()
     _reset_ext_finders();
     assert(_extended_checkpoint == 0);
 
+    printf("Finished test 1\n");
     return 0;
 }
