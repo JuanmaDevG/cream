@@ -10,8 +10,8 @@ void _push_extended_argument(
     const char* argument, const uint32_t associated_opt, const char* read_point, 
     const uint32_t vec_pos
 ) {
-    _extended_args.args->associated_opt = associated_opt;
-    _extended_args.args->read_point = (char*)read_point;
+    _extended_args.args[vec_pos].associated_opt = associated_opt;
+    _extended_args.args[vec_pos].read_point = (char*)read_point;
 
     size_t length = strlen(argument) +1;
     _extended_args.args[vec_pos].name = (char*)malloc(length);

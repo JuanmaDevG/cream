@@ -1,18 +1,15 @@
-#include <assert.h>
-#include <stdio.h>
-
-#include "utils.h"
+#include "utils_test.h"
 
 /*
     PUSHING SOME EXTENDED ARGUMENTS
 */
 
 const uint32_t vec_size = 2;
-_bool_args = "s";
-_data_args = "s";
 
 int main()
 {
+    _bool_args = new_bool_args;
+    _data_args = new_data_args;
     _extended_args.size = vec_size;
     _extended_args.args = (ExtArg*)calloc(vec_size, sizeof(ExtArg));
 
@@ -30,6 +27,6 @@ int main()
     assert(_extended_args.args[1].read_point == _data_args);
 
     free(_extended_args.args);
-    printf("Finished test 2\n");
+    printf(finish_msg, 2);
     return 0;
 }

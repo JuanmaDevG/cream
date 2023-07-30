@@ -1,7 +1,4 @@
-#include <assert.h>
-#include <stdio.h>
-
-#include "utils.h"
+#include "utils_test.h"
 
 /*
     READ POINT UTILITY TEST
@@ -50,6 +47,6 @@ int main()
     _reset_ext_finders();
     assert(_extended_checkpoint == 0);
 
-    printf("Finished test 1\n");
+    printf(finish_msg, 1);
     return 0;
 }

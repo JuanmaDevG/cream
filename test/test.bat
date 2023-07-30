@@ -38,9 +38,10 @@ set test_file=tmp_test.exe
 
 rem Compile object files
 for %%f in (%test_sources%) do (
-    %compiler% %options% -o %test_file% %%f %sources% -I%include_dir%
-    %test_file%
+    rem Avoiding the compilation of header files because of lack of entry point
+    if /I not %%~xf == .h (
+        %compiler% %options% -o %test_file% -I%include_dir% %%f %sources%
+        %test_file%
+    )
 )
 del %test_file%
-
-if exist test.exe (del tmp_test.exe)
