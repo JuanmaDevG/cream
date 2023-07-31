@@ -25,9 +25,6 @@ int main()
 
     assert(strcmp(_bool_args, "acef") == 0);
 
-
-    //Move this code to more test files and if the unit test gets bigger make more functions
-
     /*
     //--------------------------
     //Finding extended arguments

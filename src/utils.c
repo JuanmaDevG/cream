@@ -167,8 +167,10 @@ uint8_t _find_extended_argument(const char* ext_arg)
         }
         
         //Not found, and if we're done with all the vector, reset and return
-        if(j == _extended_checkpoint -1)
-        {
+        if(
+            j == _extended_checkpoint -1 ||
+            (_extended_checkpoint == 0 && j == _extended_args.size -1)
+        ) {
             _reset_ext_finders();
             return 0;
         }
