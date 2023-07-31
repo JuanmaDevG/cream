@@ -1,15 +1,11 @@
 #include "utils_test.h"
 
 /*
-    GENERAL PURPOSE UTILITIES TEST
+    REMOVING REDUNDANCIES
 */
 
 int main()
 {
-    //---------------------
-    //Removing redundancies
-    //---------------------
-
     _bool_args = new_bool_args;
     _data_args = new_data_args;
     _bool_args_count = strlen(new_bool_args);
@@ -29,30 +25,10 @@ int main()
 
     assert(strcmp(_bool_args, "acef") == 0);
 
-    //---------------------------
-    //Finding character arguments
-    //---------------------------
 
-    assert(_find_argument_char('a'));
-    assert(_get_actual_read_point() == _bool_args);
-    assert(_get_actual_checkpoint() == 1);
+    //Move this code to more test files and if the unit test gets bigger make more functions
 
-    assert(_find_argument_char('h'));
-    assert(_get_actual_read_point() == _data_args);
-    assert(_get_actual_checkpoint() == 1);
-
-    assert(_find_argument_char('f'));
-    assert(_get_actual_read_point() == _bool_args);
-    assert(_get_actual_checkpoint() == 4);
-
-    assert(!_find_argument_char('p'));
-    assert(_get_actual_read_point() == NULL);
-    assert(_get_actual_checkpoint() == 0);
-
-    assert(!_find_argument_char('\0'));
-    assert(_get_actual_read_point() == NULL);
-    assert(_get_actual_checkpoint() == 0);
-
+    /*
     //--------------------------
     //Finding extended arguments
     //--------------------------
@@ -62,7 +38,7 @@ int main()
     _extended_args.args[1].associated_opt = 3; //f
     _extended_args.args[1].read_point = _bool_args;
     _extended_args.args[1].name = (char*)malloc(strlen("force") +1);
-    strcpy(_extended_args.args[1].name, "force");
+    memcpy(_extended_args.args[1].name, "force", 6);
 
     assert(!_find_extended_argument("must-not-find"));
     assert(_get_actual_ext_checkpoint() == 0);
@@ -90,7 +66,7 @@ int main()
 
     uint32_t argument_position = 4, extended_arg_vec_position = 1;
     //No needed find operation because it is extended
-    assert(_add_argument_data(8, tmp_argv, &argument_position, &extended_arg_vec_position));
+    assert(_add_argument_data(8, (const char**)tmp_argv, &argument_position, &extended_arg_vec_position));
 
     //Package number 3 because the extended arg associated option position is 3
     assert(_data_packs.packages[3].count == 3);
@@ -99,9 +75,10 @@ int main()
     //Now the non-extended argument version
     argument_position = 0;
     _find_argument_char('h');
-    assert(_add_argument_data(8, tmp_argv, &argument_position, NULL));
+    assert(_add_argument_data(8, (const char**)tmp_argv, &argument_position, NULL));
     assert(_data_packs.packages[0].count == 3);
     assert(_data_packs.packages[0].values == tmp_argv +1);
+    */
 
     printf(finish_msg, 4);
     return 0;

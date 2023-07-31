@@ -27,7 +27,7 @@ rem ----------------------------------------------------------------------------
 rem This can be changed to gcc if you prefer to use MinGW compiler interface, should not but might produce any error
 set compiler=clang
 
-set options=-Wall -Wextra -Werror -Wno-undefined-inline -Wno-depracated-declarations -O3
+set options=-Wall -Wextra -Werror -Wno-undefined-inline -O3
 set include_dir=..\include\internal\
 set source_dir=..\src\
 set test_sources=.\src\*
