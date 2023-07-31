@@ -113,12 +113,6 @@ void _remove_redundancies(const uint32_t mode)
 
 uint32_t _find_argument_char(const char argument_char)
 {
-    if(argument_char == '\0')
-    {
-        _reset_finders();
-        return 0;
-    }
-
     if(_read_point == NULL)
     {
         _obtain_read_point();
@@ -145,8 +139,10 @@ uint32_t _find_argument_char(const char argument_char)
         }
         
         //Not found, and if looked everywhere, return
-        if(j == _checkpoint -1 && checkpoint_read_point == _read_point) 
-        {
+        if(
+            (j == _checkpoint -1 && checkpoint_read_point == _read_point) ||                        //Checkpoint is not zero
+            (_checkpoint == 0 && _read_point[j+1] == '\0' && _read_point != checkpoint_read_point)  //Checkpoint is zero
+        ) {
             _reset_finders();
             return _checkpoint;
         }
