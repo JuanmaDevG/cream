@@ -91,9 +91,9 @@ void cargs_load_args(const int argc, const char** argv)
             //Check the argument into the buffer
             _extended_args.args[pos].read_point[_extended_args.args[pos].associated_opt] = '\\';
             //If is data args, fill data pointers to _data_packs
-            if(_extended_args.args[pos].read_point == _data_args && !_add_argument_data(argv, &i, &pos)) return;
+            if(_extended_args.args[pos].read_point == _data_args && !_add_argument_data(argc, argv, &i, &pos)) return;
         }
-        else if(!_read_non_extended_argument(argv, &i)) return;
+        else if(!_read_non_extended_argument(argc, argv, &i)) return;
     }
     _reset_ext_finders();
     _reset_finders();

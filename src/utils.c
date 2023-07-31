@@ -76,7 +76,7 @@ void _remove_redundancies(const uint32_t mode)
 {
     if(_bool_args == NULL || _data_args == NULL) return;
     char const* read_point = NULL;
-    size_t const* read_length = NULL;
+    size_t* read_length = NULL;
     char* write_point = NULL;
     size_t* write_length = NULL;
 
@@ -99,8 +99,12 @@ void _remove_redundancies(const uint32_t mode)
     for(uint64_t i=0; i <= *read_length; i++)
     {
         for(uint64_t j=0; j <= *write_length; j++)
-            if(read_point[i] == write_point[j]) 
-                memcpy(write_point, write_point+1, (*write_length) - j);
+            if(read_point[i] == write_point[j])
+            {
+                memcpy(write_point +j, write_point +j +1, (*write_length) - j);
+                (*write_length)--;
+                j--;
+            }
     }
 
     //Does not reallocate because the null terminating character is copied and can be a waste of time
@@ -153,15 +157,16 @@ uint8_t _find_extended_argument(const char* ext_arg)
     {
         if(j == _extended_args.size -1) j = 0;
 
-        if(strcmp(_extended_args.args[j].name, ext_arg) == 0)
+        if(_extended_args.args[j].name != NULL && strcmp(_extended_args.args[j].name, ext_arg) == 0)
         {
             _extended_checkpoint = j+1;
             return 1;
         }
+        
         //Not found, and if we're done with all the vector, reset and return
-        else if(j == _extended_checkpoint -1)
+        if(j == _extended_checkpoint -1)
         {
-            _extended_checkpoint = 0;
+            _reset_ext_finders();
             return 0;
         }
 
@@ -169,21 +174,24 @@ uint8_t _find_extended_argument(const char* ext_arg)
     }
 }
 
-uint8_t _add_argument_data(const char** argv, uint32_t* index, const uint32_t* ext_arg_position)
+uint8_t _add_argument_data(const int argc, const char** argv, uint32_t* index, const uint32_t* ext_arg_position)
 {
-    const char** data_pointer = argv + (*index) + 1;
-    uint32_t count = 0;
     uint8_t is_extended = (ext_arg_position == NULL ? 0 : 1);
+    const uint32_t offset = (*index) +1;
+
+    const char** data_pointer = argv + offset;
+    uint32_t count = 0;
     uint32_t associated_option = 
         (!is_extended ? _get_actual_checkpoint() -1 : _extended_args.args[*ext_arg_position].associated_opt);
 
-    while(data_pointer[count][0] != _arg_id) count++;
+    while(count + offset < (uint32_t)argc && data_pointer[count][0] != _arg_id) count++;
     if(count == 0)
     {
         _cargs_declare_error(argv[(*index)] + (is_extended ? 2 : 1), is_extended, CARGS_NOT_ENOUGH_DATA);
         return 0;
     }
 
+    //There is no read_point association because _data_packs belong to _data_args read point
     _data_packs.packages[associated_option].count = count;
     _data_packs.packages[associated_option].values = (count == 0 ? NULL : (char**)data_pointer);
 
@@ -193,7 +201,7 @@ uint8_t _add_argument_data(const char** argv, uint32_t* index, const uint32_t* e
     return 1;
 }
 
-uint8_t _read_non_extended_argument(const char** argv, uint32_t* index)
+uint8_t _read_non_extended_argument(const int argc, const char** argv, uint32_t* index)
 {
     uint8_t data_arg_found = 0;
     for(uint32_t j=1; argv[(*index)][j] != '\0'; j++)
@@ -206,7 +214,7 @@ uint8_t _read_non_extended_argument(const char** argv, uint32_t* index)
                 return 0;
             }
             _get_actual_read_point()[_get_actual_checkpoint() -1] = '\\';
-            if(_get_actual_read_point() == _data_args && !_add_argument_data(argv, index, NULL)) return 0;
+            if(_get_actual_read_point() == _data_args && !_add_argument_data(argc, argv, index, NULL)) return 0;
         }
         else
         {

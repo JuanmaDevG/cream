@@ -140,7 +140,7 @@ uint8_t _find_extended_argument(const char* ext_arg);
     Also advances the argv index position to one before the next argument.
     It is one before the next because of iteration causes.
 */
-uint8_t _add_argument_data(const char** argv, uint32_t* actual_position, const uint32_t* extended_argument_position);
+uint8_t _add_argument_data(const int argc, const char** argv, uint32_t* actual_position, const uint32_t* extended_argument_position);
 
 /*
     Scans a non-extended argument string
@@ -148,4 +148,4 @@ uint8_t _add_argument_data(const char** argv, uint32_t* actual_position, const u
     Supports multiple boolean argument values like -abcdf but if there is any data argument
     into the multi-boolean argument string, it will notify and throw a cargs_error
 */
-uint8_t _read_non_extended_argument(const char** argv, uint32_t* index);
+uint8_t _read_non_extended_argument(const int argc, const char** argv, uint32_t* index);
