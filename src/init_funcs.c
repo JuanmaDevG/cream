@@ -70,11 +70,25 @@ void cargs_make_mandatory(const char* arg_characters)
             _mandatory_args[i].read_point = _get_actual_read_point();
         }
     }
+
+    _reset_finders();
 }
+
+void cargs_set_minimum_data(const char* data_arg_string, ...)
+{
+    //Set a data structure that stores minimum required arguments, the size of the structure is equal to the buffer count
+}
+
+void cargs_set_maximum_data(const char* data_arg_string, ...)
+{
+    //Code more and more...
+}
+
+inline void cargs_treat_anonymous_args_as_errors(const bool value) { _cargs_treat_anonymous_args_as_errors = value; }
 
 void cargs_load_args(const int argc, const char** argv)
 {
-    for(uint32_t i=1; i < argc; i++)
+    for(uint32_t i=1; i < (uint32_t)argc; i++)
     {
         if(argv[i][0] != _arg_id)
         {
@@ -107,7 +121,7 @@ void cargs_load_args(const int argc, const char** argv)
             if(_mandatory_args[i].read_point[_mandatory_args[i].position] != '\\')
             {
                 _cargs_declare_error(
-                    _mandatory_args[i].read_point[_mandatory_args[i].position],
+                    _mandatory_args[i].read_point + _mandatory_args[i].position,
                     0, CARGS_MANDATORY
                 );
                 return;

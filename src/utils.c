@@ -208,18 +208,24 @@ uint8_t _add_argument_data(const int argc, const char* argv[], uint32_t* index, 
 
 uint8_t _read_non_extended_argument(const int argc, const char* argv[], uint32_t* index)
 {
-    uint8_t data_arg_found = 0;
     for(uint32_t j=1; argv[(*index)][j] != '\0'; j++)
     {
         if(_find_argument_char(argv[(*index)][j]))
         {
-            if(j > 1 && _get_actual_read_point() == _data_args && data_arg_found) 
+            if(_get_actual_read_point() == _data_args)
             {
-                _cargs_declare_error(argv[(*index)] +j, 0, CARGS_MULTI_BOOL_ARG_ISSUE);
-                return 0;
+                if(j == 1 && argv[(*index)][2] == '\0')
+                {
+                    if(!_add_argument_data(argc, argv, index, NULL)) return 0;
+                }
+                else
+                {
+                    _cargs_declare_error(argv[(*index)] +j, 0, CARGS_MULTI_BOOL_ARG_ISSUE);
+                    return 0;
+                } 
             }
+
             _get_actual_read_point()[_get_actual_checkpoint() -1] = '\\';
-            if(_get_actual_read_point() == _data_args && !_add_argument_data(argc, argv, index, NULL)) return 0;
         }
         else
         {

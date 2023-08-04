@@ -35,7 +35,7 @@ void init_test_args()
 
 void init_ext_arg_vec()
 {
-    _extended_args.size = 3;
+    _extended_args.size = strlen(new_data_args);
     _extended_args.args = (ExtArg*)calloc(_extended_args.size, sizeof(ExtArg));
 
     //First element boolean argument

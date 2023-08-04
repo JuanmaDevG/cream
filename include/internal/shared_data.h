@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /*
     -----------------
@@ -71,6 +72,26 @@ typedef struct {
 
 extern _cargs_mandatory_position* _mandatory_args;
 extern uint32_t _mandatory_arg_count;
+
+
+/*
+    --------------------------------------------------
+    Anonymous args and data limits on argument control
+    --------------------------------------------------
+*/
+
+typedef struct {
+    ArgPackage anon_arg_pack;
+    _cargs_anonymous_list* next;
+    _cargs_anonymous_list* previous;
+} _cargs_anonymous_list;
+
+extern bool _cargs_treat_anonymous_args_as_errors;
+extern _cargs_anonymous_list* _cargs_anon_args;
+extern _cargs_anonymous_list* _cargs_anon_last;
+
+extern uint8_t* _cargs_minimum_data;
+extern uint8_t* _cargs_maximum_data;
 
 
 /*

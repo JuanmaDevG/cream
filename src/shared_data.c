@@ -40,6 +40,19 @@ _cargs_mandatory_position* _mandatory_args = NULL;
 uint32_t _mandatory_arg_count = 0;
 
 /*
+    ---------------------------------------------------------------
+    Anonymous args and data limits on argument control declarations
+    ---------------------------------------------------------------
+*/
+
+bool _cargs_treat_anonymous_args_as_errors = false;
+_cargs_anonymous_list* _cargs_anon_args = NULL;
+_cargs_anonymous_list* _cargs_anon_last = NULL;
+
+uint8_t* _cargs_maximum_data = NULL;
+uint8_t* _cargs_minimum_data = NULL;
+
+/*
     ----------------
     Utility pointers
     ----------------
