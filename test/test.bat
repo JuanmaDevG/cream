@@ -11,6 +11,7 @@ rem (Note:) do not use space when declaring a variable because print functions c
 rem     Avoid: set my_var = Some value
 rem     Prefer: set my_var=Some value
 rem (Note:) use %var% calls for variables that were created with set, otherwise use %%var calls with loop local volatile variables
+rem     Also, to read command line arguments, is convenient to use a single percentage like: %1 %2 %3 ...
 rem (Note:) is very important to respect the compiler arguments order
 rem     LIKE: compiler_call [config_options] [source_files] [header_files_dirs and lib_dirs] [lib_activation_options (-lglfw)]
 rem (Note:) VERY IMPORTANT
@@ -24,24 +25,54 @@ rem     inline functions implementation within their definition header file.
 
 rem ------------------------------------------------------------------------------------------------------------------------------
 
+rem (Note:) Every variable made in the script is local and not any system environment variable
+setlocal
+
 rem This can be changed to gcc if you prefer to use MinGW compiler interface, should not but might produce any error
 set compiler=clang
 
 set options=-Wall -Wextra -Werror -Wno-undefined-inline -O3
 set include_dir=..\include\internal\
 set source_dir=..\src\
-set test_sources=.\src\*
 
 rem There here will be more source files with more updates TODO: make a cleaner syntax
 set sources=%source_dir%error_str.c %source_dir%shared_data.c %source_dir%utils.c
 set test_file=tmp_test.exe
 
-rem Compile object files
-for %%f in (%test_sources%) do (
-    rem Avoiding the compilation of header files because of lack of entry point
-    if /I not %%~xf == .h (
-        %compiler% %options% -o %test_file% -I%include_dir% %%f %sources%
-        %test_file%
-    )
+
+rem ----------------- MAIN -----------------
+
+call :run_test_files %1
+
+endlocal
+exit /b
+
+
+rem         --------------------
+rem         MAIN USAGE FUNCTIONS
+rem         --------------------
+
+
+rem This reads the first argument to execute a specific test or a specific set of tests
+rem For example:
+rem     test (no arguments means run all the test files)
+rem     test 1 (will execute just the test one)
+rem     test utils (will execute all the utils test_files)
+:run_test_files
+set test_package=src\*
+if not -%1-==-- (
+    set test_package=%test_package%%1*
+)
+
+for %%f in (%test_package%) do (
+    call :compile_and_run %%f
 )
 del %test_file%
+exit /b
+
+
+rem Takes the test filename as only argument, then compiles and executes
+:compile_and_run
+%compiler% %options% -o %test_file% -I%include_dir% %1 %sources%
+%test_file%
+exit /b

@@ -3,17 +3,30 @@
 
 void cargs_set_identificator(const char new_id) { _arg_id = new_id; }
 
-/*
-    Sets the boolean arguments to be detected
-*/
-void cargs_set_boolean_args(const char* arg_letters) {
-    if(arg_letters == NULL) return;
-    if(_bool_args != NULL) free(_bool_args);
-    _bool_args_count = strlen(arg_letters);
+void cargs_set_args(const char* bool_args, const char* data_args)
+{
+    //Cleanup
+    if(_bool_args) { free(_bool_args); _bool_args = NULL; }
+    if(_data_args) { free(_data_args); _data_args = NULL; }
 
-    _bool_args = (char*)malloc(_bool_args_count +1);
-    memcpy(_bool_args, arg_letters, _bool_args_count +1);
-    _remove_redundancies(REMOVE_BOOL_REDUNDANCIES);
+    //Measures
+    if(bool_args) _bool_args_count = strlen(bool_args);
+    if(data_args) _data_packs.size = strlen(data_args);
+    size_t buf_length = _bool_args_count + _data_packs.size;
+    if(buf_length == 0) return;
+
+    //Cache friendly single buffer with dual pointer
+    _bool_args = (char*) malloc(buf_length + (bool_args && data_args ? 2 : 1) /*If both buffers, two null characters*/);
+
+    if(bool_args) memcpy(_bool_args, bool_args, _bool_args_count +1);
+    if(data_args)
+    {
+        //Data arguments pointer offset
+        _data_args = _bool_args + _bool_args_count +1;
+        memcpy(_data_args, data_args, _data_packs.size + 1);
+        _remove_redundancies(REMOVE_DATA_REDUNDANCIES);
+        _data_packs.packages = (ArgPackage*)calloc(_data_packs.size, sizeof(ArgPackage));
+    }
 }
 
 void cargs_associate_extended(const char* arg_characters, ...) {
@@ -37,17 +50,6 @@ void cargs_associate_extended(const char* arg_characters, ...) {
     _reset_finders();
 
     va_end(arg_l);
-}
-
-void cargs_set_data_args(const char* arg_letters) {
-    if(!arg_letters) return;
-    if(_data_args != NULL) free(_data_args);
-    _data_packs.size = strlen(arg_letters);
-
-    _data_args = (char*)malloc(_data_packs.size +1);
-    memcpy(_data_args, arg_letters, _data_packs.size +1);
-    _remove_redundancies(REMOVE_DATA_REDUNDANCIES);
-    _data_packs.packages = (ArgPackage*)calloc(_data_packs.size, sizeof(ArgPackage));
 }
 
 void cargs_make_mandatory(const char* arg_characters)

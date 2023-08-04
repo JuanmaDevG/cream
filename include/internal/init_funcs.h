@@ -13,9 +13,17 @@
 void cargs_set_identificator(const char new_identificator);
 
 /*
-    Sets how many boolean (existent or non existent) args and each_one's letter.
+    The first argument if the boolean argument string.
+    The second one is the data argument string
+
+    For example the call:
+    cargs_set_args("abcd", "efgh");
+
+    Will set the command line arguments:
+    Boolean (existent or not):      {-a , -b , -c , -d}
+    Data (require data to work):    {-e , -f , -g , -h}
 */
-void cargs_set_boolean_args(const char* arg_characters);
+void cargs_set_args(const char* boolean_arguments, const char* data_arguments);
 
 /*
     Associates an extended version of an argument letter to make the argument 
@@ -25,12 +33,6 @@ void cargs_set_boolean_args(const char* arg_characters);
     otherwise the loop will be much longer
 */
 void cargs_associate_extended(const char* arg_characters, ...);
-
-/*
-    Arguments that require data, so their extra arguments data will be 
-    grouped.
-*/
-void cargs_set_data_args(const char* arg_characters);
 
 /*
     Makes the characters given as parameter mandatory to use

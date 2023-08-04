@@ -158,7 +158,7 @@ uint8_t _find_extended_argument(const char* ext_arg)
     uint32_t j = _extended_checkpoint;
     while(1)
     {
-        if(j == _extended_args.size -1) j = 0;
+        if(j == _extended_args.size) j = 0; //When j surpasses the vector limit
 
         if(_extended_args.args[j].name != NULL && strcmp(_extended_args.args[j].name, ext_arg) == 0)
         {

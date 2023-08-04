@@ -5,6 +5,8 @@
 
 #include "utils.h"
 
+#include <stdio.h>
+
 char new_bool_args[] = "abcdef";
 char new_data_args[] = "ghijkl";
 
@@ -31,7 +33,7 @@ void init_ext_arg_vec()
     _extended_args.args[1].associated_opt = 0;
     _extended_args.args[1].read_point = _data_args;
     _extended_args.args[1].name = (char*)malloc(strlen("goto") +1);
-    memcpy(_extended_args.args[0].name, "goto", strlen("goto") +1);
+    memcpy(_extended_args.args[1].name, "goto", strlen("goto") +1);
 
     //Third element empty...
 }
