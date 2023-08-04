@@ -26,6 +26,10 @@ void cargs_set_args(const char* bool_args, const char* data_args)
         memcpy(_data_args, data_args, _data_packs.size + 1);
         _remove_redundancies(REMOVE_DATA_REDUNDANCIES);
         _data_packs.packages = (ArgPackage*)calloc(_data_packs.size, sizeof(ArgPackage));
+
+        //Allocation of maximum and minimum data required argument counts
+        _cargs_maximum_data = (uint8_t*)calloc(_data_packs.size, sizeof(uint8_t));
+        _cargs_minimum_data = (uint8_t*)calloc(_data_packs.size, sizeof(uint8_t));
     }
 }
 
@@ -76,7 +80,17 @@ void cargs_make_mandatory(const char* arg_characters)
 
 void cargs_set_minimum_data(const char* data_arg_string, ...)
 {
-    //Set a data structure that stores minimum required arguments, the size of the structure is equal to the buffer count
+    uint32_t length = (uint32_t)strlen(data_arg_string);
+    va_list arg_limits;
+
+    va_start(arg_limits, length);
+    for(uint32_t i=0; i < length; i++)
+    {
+        if(_find_argument_char(data_arg_string[i]))
+        {
+            //TODO
+        }
+    }
 }
 
 void cargs_set_maximum_data(const char* data_arg_string, ...)

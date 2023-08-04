@@ -66,6 +66,8 @@ void cargs_make_mandatory(const char* arg_characters);
     WARNING:
     This function is more efficient for the library to receive the arg_characters string ordered as given  
     in cargs_set_args function. Otherwise the loop will be much longer.
+
+    The arguments that are not found will just be ignored, no errors will be added to cargs_error_code
 */
 void cargs_set_minimum_data(const char* data_arg_string, ...);
 
@@ -80,6 +82,8 @@ void cargs_set_minimum_data(const char* data_arg_string, ...);
     WARNING:
     This function is more efficient for the library to receive the arg_characters string ordered as given  
     in cargs_set_args function. Otherwise the loop will be much longer.
+
+    The arguments that are not found will just be ignored, no errors will be added to cargs_error_code
 */
 void cargs_set_maximum_data(const char* data_arg_string, ...);
 

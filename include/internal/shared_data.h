@@ -81,7 +81,7 @@ extern uint32_t _mandatory_arg_count;
 */
 
 typedef struct {
-    ArgPackage anon_arg_pack;
+    ArgPackage package;
     _cargs_anonymous_list* next;
     _cargs_anonymous_list* previous;
 } _cargs_anonymous_list;
