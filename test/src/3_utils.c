@@ -17,6 +17,6 @@ int main()
     assert(cargs_error_code == CARGS_NON_EXISTENT);
     assert(_cargs_is_extended == (uint8_t)1);
 
-    printf(finish_msg, 3);
+    finish(3);
     return 0;
 }

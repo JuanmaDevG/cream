@@ -13,7 +13,7 @@
 void cargs_set_identificator(const char new_identificator);
 
 /*
-    The first argument if the boolean argument string.
+    The first argument is the boolean argument string.
     The second one is the data argument string
 
     For example the call:

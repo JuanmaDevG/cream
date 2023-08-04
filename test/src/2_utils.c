@@ -27,6 +27,6 @@ int main()
     assert(_extended_args.args[1].read_point == _data_args);
 
     free(_extended_args.args);
-    printf(finish_msg, 2);
+    finish(2);
     return 0;
 }

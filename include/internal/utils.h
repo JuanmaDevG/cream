@@ -128,6 +128,10 @@ uint32_t _find_argument_char(const char argument_char);
 uint8_t _find_extended_argument(const char* ext_arg);
 
 /*
+    WARNING:
+    To use this function with non extended arguments, first must execute
+    _find_argument_char function to store the read_point and and checkpoint
+
     Configures the argument data pointer to store the data position, 
     count, the number of data strings of the data argument and if there are 
     zero (or not enough) data strings throws an error leaving the pointers 
@@ -140,12 +144,15 @@ uint8_t _find_extended_argument(const char* ext_arg);
     Also advances the argv index position to one before the next argument.
     It is one before the next because of iteration causes.
 */
-uint8_t _add_argument_data(const int argc, const char** argv, uint32_t* actual_position, const uint32_t* extended_argument_position);
+uint8_t _add_argument_data(const int argc, const char* argv[], uint32_t* actual_position, const uint32_t* extended_argument_position);
 
 /*
     Scans a non-extended argument string
 
     Supports multiple boolean argument values like -abcdf but if there is any data argument
     into the multi-boolean argument string, it will notify and throw a cargs_error
+
+    Data arguments must come alone. If an example data argument option is a, the correct usage is:
+    > program_name -a data1 data2 ...
 */
-uint8_t _read_non_extended_argument(const int argc, const char** argv, uint32_t* index);
+uint8_t _read_non_extended_argument(const int argc, const char* argv[], uint32_t* index);

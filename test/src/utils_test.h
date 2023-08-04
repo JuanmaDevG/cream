@@ -12,6 +12,21 @@ char new_data_args[] = "ghijkl";
 
 const char* finish_msg = "Finished test %d\n";
 
+const int tmp_argc = 11;
+char* tmp_argv[] = {
+    "program_name.exe",
+    "--goto",
+    "some_file.txt",
+    "some_oter_file.txt",
+    "-i",               //import
+    "something.lib",
+    "some-other.dll",
+    "any_module.lib",
+    "-j",               //should give error because has non associated data
+    "-abc",
+    "-dkf"
+};
+
 void init_test_args()
 {
     _bool_args = new_bool_args;
@@ -37,3 +52,11 @@ void init_ext_arg_vec()
 
     //Third element empty...
 }
+
+void init_data_packages()
+{
+    _data_packs.size = 3;
+    _data_packs.packages = (ArgPackage*)calloc(_data_packs.size, sizeof(ArgPackage));
+}
+
+void finish(uint32_t test_id) { printf(finish_msg, test_id); }

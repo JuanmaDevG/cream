@@ -65,7 +65,9 @@ if not -%1-==-- (
 )
 
 for %%f in (%test_package%) do (
-    call :compile_and_run %%f
+    if /I not %%~xf==.h (
+        call :compile_and_run %%f
+    )
 )
 del %test_file%
 exit /b

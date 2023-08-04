@@ -179,17 +179,17 @@ uint8_t _find_extended_argument(const char* ext_arg)
     }
 }
 
-uint8_t _add_argument_data(const int argc, const char** argv, uint32_t* index, const uint32_t* ext_arg_position)
+uint8_t _add_argument_data(const int argc, const char* argv[], uint32_t* index, const uint32_t* ext_arg_position)
 {
     uint8_t is_extended = (ext_arg_position == NULL ? 0 : 1);
-    const uint32_t offset = (*index) +1;
+    const uint32_t pointer_offset = (*index) +1;
 
-    const char** data_pointer = argv + offset;
+    const char** data_pointer = argv + pointer_offset;
     uint32_t count = 0;
     uint32_t associated_option = 
         (!is_extended ? _get_actual_checkpoint() -1 : _extended_args.args[*ext_arg_position].associated_opt);
 
-    while(count + offset < (uint32_t)argc && data_pointer[count][0] != _arg_id) count++;
+    while(count + pointer_offset < (uint32_t)argc && data_pointer[count][0] != _arg_id) count++;
     if(count == 0)
     {
         _cargs_declare_error(argv[(*index)] + (is_extended ? 2 : 1), is_extended, CARGS_NOT_ENOUGH_DATA);
@@ -206,7 +206,7 @@ uint8_t _add_argument_data(const int argc, const char** argv, uint32_t* index, c
     return 1;
 }
 
-uint8_t _read_non_extended_argument(const int argc, const char** argv, uint32_t* index)
+uint8_t _read_non_extended_argument(const int argc, const char* argv[], uint32_t* index)
 {
     uint8_t data_arg_found = 0;
     for(uint32_t j=1; argv[(*index)][j] != '\0'; j++)

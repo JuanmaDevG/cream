@@ -77,6 +77,6 @@ int main()
     assert(_data_packs.packages[0].values == tmp_argv +1);
     */
 
-    printf(finish_msg, 4);
+    finish(4);
     return 0;
 }

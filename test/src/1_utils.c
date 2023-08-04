@@ -47,6 +47,6 @@ int main()
     _reset_ext_finders();
     assert(_extended_checkpoint == 0);
 
-    printf(finish_msg, 1);
+    finish(1);
     return 0;
 }

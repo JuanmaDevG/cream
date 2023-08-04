@@ -29,6 +29,6 @@ int main()
     assert(_get_actual_checkpoint() == 0);
 
 
-    printf(finish_msg, 5);
+    finish(5);
     return 0;
 }
