@@ -80,24 +80,26 @@ void cargs_make_mandatory(const char* arg_characters)
 
 void cargs_set_minimum_data(const char* data_arg_string, ...)
 {
+    if(!_cargs_minimum_data) return;
+
     uint32_t length = (uint32_t)strlen(data_arg_string);
     va_list arg_limits;
     va_start(arg_limits, length);
 
-    for(uint32_t i=0; i < length; i++)
-    {
-        if(_find_argument_char(data_arg_string[i]))
-            _cargs_minimum_data[i] = va_arg(arg_limits, uint8_t);
-    }
-
+    _cargs_set_data_limit(data_arg_string, length, arg_limits, _cargs_minimum_data);
     va_end(arg_limits);
 }
 
 void cargs_set_maximum_data(const char* data_arg_string, ...)
 {
+    if(!_cargs_maximum_data) return;
+
     uint32_t length = (uint32_t)strlen(data_arg_string);
     va_list arg_limits;
     va_start(arg_limits, length);
+
+    _cargs_set_data_limit(data_arg_string, length, arg_limits, _cargs_maximum_data);
+    va_end(arg_limits);
 }
 
 inline void cargs_treat_anonymous_args_as_errors(const bool value) { _cargs_treat_anonymous_args_as_errors = value; }
@@ -106,20 +108,22 @@ void cargs_load_args(const int argc, const char** argv)
 {
     for(uint32_t i=1; i < (uint32_t)argc; i++)
     {
-        if(argv[i][0] != _arg_id)
+        if(argv[i][0] != _arg_id && _cargs_treat_anonymous_args_as_errors)
         {
             _cargs_declare_error(argv[i], 1, CARGS_WRONG_ID);
             return;
         }
+        else
+        {
+            _cargs_store_anonymous_arguments(argc, argv, &i);
+            continue;
+        }
 
         if(argv[i][1] == _arg_id)   //Is extended
         {
-            if(!_find_extended_argument(argv[i] +2))
-            {
-                _cargs_declare_error(argv[i] +2, 1, CARGS_NON_EXISTENT);
-            }
+            if(!_find_extended_argument(argv[i] +2)) _cargs_declare_error(argv[i] +2, 1, CARGS_NON_EXISTENT);
 
-            uint32_t pos = _get_actual_ext_checkpoint() -1;
+            const uint32_t pos = _get_actual_ext_checkpoint() -1;
             //Check the argument into the buffer
             _extended_args.args[pos].read_point[_extended_args.args[pos].associated_opt] = '\\';
             //If is data args, fill data pointers to _data_packs
@@ -130,19 +134,7 @@ void cargs_load_args(const int argc, const char** argv)
     _reset_ext_finders();
     _reset_finders();
 
-    //Checking that mandatory arguments have been written within the program input
-    for(uint32_t i=0; i < _mandatory_arg_count; i++)
-    {
-        if(_mandatory_args[i].read_point != NULL)
-            if(_mandatory_args[i].read_point[_mandatory_args[i].position] != '\\')
-            {
-                _cargs_declare_error(
-                    _mandatory_args[i].read_point + _mandatory_args[i].position,
-                    0, CARGS_MANDATORY
-                );
-                return;
-            }
-    }
+    _cargs_check_mandatory_arguments();
 }
 
 const char* cargs_get_error()

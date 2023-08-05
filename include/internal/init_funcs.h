@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stdarg.h>
-
 #include "utils.h"
 #include "shared_data.h"
 

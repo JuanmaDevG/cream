@@ -236,3 +236,44 @@ uint8_t _read_non_extended_argument(const int argc, const char* argv[], uint32_t
 
     return 1;
 }
+
+inline void _cargs_set_data_limit(const char* data_arg_string, const uint32_t length, va_list arg_limits, uint8_t* write_point)
+{
+    for(uint32_t i=0; i < length; i++)
+    {
+        if(_find_argument_char(data_arg_string[i])) 
+            write_point[i] = va_arg(arg_limits, uint8_t);
+    }
+}
+
+void _cargs_store_anonymous_arguments(const int argc, const char* argv[], uint32_t* arg_index)
+{
+    uint32_t count = 1;                         //We know this position contains anonymous arg
+    const uint32_t anon_arg_pack_position = (*arg_index);  //Store the first position for the anonymous list node
+    (*arg_index)++;
+    while((*arg_index) < (uint32_t)argc && argv[(*arg_index)][0] != _arg_id) //Count anonymous arguments
+    {
+        count++;
+        (*arg_index)++;
+    }
+    (*arg_index)--;     //Next iteration, i variable will increment
+    _cargs_push_anon_node(argv + anon_arg_pack_position, count);
+}
+
+bool _cargs_check_mandatory_arguments()
+{
+    for(uint32_t i=0; i < _mandatory_arg_count; i++)
+    {
+        if(_mandatory_args[i].read_point != NULL)
+            if(_mandatory_args[i].read_point[_mandatory_args[i].position] != '\\')
+            {
+                _cargs_declare_error(
+                    _mandatory_args[i].read_point + _mandatory_args[i].position,
+                    0, CARGS_MANDATORY
+                );
+                return false;
+            }
+    }
+
+    return true;
+}
