@@ -156,3 +156,12 @@ uint8_t _add_argument_data(const int argc, const char* argv[], uint32_t* actual_
     > program_name -a data1 data2 ...
 */
 uint8_t _read_non_extended_argument(const int argc, const char* argv[], uint32_t* index);
+
+/*
+    Writes the argument limits (maximum or minimum depending on the write_point) into the 
+    _cargs_maximum_data or _cargs_minimum_data
+*/
+inline void _cargs_set_length_limit(uint8_t* write_point)
+{
+
+}

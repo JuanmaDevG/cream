@@ -82,20 +82,22 @@ void cargs_set_minimum_data(const char* data_arg_string, ...)
 {
     uint32_t length = (uint32_t)strlen(data_arg_string);
     va_list arg_limits;
-
     va_start(arg_limits, length);
+
     for(uint32_t i=0; i < length; i++)
     {
         if(_find_argument_char(data_arg_string[i]))
-        {
-            //TODO
-        }
+            _cargs_minimum_data[i] = va_arg(arg_limits, uint8_t);
     }
+
+    va_end(arg_limits);
 }
 
 void cargs_set_maximum_data(const char* data_arg_string, ...)
 {
-    //Code more and more...
+    uint32_t length = (uint32_t)strlen(data_arg_string);
+    va_list arg_limits;
+    va_start(arg_limits, length);
 }
 
 inline void cargs_treat_anonymous_args_as_errors(const bool value) { _cargs_treat_anonymous_args_as_errors = value; }
