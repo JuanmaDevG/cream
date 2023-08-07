@@ -80,10 +80,10 @@ extern uint32_t _mandatory_arg_count;
     --------------------------------------------------
 */
 
-typedef struct {
+typedef struct _cargs_anonymous_list { //Predefine type before using it recursively
     ArgPackage package;
-    _cargs_anonymous_list* next;
-    _cargs_anonymous_list* previous;
+    struct _cargs_anonymous_list* next;
+    struct _cargs_anonymous_list* previous;
 } _cargs_anonymous_list;
 
 extern bool _cargs_treat_anonymous_args_as_errors;

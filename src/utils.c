@@ -192,7 +192,7 @@ bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, con
     while(
         count + pointer_offset < (uint32_t)argc && data_pointer[count][0] != _arg_id
     ) {
-        if(_cargs_maximum_data[associated_option] > 0 && count == _cargs_maximum_data[associated_option]) break;
+        if(_cargs_maximum_data[associated_option] > 0 && count == (uint32_t)_cargs_maximum_data[associated_option]) break;
         count++;
     }
 
@@ -248,7 +248,7 @@ inline void _cargs_set_data_limit(const char* data_arg_string, const uint32_t le
     for(uint32_t i=0; i < length; i++)
     {
         if(_find_argument_char(data_arg_string[i])) 
-            write_point[i] = va_arg(arg_limits, uint8_t);
+            write_point[i] = (uint8_t)va_arg(arg_limits, int);
     }
 }
 

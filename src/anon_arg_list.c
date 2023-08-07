@@ -2,18 +2,20 @@
 
 
 inline _cargs_anonymous_list* fill_node(
-    _cargs_anonymous_list* previous, _cargs_anonymous_list* next, const uint32_t argument_count, char** data_location
+    _cargs_anonymous_list* previous, _cargs_anonymous_list* next, const uint32_t argument_count, const char** data_location
 ) {
     _cargs_anonymous_list* target = (_cargs_anonymous_list*)malloc(sizeof(_cargs_anonymous_list));
     target->previous = previous;
     target->next = next;
     target->package.count = argument_count;
-    target->package.values = data_location;
+    target->package.values = (char**)data_location;
+
+    return target;
 }
 
 //------------------------------------------------------------------------------------------
 
-inline void _cargs_push_anon_node(char** data_location, const uint32_t argument_count)
+inline void _cargs_push_anon_node(const char** data_location, const uint32_t argument_count)
 {
     //is a new list
     if(!_cargs_anon_args)
