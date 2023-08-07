@@ -13,8 +13,8 @@ int main()
     _extended_args.size = vec_size;
     _extended_args.args = (ExtArg*)calloc(vec_size, sizeof(ExtArg));
 
-    _push_extended_argument("some-argument", 0, _bool_args, 0);
-    _push_extended_argument("some-other-arg", 0, _data_args, 1);
+    _cargs_push_extended_argument("some-argument", 0, _bool_args, 0);
+    _cargs_push_extended_argument("some-other-arg", 0, _data_args, 1);
 
     //Boolean first extended argument
     assert(strcmp(_extended_args.args[0].name, "some-argument") == 0);
@@ -27,6 +27,6 @@ int main()
     assert(_extended_args.args[1].read_point == _data_args);
 
     free(_extended_args.args);
-    finish(2);
+    finish(2, "utils");
     return 0;
 }

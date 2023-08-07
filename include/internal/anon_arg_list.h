@@ -13,7 +13,7 @@
     program_name anon_1 anon_2 anon_3 -f file.txt
     anon_1 to anon_3 will be stored in the first anonymous list node
 */
-extern inline void _cargs_push_anon_node(const char** data_location, const uint32_t argument_count);
+extern inline void _cargs_push_anon_node(const char** data_location, const uint32_t anon_argument_count);
 
 /*
     Returns the argument package const pointer into the linked list location 

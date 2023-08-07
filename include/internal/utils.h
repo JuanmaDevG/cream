@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdlib.h>
-#include <string.h>
 #include <stdarg.h>
 
 #include "shared_data.h"
@@ -16,7 +15,7 @@ enum _reduncancy_remove_mode { REMOVE_BOOL_REDUNDANCIES, REMOVE_DATA_REDUNDANCIE
 */
 
 //Pushes an argument string to the shared extended argument vector
-void _push_extended_argument(
+void _cargs_push_extended_argument(
     const char* argument, const uint32_t associated_opt, const char* read_point, 
     const uint32_t vec_pos
 );
@@ -130,13 +129,9 @@ uint32_t _find_argument_char(const char argument_char);
 uint8_t _find_extended_argument(const char* ext_arg);
 
 /*
-    WARNING:
-    To use this function with non extended arguments, first must execute
-    _find_argument_char function to store the read_point and and checkpoint
-
     Configures the argument data pointer to store the data position, 
     count, the number of data strings of the data argument and if there are 
-    zero (or not enough) data strings throws an error leaving the pointers 
+    not enough data strings (data inputs) throws an error leaving the pointers 
     to NULL and does nothing more.
 
     The extended_argument position pointer can be set to NULL if the data argument 
@@ -145,6 +140,10 @@ uint8_t _find_extended_argument(const char* ext_arg);
 
     Also advances the argv index position to one before the next argument.
     It is one before the next because of iteration causes.
+
+    WARNING:
+    To use this function with non extended arguments, first must execute
+    _find_argument_char function to store the read_point and and checkpoint
 */
 bool _add_argument_data(const int argc, const char** argv, uint32_t* actual_position, const uint32_t* extended_argument_position);
 
@@ -166,7 +165,7 @@ uint8_t _read_non_extended_argument(const int argc, const char** argv, uint32_t*
     The limits are position dependent, so the numbers will be placed the same position as 
     the argument buffer.
 */
-extern inline void _cargs_set_data_limit(const char* data_arg_string, const uint32_t length, va_list arg_limits, uint8_t* write_point);
+extern inline void _cargs_set_data_limit(const char* data_arg_string, va_list arg_limits, uint8_t* write_point);
 
 /*
     Stores an anonymous argument package on the anonymous arguments linked list.

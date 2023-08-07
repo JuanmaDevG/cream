@@ -10,7 +10,7 @@
 char new_bool_args[] = "abcdef";
 char new_data_args[] = "ghijkl";
 
-const char* finish_msg = "Finished test %d\n";
+const char* finish_msg = "Finished test %d from %s\n";
 
 const int tmp_argc = 11;
 char* tmp_argv[] = {
@@ -57,8 +57,8 @@ void init_ext_arg_vec()
 
 void init_data_packages()
 {
-    _data_packs.size = 3;
+    _data_packs.size = tmp_argc;
     _data_packs.packages = (ArgPackage*)calloc(_data_packs.size, sizeof(ArgPackage));
 }
 
-void finish(uint32_t test_id) { printf(finish_msg, test_id); }
+void finish(uint32_t test_id, const char* test_name) { printf(finish_msg, test_id, test_name); }

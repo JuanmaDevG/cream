@@ -25,6 +25,6 @@ int main()
 
     assert(strcmp(_bool_args, "acef") == 0);
 
-    finish(4);
+    finish(4, "utils");
     return 0;
 }

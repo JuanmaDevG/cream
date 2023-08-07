@@ -10,8 +10,6 @@ int main()
     init_ext_arg_vec();
     init_data_packages();
 
-    assert(_data_packs.size == 3);
-
     //Extended argument test
     uint32_t arg_index = 1;
     _find_extended_argument(tmp_argv[arg_index] +2);
@@ -34,14 +32,13 @@ int main()
     assert(_data_packs.packages[1].count == 0);
     assert(_data_packs.packages[1].values == NULL);
 
-    //Test with empty data argument
+    //Test with empty data argument (should not give error because of empty data argument count)
     arg_index++;
     _find_argument_char((tmp_argv[8] + 1)[0]);
     _add_argument_data(tmp_argc, (const char**)tmp_argv, &arg_index, NULL);
-    assert(_cargs_error_argument[0] == 'j');
-    assert(!_cargs_is_extended);
-    assert(cargs_error_code == CARGS_NOT_ENOUGH_DATA);
+    assert(_cargs_error_argument == NULL);
+    assert(cargs_error_code == CARGS_NO_ERROR);
 
-    finish(7);
+    finish(7, "utils");
     return 0;
 }

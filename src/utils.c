@@ -6,7 +6,7 @@
     ---------------------------
 */
 
-void _push_extended_argument(
+void _cargs_push_extended_argument(
     const char* argument, const uint32_t associated_opt, const char* read_point, 
     const uint32_t vec_pos
 ) {
@@ -196,7 +196,7 @@ bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, con
         count++;
     }
 
-    if(count == 0 || count < _cargs_minimum_data[associated_option])
+    if(count < (uint32_t)_cargs_minimum_data[associated_option])
     {
         _cargs_declare_error(argv[(*index)] + (is_extended ? 2 : 1), is_extended, CARGS_NOT_ENOUGH_DATA);
         return false;
@@ -243,12 +243,12 @@ uint8_t _read_non_extended_argument(const int argc, const char* argv[], uint32_t
     return 1;
 }
 
-inline void _cargs_set_data_limit(const char* data_arg_string, const uint32_t length, va_list arg_limits, uint8_t* write_point)
+inline void _cargs_set_data_limit(const char* data_arg_string, va_list arg_limits, uint8_t* write_point)
 {
-    for(uint32_t i=0; i < length; i++)
+    for(uint32_t i=0; data_arg_string[i] != '\0'; i++)
     {
-        if(_find_argument_char(data_arg_string[i])) 
-            write_point[i] = (uint8_t)va_arg(arg_limits, int);
+        if(_find_argument_char(data_arg_string[i]))
+            write_point[_get_actual_checkpoint() -1] = (uint8_t)va_arg(arg_limits, int);
     }
 }
 
@@ -262,19 +262,19 @@ void _cargs_store_anonymous_arguments(const int argc, const char* argv[], uint32
         count++;
         (*arg_index)++;
     }
-    (*arg_index)--;     //Next iteration, i variable will increment
+    (*arg_index)--;     //Next iteration, the index variable will increment
     _cargs_push_anon_node(argv + anon_arg_pack_position, count);
 }
 
 bool _cargs_check_mandatory_arguments()
 {
-    for(uint32_t i=0; i < _mandatory_arg_count; i++)
+    for(uint32_t i=0; i < _cargs_mandatory_arg_count; i++)
     {
-        if(_mandatory_args[i].read_point != NULL)
-            if(_mandatory_args[i].read_point[_mandatory_args[i].position] != '\\')
+        if(_cargs_mandatory_args[i].read_point != NULL)
+            if(_cargs_mandatory_args[i].read_point[_cargs_mandatory_args[i].position] != '\\')
             {
                 _cargs_declare_error(
-                    _mandatory_args[i].read_point + _mandatory_args[i].position,
+                    _cargs_mandatory_args[i].read_point + _cargs_mandatory_args[i].position,
                     0, CARGS_MANDATORY
                 );
                 return false;

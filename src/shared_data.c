@@ -36,8 +36,8 @@ ExtArgVec _extended_args = {0, NULL};
     -------------------
 */
 
-_cargs_mandatory_position* _mandatory_args = NULL;
-uint32_t _mandatory_arg_count = 0;
+_cargs_mandatory_position* _cargs_mandatory_args = NULL;
+uint32_t _cargs_mandatory_arg_count = 0;
 
 /*
     ---------------------------------------------------------------
@@ -46,6 +46,7 @@ uint32_t _mandatory_arg_count = 0;
 */
 
 bool _cargs_treat_anonymous_args_as_errors = false;
+uint32_t _cargs_anon_arg_count = 0;
 _cargs_anonymous_list* _cargs_anon_args = NULL;
 _cargs_anonymous_list* _cargs_anon_last = NULL;
 

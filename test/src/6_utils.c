@@ -21,6 +21,6 @@ int main()
     assert(!_find_extended_argument("another-not-found"));
     assert(_extended_checkpoint == 0);
 
-    finish(6);
+    finish(6, "utils");
     return 0;
 }

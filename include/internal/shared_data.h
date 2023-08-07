@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 
 /*
     -----------------
@@ -70,8 +71,8 @@ typedef struct {
     uint32_t position;
 } _cargs_mandatory_position;
 
-extern _cargs_mandatory_position* _mandatory_args;
-extern uint32_t _mandatory_arg_count;
+extern _cargs_mandatory_position* _cargs_mandatory_args;
+extern uint32_t _cargs_mandatory_arg_count;
 
 
 /*
@@ -87,6 +88,7 @@ typedef struct _cargs_anonymous_list { //Predefine type before using it recursiv
 } _cargs_anonymous_list;
 
 extern bool _cargs_treat_anonymous_args_as_errors;
+extern uint32_t _cargs_anon_arg_count;
 extern _cargs_anonymous_list* _cargs_anon_args;
 extern _cargs_anonymous_list* _cargs_anon_last;
 
@@ -116,6 +118,7 @@ extern uint8_t _cargs_is_extended;
 extern char* _cargs_error_argument;
 
 extern const char* _cargs_error_strings[];
+
 
 /*
     ----------------

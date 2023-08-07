@@ -23,5 +23,6 @@ int main()
     assert(_cargs_is_extended == 0);
     assert(_bool_args[5] != '\\');
 
-    finish(8);
+    finish(8, "utils");
+    return 0;
 }

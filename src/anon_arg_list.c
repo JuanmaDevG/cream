@@ -15,17 +15,18 @@ inline _cargs_anonymous_list* fill_node(
 
 //------------------------------------------------------------------------------------------
 
-inline void _cargs_push_anon_node(const char** data_location, const uint32_t argument_count)
+inline void _cargs_push_anon_node(const char** data_location, const uint32_t anon_argument_count)
 {
+    _cargs_anon_arg_count += anon_argument_count;
     //is a new list
     if(!_cargs_anon_args)
     {
-        _cargs_anon_args = fill_node(NULL, NULL, argument_count, data_location);
+        _cargs_anon_args = fill_node(NULL, NULL, anon_argument_count, data_location);
         _cargs_anon_last = _cargs_anon_args;
         return;
     }
 
-    _cargs_anon_last->next = fill_node(_cargs_anon_last, NULL, argument_count, data_location);
+    _cargs_anon_last->next = fill_node(_cargs_anon_last, NULL, anon_argument_count, data_location);
     _cargs_anon_last = _cargs_anon_last->next;
 }
 
@@ -37,6 +38,7 @@ inline const ArgPackage* _cargs_get_anon_package(uint32_t position)
     while(position > 0)
     {
         iterator = iterator->next;
+        if(iterator == NULL) return NULL;
         position--;
     }
 
@@ -46,6 +48,7 @@ inline const ArgPackage* _cargs_get_anon_package(uint32_t position)
 inline void _cargs_delete_head_node()
 {
     if(!_cargs_anon_args) return;
+    _cargs_anon_arg_count -= _cargs_anon_args->package.count;
 
     _cargs_anonymous_list* next = _cargs_anon_args->next;
     free(_cargs_anon_args);

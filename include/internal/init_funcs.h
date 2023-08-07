@@ -20,6 +20,11 @@ void cargs_set_identificator(const char new_identificator);
     Will set the command line arguments:
     Boolean (existent or not):      {-a , -b , -c , -d}
     Data (require data to work):    {-e , -f , -g , -h}
+
+    WARNING:
+    Data arguments are allowed to be empty in the program input, to allways 
+    require data when the program starts is recommended to call 
+    cargs_set_minimum_data()
 */
 void cargs_set_args(const char* boolean_arguments, const char* data_arguments);
 

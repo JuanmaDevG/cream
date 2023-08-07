@@ -39,7 +39,7 @@ void cargs_associate_extended(const char* arg_characters, ...) {
 
     size_t length = strlen(arg_characters);
     va_list arg_l;
-    va_start(arg_l, length);
+    va_start(arg_l, arg_characters);
 
     //Extended args vector setting up
     _extended_args.size = length;
@@ -48,8 +48,8 @@ void cargs_associate_extended(const char* arg_characters, ...) {
     //Loops over the argument buffers finding the argument characters to associate
     for(uint32_t i=0; i < length; i++)
     {
-        if(_find_argument_char(arg_characters[i]) != 0)
-            _push_extended_argument(va_arg(arg_l, char*), _get_actual_checkpoint() -1, _get_actual_read_point(), i);
+        if(_find_argument_char(arg_characters[i]))
+            _cargs_push_extended_argument(va_arg(arg_l, const char*), _get_actual_checkpoint() -1, _get_actual_read_point(), i);
     }
     _reset_finders();
 
@@ -59,19 +59,19 @@ void cargs_associate_extended(const char* arg_characters, ...) {
 void cargs_make_mandatory(const char* arg_characters)
 {
     size_t length = strlen(arg_characters) +1;
-    _mandatory_arg_count = length;
-    _mandatory_args = (_cargs_mandatory_position*)calloc(length, sizeof(_cargs_mandatory_position));
+    _cargs_mandatory_arg_count = length;
+    _cargs_mandatory_args = (_cargs_mandatory_position*)calloc(length, sizeof(_cargs_mandatory_position));
     for(uint32_t i=0; i < length; i++)
     {
         if(_find_argument_char(arg_characters[i]) == 0)
         {
-            _mandatory_args[i].position = UINT32_MAX;
-            _mandatory_args[i].read_point = NULL;
+            _cargs_mandatory_args[i].position = UINT32_MAX;
+            _cargs_mandatory_args[i].read_point = NULL;
         }
         else
         {
-            _mandatory_args[i].position = _get_actual_checkpoint() -1;
-            _mandatory_args[i].read_point = _get_actual_read_point();
+            _cargs_mandatory_args[i].position = _get_actual_checkpoint() -1;
+            _cargs_mandatory_args[i].read_point = _get_actual_read_point();
         }
     }
 
@@ -81,25 +81,23 @@ void cargs_make_mandatory(const char* arg_characters)
 void cargs_set_minimum_data(const char* data_arg_string, ...)
 {
     if(!_cargs_minimum_data) return;
-
-    uint32_t length = (uint32_t)strlen(data_arg_string);
     va_list arg_limits;
-    va_start(arg_limits, length);
+    va_start(arg_limits, data_arg_string);
 
-    _cargs_set_data_limit(data_arg_string, length, arg_limits, _cargs_minimum_data);
+    _cargs_set_data_limit(data_arg_string, arg_limits, _cargs_minimum_data);
     va_end(arg_limits);
+    _reset_finders();
 }
 
 void cargs_set_maximum_data(const char* data_arg_string, ...)
 {
     if(!_cargs_maximum_data) return;
-
-    uint32_t length = (uint32_t)strlen(data_arg_string);
     va_list arg_limits;
-    va_start(arg_limits, length);
+    va_start(arg_limits, data_arg_string);
 
-    _cargs_set_data_limit(data_arg_string, length, arg_limits, _cargs_maximum_data);
+    _cargs_set_data_limit(data_arg_string, arg_limits, _cargs_maximum_data);
     va_end(arg_limits);
+    _reset_finders();
 }
 
 inline void cargs_treat_anonymous_args_as_errors(const bool value) { _cargs_treat_anonymous_args_as_errors = value; }
@@ -141,25 +139,19 @@ const char* cargs_get_error()
 {
     if(cargs_error_code == 0) return NULL;
 
-    size_t char_count = strlen(_cargs_error_strings[cargs_error_code]);
-    uint32_t null_location = 1 + (uint32_t)char_count;      //First null location is where to place the argument
-
-    size_t err_arg_length = (_cargs_is_extended ? strlen(_cargs_error_argument) : /*Non extended means just one char opt*/ 1 );
-    char_count += err_arg_length +1;
-    if(_cargs_error_buffer_str != NULL) free(_cargs_error_buffer_str);
-    _cargs_error_buffer_str = (char*)malloc(char_count);
+    const uint8_t message_offset = 13; /*(Initial error string:) The argument ...*/
+    size_t arg_length = (_cargs_is_extended ? strlen(_cargs_error_argument) : 1), err_message_length = strlen(_cargs_error_strings[cargs_error_code]);
     
-    //Copy the error till the first null char
-    memcpy(_cargs_error_buffer_str, _cargs_error_strings[cargs_error_code], null_location);
-    //Copy the error content into the null character position
-    if(_cargs_is_extended)
-        memcpy(_cargs_error_buffer_str + null_location, _cargs_error_argument, err_arg_length);
-    else
-    {
-        char* offset_pointer = _cargs_error_buffer_str + null_location;
-        offset_pointer[0] = _cargs_error_argument[0]; //Just write the option character
-    }
-    //Copy the rest of the error message
-    strcpy(_cargs_error_buffer_str + null_location + err_arg_length, _cargs_error_strings[cargs_error_code] + null_location +1);
+    _cargs_error_buffer_str = (char*)malloc(message_offset + arg_length +2/*space + null last char*/ + err_message_length);
+    char* write_point = _cargs_error_buffer_str;
+
+    memcpy(write_point, "The argument ", message_offset);
+    write_point += message_offset;
+    memcpy(write_point, _cargs_error_argument, arg_length);
+    write_point += arg_length;
+    write_point[0] = ' ';
+    write_point++;
+    memcpy(write_point, _cargs_error_strings[cargs_error_code], err_message_length +1);
+
     return (const char*)_cargs_error_buffer_str;
 }
