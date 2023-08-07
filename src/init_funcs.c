@@ -60,7 +60,7 @@ void cargs_make_mandatory(const char* arg_characters)
 {
     size_t length = strlen(arg_characters) +1;
     _mandatory_arg_count = length;
-    _mandatory_args = (_cargs_mandatory_position*)malloc(length * sizeof(_cargs_mandatory_position));
+    _mandatory_args = (_cargs_mandatory_position*)calloc(length, sizeof(_cargs_mandatory_position));
     for(uint32_t i=0; i < length; i++)
     {
         if(_find_argument_char(arg_characters[i]) == 0)

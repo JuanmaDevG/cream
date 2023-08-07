@@ -179,7 +179,7 @@ uint8_t _find_extended_argument(const char* ext_arg)
     }
 }
 
-uint8_t _add_argument_data(const int argc, const char* argv[], uint32_t* index, const uint32_t* ext_arg_position)
+bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, const uint32_t* ext_arg_position)
 {
     uint8_t is_extended = (ext_arg_position == NULL ? 0 : 1);
     const uint32_t pointer_offset = (*index) +1;
@@ -190,14 +190,16 @@ uint8_t _add_argument_data(const int argc, const char* argv[], uint32_t* index, 
         (!is_extended ? _get_actual_checkpoint() -1 : _extended_args.args[*ext_arg_position].associated_opt);
 
     while(
-        count + pointer_offset < (uint32_t)argc && 
-        data_pointer[count][0] != _arg_id && 
-        count <= _cargs_maximum_data[associated_option]
-    ) count++;
-    if(count == 0)
+        count + pointer_offset < (uint32_t)argc && data_pointer[count][0] != _arg_id
+    ) {
+        if(_cargs_maximum_data[associated_option] > 0 && count == _cargs_maximum_data[associated_option]) break;
+        count++;
+    }
+
+    if(count == 0 || count < _cargs_minimum_data[associated_option])
     {
         _cargs_declare_error(argv[(*index)] + (is_extended ? 2 : 1), is_extended, CARGS_NOT_ENOUGH_DATA);
-        return 0;
+        return false;
     }
 
     //There is no read_point association because _data_packs belong to _data_args read point
@@ -207,7 +209,7 @@ uint8_t _add_argument_data(const int argc, const char* argv[], uint32_t* index, 
     //Set offset to argument iterator
     (*index) += count;
 
-    return 1;
+    return true;
 }
 
 uint8_t _read_non_extended_argument(const int argc, const char* argv[], uint32_t* index)
