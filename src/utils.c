@@ -189,7 +189,11 @@ uint8_t _add_argument_data(const int argc, const char* argv[], uint32_t* index, 
     uint32_t associated_option = 
         (!is_extended ? _get_actual_checkpoint() -1 : _extended_args.args[*ext_arg_position].associated_opt);
 
-    while(count + pointer_offset < (uint32_t)argc && data_pointer[count][0] != _arg_id) count++;
+    while(
+        count + pointer_offset < (uint32_t)argc && 
+        data_pointer[count][0] != _arg_id && 
+        count <= _cargs_maximum_data[associated_option]
+    ) count++;
     if(count == 0)
     {
         _cargs_declare_error(argv[(*index)] + (is_extended ? 2 : 1), is_extended, CARGS_NOT_ENOUGH_DATA);
