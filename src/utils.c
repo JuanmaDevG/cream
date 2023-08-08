@@ -181,13 +181,15 @@ uint8_t _find_extended_argument(const char* ext_arg)
 
 bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, const uint32_t* ext_arg_position)
 {
-    uint8_t is_extended = (ext_arg_position == NULL ? 0 : 1);
-    const uint32_t pointer_offset = (*index) +1;
-
-    const char** data_pointer = argv + pointer_offset;
-    uint32_t count = 0;
+    bool is_extended = (ext_arg_position == NULL ? false : true);
     uint32_t associated_option = 
         (!is_extended ? _get_actual_checkpoint() -1 : _extended_args.args[*ext_arg_position].associated_opt);
+    
+    //New function in utils that looks for equals sign
+
+    const uint32_t pointer_offset = (*index) +1;
+    const char** data_pointer = argv + pointer_offset;
+    uint32_t count = 0;
 
     while(
         count + pointer_offset < (uint32_t)argc && data_pointer[count][0] != _arg_id

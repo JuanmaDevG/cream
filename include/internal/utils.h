@@ -188,3 +188,7 @@ void _cargs_store_anonymous_arguments(const int argc, const char** argv, uint32_
     declare a cargs_error in the cargs_error_code and it's parameters
 */
 bool _cargs_check_mandatory_arguments();
+
+/*
+    The equals search when executing _add_argument_data
+*/
