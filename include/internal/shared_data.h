@@ -56,6 +56,8 @@ extern char* _bool_args;
 
 extern char* _data_args;
 extern ArgPackageVec _data_packs;
+extern uint32_t _cargs_bank_stack_pointer;
+extern char** _cargs_equals_operator_pointer_bank;
 
 extern ExtArgVec _extended_args;
 
@@ -87,7 +89,6 @@ typedef struct _cargs_anonymous_list { //Predefine type before using it recursiv
     struct _cargs_anonymous_list* previous;
 } _cargs_anonymous_list;
 
-extern bool _cargs_treat_anonymous_args_as_errors;
 extern uint32_t _cargs_anon_arg_count;
 extern _cargs_anonymous_list* _cargs_anon_args;
 extern _cargs_anonymous_list* _cargs_anon_last;
@@ -108,7 +109,8 @@ enum cargs_error {
     CARGS_MANDATORY, 
     CARGS_WRONG_ID, 
     CARGS_MULTI_BOOL_ARG_ISSUE,
-    CARGS_NOT_ENOUGH_DATA
+    CARGS_NOT_ENOUGH_DATA,
+    CARGS_REDUNDANT_ARGUMENT
 };
 
 extern enum cargs_error cargs_error_code;
@@ -118,6 +120,8 @@ extern uint8_t _cargs_is_extended;
 extern char* _cargs_error_argument;
 
 extern const char* _cargs_error_strings[];
+extern bool _cargs_treat_repeated_args_as_errors;
+extern bool _cargs_treat_anonymous_args_as_errors;
 
 
 /*

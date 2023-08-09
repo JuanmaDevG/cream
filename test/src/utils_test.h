@@ -30,7 +30,10 @@ char* tmp_argv[] = {
 void init_test_args()
 {
     _bool_args = new_bool_args;
+    _bool_args_count = strlen(new_bool_args);
     _data_args = new_data_args;
+    _data_packs.size = strlen(new_data_args);
+    _cargs_equals_operator_pointer_bank = (char**)malloc(strlen(new_data_args));
     _cargs_maximum_data = (uint8_t*)calloc(strlen(new_data_args), sizeof(uint8_t));
     _cargs_minimum_data = (uint8_t*)calloc(strlen(new_data_args), sizeof(uint8_t));
 }

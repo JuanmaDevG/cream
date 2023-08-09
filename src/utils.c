@@ -160,7 +160,9 @@ uint8_t _find_extended_argument(const char* ext_arg)
     {
         if(j == _extended_args.size) j = 0; //When j surpasses the vector limit
 
-        if(_extended_args.args[j].name != NULL && strcmp(_extended_args.args[j].name, ext_arg) == 0)
+        uint32_t max_arg_length = _cargs_search_equals_operator(ext_arg);
+        if(max_arg_length == 0) max_arg_length = UINT32_MAX;
+        if(_extended_args.args[j].name != NULL && strncmp(_extended_args.args[j].name, ext_arg, max_arg_length) == 0) 
         {
             _extended_checkpoint = j+1;
             return 1;
@@ -184,8 +186,15 @@ bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, con
     bool is_extended = (ext_arg_position == NULL ? false : true);
     uint32_t associated_option = 
         (!is_extended ? _get_actual_checkpoint() -1 : _extended_args.args[*ext_arg_position].associated_opt);
-    
-    //New function in utils that looks for equals sign
+
+    { //Empty brackets to dealloc cur_data_location
+        const uint32_t cur_data_location = _cargs_search_equals_operator(argv[(*index)], associated_option);
+        if(cur_data_location != 0)
+        {
+            _cargs_store_equals_operator_data(argv[*index] + cur_data_location, associated_option);
+            return true;
+        } 
+    }
 
     const uint32_t pointer_offset = (*index) +1;
     const char** data_pointer = argv + pointer_offset;
@@ -283,5 +292,23 @@ bool _cargs_check_mandatory_arguments()
             }
     }
 
+    return true;
+}
+
+inline uint32_t _cargs_search_equals_operator(const char* argument_pointer)
+{
+    for(uint32_t i=0; argument_pointer[i] != '\0'; i++)
+        if(argument_pointer[i] == '=') return i+1;
+    return 0;
+}
+
+inline bool _cargs_store_equals_operator_data(const char* data_pointer, const uint32_t associated_option)
+{
+    if(_cargs_bank_stack_pointer == _data_packs.size) return false; //The pointer bank is full
+
+    _data_packs.packages[associated_option].count = 1;
+    _cargs_equals_operator_pointer_bank[_cargs_bank_stack_pointer] = data_pointer;
+    _data_packs.packages[associated_option].values = _cargs_equals_operator_pointer_bank + _cargs_bank_stack_pointer;
+    _cargs_bank_stack_pointer++;
     return true;
 }

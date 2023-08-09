@@ -12,17 +12,21 @@ void cargs_set_args(const char* bool_args, const char* data_args)
     //Measures
     if(bool_args) _bool_args_count = strlen(bool_args);
     if(data_args) _data_packs.size = strlen(data_args);
-    size_t buf_length = _bool_args_count + _data_packs.size;
+    size_t buf_length = _bool_args_count + _data_packs.size + /*pointer bank*/(_data_packs.size * sizeof(char*));
     if(buf_length == 0) return;
 
-    //Cache friendly single buffer with dual pointer
-    _bool_args = (char*) malloc(buf_length + (bool_args && data_args ? 2 : 1) /*If both buffers, two null characters*/);
+    //Cache friendly single buffer with dual pointer + equals operator pointer bank
+    _bool_args = (char*) malloc(
+        buf_length 
+        + (bool_args && data_args ? 2 : 1) /*If both buffers, two null characters*/
+    );
 
     if(bool_args) memcpy(_bool_args, bool_args, _bool_args_count +1);
     if(data_args)
     {
         //Data arguments pointer offset
         _data_args = _bool_args + _bool_args_count +1;
+        _cargs_equals_operator_pointer_bank = (char**)(_data_args + _data_packs.size +1);
         memcpy(_data_args, data_args, _data_packs.size + 1);
         _remove_redundancies(REMOVE_DATA_REDUNDANCIES);
         _data_packs.packages = (ArgPackage*)calloc(_data_packs.size, sizeof(ArgPackage));
@@ -102,6 +106,8 @@ void cargs_set_maximum_data(const char* data_arg_string, ...)
 
 inline void cargs_treat_anonymous_args_as_errors(const bool value) { _cargs_treat_anonymous_args_as_errors = value; }
 
+inline void cargs_treat_repeated_args_as_errors(const bool value) { _cargs_treat_repeated_args_as_errors = value; }
+
 void cargs_load_args(const int argc, const char** argv)
 {
     for(uint32_t i=1; i < (uint32_t)argc; i++)
@@ -119,7 +125,11 @@ void cargs_load_args(const int argc, const char** argv)
 
         if(argv[i][1] == _arg_id)   //Is extended
         {
-            if(!_find_extended_argument(argv[i] +2)) _cargs_declare_error(argv[i] +2, 1, CARGS_NON_EXISTENT);
+            if(!_find_extended_argument(argv[i] +2))
+            {
+                _cargs_declare_error(argv[i] +2, 1, CARGS_NON_EXISTENT);
+                return;
+            } 
 
             const uint32_t pos = _get_actual_ext_checkpoint() -1;
             //Check the argument into the buffer

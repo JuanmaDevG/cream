@@ -20,6 +20,8 @@ char* _bool_args = NULL;
 
 char* _data_args = NULL;
 ArgPackageVec _data_packs = {0, NULL};
+uint32_t _cargs_bank_stack_pointer = 0;
+char** _cargs_equals_operator_pointer_bank = NULL;
 
 
 /*
@@ -45,7 +47,6 @@ uint32_t _cargs_mandatory_arg_count = 0;
     ---------------------------------------------------------------
 */
 
-bool _cargs_treat_anonymous_args_as_errors = false;
 uint32_t _cargs_anon_arg_count = 0;
 _cargs_anonymous_list* _cargs_anon_args = NULL;
 _cargs_anonymous_list* _cargs_anon_last = NULL;

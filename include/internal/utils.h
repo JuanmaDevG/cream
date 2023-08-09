@@ -190,5 +190,21 @@ void _cargs_store_anonymous_arguments(const int argc, const char** argv, uint32_
 bool _cargs_check_mandatory_arguments();
 
 /*
-    The equals search when executing _add_argument_data
+    Returns the position of the data after the equals operator found in an argument 
+    option.
+
+    If the opeartor is not found returns zero
 */
+extern inline uint32_t _cargs_search_equals_operator(const char* argument_pointer);
+
+/*
+    Stores the equals operator data with it's associated option.
+
+    WARNING:
+    This is made overloading the _cargs_equals_operator_pointer_bank so when the 
+    bank is full the function will return FALSE and no data will be added.
+
+    It is recommended to use the argument with equals just once per defined argument:
+    > program_name -f=file.txt -I=include_dir\ (DON't) -f=another_different_file.txt
+*/
+extern inline bool _cargs_store_equals_operator_data(const char* data_pointer, const uint32_t associated_option);

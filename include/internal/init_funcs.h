@@ -103,7 +103,16 @@ void cargs_set_maximum_data(const char* data_arg_string, ...);
     
     Will treat as errors: "some-data-here", "potatoe", and "foo"
 */
-inline void cargs_treat_anonymous_args_as_errors(const bool value);
+extern inline void cargs_treat_anonymous_args_as_errors(const bool value);
+
+/*
+    After the call of this function to true, the repetition of any argument option 
+    in the program input will be treated as an error and loaded to cargs_error_code.
+
+    EXAMPLE:
+    > program_name -f file.txt -f another_file.txt (WILL STORE ERROR)
+*/
+extern inline void cargs_treat_repeated_args_as_errors(const bool value);
 
 /*
     Loads the program arguments, checks them and sets the data pointers ready to use.

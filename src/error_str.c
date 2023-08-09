@@ -9,9 +9,13 @@ char* _cargs_error_argument = NULL;
 //All the error messages start by "The argument arg_name " and then the error string
 const char* _cargs_error_strings[] = {
     NULL,
-    "does not exist",
-    "is required",
-    "has a wrong identificator",
-    "is into a multi-bool argument string \n(Note:) Data arguments require input and must be alone",
-    "requires extra elements and not enough were given.\n(Note:) Read the usage message"
+    "does not exist.",
+    "is required.",
+    "has a wrong identificator.",
+    "is into a multi-bool argument string \n(Note:) Data arguments require input and must be alone.",
+    "requires extra elements and not enough were given.\n(Note:) Read the usage message",
+    "is repeated and this program doesn't allow the repetition of argument options."
 };
+
+bool _cargs_treat_anonymous_args_as_errors = false;
+bool _cargs_treat_repeated_args_as_errors = false;
