@@ -48,8 +48,8 @@ uint32_t _cargs_mandatory_arg_count = 0;
 */
 
 uint32_t _cargs_anon_arg_count = 0;
-_cargs_anonymous_list* _cargs_anon_args = NULL;
-_cargs_anonymous_list* _cargs_anon_last = NULL;
+_cargs_anonymous_node* _cargs_anon_args = NULL;
+_cargs_anonymous_node* _cargs_anon_last = NULL;
 
 uint8_t* _cargs_maximum_data = NULL;
 uint8_t* _cargs_minimum_data = NULL;
@@ -63,3 +63,11 @@ uint8_t* _cargs_minimum_data = NULL;
 char* _read_point = NULL;
 uint32_t _checkpoint = 0;
 uint32_t _extended_checkpoint = 0;
+
+/*
+    ------------------------------------------
+    Redundant data argument storage structures
+    ------------------------------------------
+*/
+
+_cargs_redundant_data_storage* _cargs_redundant_arguments = NULL;

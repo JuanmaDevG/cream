@@ -83,15 +83,15 @@ extern uint32_t _cargs_mandatory_arg_count;
     --------------------------------------------------
 */
 
-typedef struct _cargs_anonymous_list { //Predefine type before using it recursively
+typedef struct _cargs_anonymous_node {
     ArgPackage package;
-    struct _cargs_anonymous_list* next;
-    struct _cargs_anonymous_list* previous;
-} _cargs_anonymous_list;
+    struct _cargs_anonymous_node* next;
+    struct _cargs_anonymous_node* previous;
+} _cargs_anonymous_node;
 
 extern uint32_t _cargs_anon_arg_count;
-extern _cargs_anonymous_list* _cargs_anon_args;
-extern _cargs_anonymous_list* _cargs_anon_last;
+extern _cargs_anonymous_node* _cargs_anon_args;
+extern _cargs_anonymous_node* _cargs_anon_last;
 
 extern uint8_t* _cargs_minimum_data;
 extern uint8_t* _cargs_maximum_data;
@@ -133,3 +133,24 @@ extern bool _cargs_treat_anonymous_args_as_errors;
 extern char* _read_point;               //Pointer where to start to read an option char buffer
 extern uint32_t _checkpoint;            //Position of the character next to the one that was found
 extern uint32_t _extended_checkpoint;   //Checkpoint just made for extended arguments
+
+
+/*
+    ------------------------------------------
+    Redundant data argument storage structures
+    ------------------------------------------
+*/
+
+typedef struct _cargs_redundant_data_storage {
+    _cargs_anonymous_node* first_node;
+    _cargs_anonymous_node* last_node;
+} _cargs_redundant_data_storage;
+
+/*
+    Contains as many places as as the _data_packs vector size.
+    
+    If any data argument option is repeated, and the redundant argument 
+    options are not recognized as errors (_cargs_treat_redundant_arguments_as_errors = false)
+    the data package of the redunant option is full, so will be allocated here.
+*/
+extern _cargs_redundant_data_storage* _cargs_redundant_arguments;

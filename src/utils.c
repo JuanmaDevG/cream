@@ -186,37 +186,33 @@ bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, con
     bool is_extended = (ext_arg_position == NULL ? false : true);
     uint32_t associated_option = 
         (!is_extended ? _get_actual_checkpoint() -1 : _extended_args.args[*ext_arg_position].associated_opt);
-
-    { //Empty brackets to dealloc cur_data_location
-        const uint32_t cur_data_location = _cargs_search_equals_operator(argv[(*index)], associated_option);
-        if(cur_data_location != 0)
-        {
-            _cargs_store_equals_operator_data(argv[*index] + cur_data_location, associated_option);
-            return true;
-        } 
-    }
+    if(_cargs_configure_and_store_equals_operator_data(argv[*index], associated_option)) return true;
 
     const uint32_t pointer_offset = (*index) +1;
     const char** data_pointer = argv + pointer_offset;
     uint32_t count = 0;
-
-    while(
-        count + pointer_offset < (uint32_t)argc && data_pointer[count][0] != _arg_id
-    ) {
-        if(_cargs_maximum_data[associated_option] > 0 && count == (uint32_t)_cargs_maximum_data[associated_option]) break;
+    while(count + pointer_offset < (uint32_t)argc && data_pointer[count][0] != _arg_id) 
+    {
+        if(count == (uint32_t)_cargs_maximum_data[associated_option] && _cargs_maximum_data[associated_option] > 0) break;
         count++;
     }
 
+    //Check that the data count reaches the minimum data required
     if(count < (uint32_t)_cargs_minimum_data[associated_option])
     {
         _cargs_declare_error(argv[(*index)] + (is_extended ? 2 : 1), is_extended, CARGS_NOT_ENOUGH_DATA);
         return false;
     }
-
-    //There is no read_point association because _data_packs belong to _data_args read point
-    _data_packs.packages[associated_option].count = count;
-    _data_packs.packages[associated_option].values = (count == 0 ? NULL : (char**)data_pointer);
-
+    //If the argument option is redundant in the program input, will be stored in the redundant data argument linked list
+    if(_data_args[associated_option] == '\\')
+    {
+        _cargs_push_redundant_argument(associated_option, data_pointer, count);
+    }
+    else
+    {   //There is no read_point association because _data_packs belong to _data_args read point
+        _data_packs.packages[associated_option].count = count;
+        _data_packs.packages[associated_option].values = (count == 0 ? NULL : (char**)data_pointer);
+    }
     //Set offset to argument iterator
     (*index) += count;
 
@@ -315,7 +311,7 @@ inline bool _cargs_store_equals_operator_data(const char* data_pointer, const ui
     if(_cargs_bank_stack_pointer == _data_packs.size) return false; //The pointer bank is full
 
     _data_packs.packages[associated_option].count = 1;
-    _cargs_equals_operator_pointer_bank[_cargs_bank_stack_pointer] = data_pointer;
+    _cargs_equals_operator_pointer_bank[_cargs_bank_stack_pointer] = (char*)data_pointer;
     _data_packs.packages[associated_option].values = _cargs_equals_operator_pointer_bank + _cargs_bank_stack_pointer;
     _cargs_bank_stack_pointer++;
     return true;
@@ -329,6 +325,18 @@ inline bool _cargs_check_redundant_arg_error(
         && read_point[option_pos] == '\\'
     ) {
         _cargs_declare_error(arg_name, is_extended, CARGS_REDUNDANT_ARGUMENT);
+        return true;
+    }
+
+    return false;
+}
+
+inline bool _cargs_configure_and_store_equals_operator_data(const char* arg_option, const uint32_t associated_option)
+{
+    const uint32_t cur_data_location = _cargs_search_equals_operator(arg_option);
+    if(cur_data_location != 0)
+    {
+        _cargs_store_equals_operator_data(arg_option + cur_data_location, associated_option);
         return true;
     }
 

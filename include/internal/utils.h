@@ -217,3 +217,9 @@ extern inline bool _cargs_store_equals_operator_data(const char* data_pointer, c
 extern inline bool _cargs_check_redundant_arg_error(
     const char* read_point, const uint32_t option_pos, const char* name, const bool is_extended
 );
+
+/*
+    Searches the equals operator in the argument given and if found, stores the data into the argument 
+    package vector using the pointer bank as nexus to directly point to the argument data.
+*/
+extern inline bool _cargs_configure_and_store_equals_operator_data(const char* arg_option, const uint32_t associated_option);
