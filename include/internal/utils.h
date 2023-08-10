@@ -156,7 +156,7 @@ bool _add_argument_data(const int argc, const char** argv, uint32_t* actual_posi
     Data arguments must come alone. If an example data argument option is a, the correct usage is:
     > program_name -a data1 data2 ...
 */
-uint8_t _read_non_extended_argument(const int argc, const char** argv, uint32_t* index);
+bool _read_non_extended_argument(const int argc, const char** argv, uint32_t* index);
 
 /*
     Writes the argument limits (maximum or minimum depending on the write_point) into the 
@@ -208,3 +208,12 @@ extern inline uint32_t _cargs_search_equals_operator(const char* argument_pointe
     > program_name -f=file.txt -I=include_dir\ (DON't) -f=another_different_file.txt
 */
 extern inline bool _cargs_store_equals_operator_data(const char* data_pointer, const uint32_t associated_option);
+
+/*
+    Checks if the actual argument is redundant and if the _cargs_treat_repeated_args_as_errors flag is set.
+
+    If those conditions are true, this function declares a cargs_error and then returns true
+*/
+extern inline bool _cargs_check_redundant_arg_error(
+    const char* read_point, const uint32_t option_pos, const char* name, const bool is_extended
+);

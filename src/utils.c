@@ -223,12 +223,20 @@ bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, con
     return true;
 }
 
-uint8_t _read_non_extended_argument(const int argc, const char* argv[], uint32_t* index)
+bool _read_non_extended_argument(const int argc, const char* argv[], uint32_t* index)
 {
     for(uint32_t j=1; argv[(*index)][j] != '\0'; j++)
     {
         if(_find_argument_char(argv[(*index)][j]))
         {
+            //Check if redundant argument error
+            if(_cargs_check_redundant_arg_error(
+                _get_actual_read_point(),
+                _get_actual_checkpoint() -1,
+                argv[*index] +1, false
+            )) return false;
+
+            //Check if data argument and write data
             if(_get_actual_read_point() == _data_args)
             {
                 if(j == 1 && argv[(*index)][2] == '\0')
@@ -238,7 +246,7 @@ uint8_t _read_non_extended_argument(const int argc, const char* argv[], uint32_t
                 else
                 {
                     _cargs_declare_error(argv[(*index)] +j, 0, CARGS_MULTI_BOOL_ARG_ISSUE);
-                    return 0;
+                    return false;
                 } 
             }
 
@@ -247,11 +255,11 @@ uint8_t _read_non_extended_argument(const int argc, const char* argv[], uint32_t
         else
         {
             _cargs_declare_error(argv[(*index)] +j, 0, CARGS_NON_EXISTENT);
-            return 0;
+            return false;
         }
     }
 
-    return 1;
+    return true;
 }
 
 inline void _cargs_set_data_limit(const char* data_arg_string, va_list arg_limits, uint8_t* write_point)
@@ -311,4 +319,18 @@ inline bool _cargs_store_equals_operator_data(const char* data_pointer, const ui
     _data_packs.packages[associated_option].values = _cargs_equals_operator_pointer_bank + _cargs_bank_stack_pointer;
     _cargs_bank_stack_pointer++;
     return true;
+}
+
+inline bool _cargs_check_redundant_arg_error(
+    const char* read_point, const uint32_t option_pos, const char* arg_name, const bool is_extended
+) {
+    if(
+        _cargs_treat_repeated_args_as_errors
+        && read_point[option_pos] == '\\'
+    ) {
+        _cargs_declare_error(arg_name, is_extended, CARGS_REDUNDANT_ARGUMENT);
+        return true;
+    }
+
+    return false;
 }

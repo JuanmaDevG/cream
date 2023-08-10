@@ -129,9 +129,16 @@ void cargs_load_args(const int argc, const char** argv)
             {
                 _cargs_declare_error(argv[i] +2, 1, CARGS_NON_EXISTENT);
                 return;
-            } 
+            }
 
             const uint32_t pos = _get_actual_ext_checkpoint() -1;
+            //Check if redundant arguments generate an error
+            if(
+                _cargs_check_redundant_arg_error(
+                    _extended_args.args[pos].read_point, 
+                    _extended_args.args[pos].associated_opt,
+                    argv[i] +2, true )
+            ) return;
             //Check the argument into the buffer
             _extended_args.args[pos].read_point[_extended_args.args[pos].associated_opt] = '\\';
             //If is data args, fill data pointers to _data_packs
