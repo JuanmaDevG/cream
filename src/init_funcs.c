@@ -13,14 +13,14 @@ void cargs_set_args(const char* bool_args, const char* data_args)
     if(bool_args) _bool_args_count = strlen(bool_args);
     if(data_args) _data_packs.size = strlen(data_args);
     size_t buf_length = 
-        _bool_args_count /*boolean argument characters*/
-        + _data_packs.size /*data argument characters*/ 
-        + (bool_args && data_args ? 2 : 1) /*If both buffers (bool and data args), two null characters*/
-        + (_data_packs.size * sizeof(char*)) /*equals operator pointer bank*/ 
-        + (_data_packs.size * sizeof(_cargs_redundant_data_storage)) /*redundant argument option data bank*/
-        + (_data_packs.size * sizeof(ArgPackage)) /*argument data packages for non redundant (no linked list)*/
-        + _data_packs.size /*for maximum data per argument limits*/
-        + _data_packs.size /*for minimum data per argument limits*/;
+        _bool_args_count                                            /*boolean argument characters*/
+        + _data_packs.size                                          /*data argument characters*/ 
+        + (bool_args && data_args ? 2 : 1)                          /*If both buffers (bool and data args), two null characters*/
+        + (_data_packs.size * sizeof(char*))                        /*equals operator pointer bank*/ 
+        + (_data_packs.size * sizeof(_cargs_redundant_data_storage))/*redundant argument option data bank*/
+        + (_data_packs.size * sizeof(ArgPackage))                   /*argument data packages for non redundant (no linked list)*/
+        + _data_packs.size                                          /*for maximum data per argument limits*/
+        + _data_packs.size;                                         /*for minimum data per argument limits*/
     if(buf_length == 0) return;
 
     //Cache friendly single buffer with multi-pointer support
@@ -124,13 +124,13 @@ void cargs_load_args(const int argc, const char** argv)
 {
     for(uint32_t i=1; i < (uint32_t)argc; i++)
     {
-        if(argv[i][0] != _arg_id && _cargs_treat_anonymous_args_as_errors)
+        if(argv[i][0] != _arg_id)
         {
-            _cargs_declare_error(argv[i], 1, CARGS_WRONG_ID);
-            return;
-        }
-        else
-        {
+            if(_cargs_treat_anonymous_args_as_errors) {
+                _cargs_declare_error(argv[i], 1, CARGS_WRONG_ID);
+                return;
+            }
+            //Do not treat as errors
             _cargs_store_anonymous_arguments(argc, argv, &i);
             continue;
         }
@@ -144,32 +144,26 @@ void cargs_load_args(const int argc, const char** argv)
             }
 
             const uint32_t pos = _get_actual_ext_checkpoint() -1;
-            //Check if redundant arguments generate an error
-            if(
-                _cargs_check_redundant_arg_error(
-                    _extended_args.args[pos].read_point, 
-                    _extended_args.args[pos].associated_opt,
-                    argv[i] +2, true )
-            ) return;
-            //Check the argument into the buffer
-            _extended_args.args[pos].read_point[_extended_args.args[pos].associated_opt] = '\\';
             //If is data args, fill data pointers to _data_packs
             if(_extended_args.args[pos].read_point == _data_args && !_add_argument_data(argc, argv, &i, &pos)) return;
+            //Check the argument storage
+            _extended_args.args[pos].read_point[_extended_args.args[pos].associated_opt] = '\\';
         }
         else if(!_read_non_extended_argument(argc, argv, &i)) return;
     }
     _reset_ext_finders();
     _reset_finders();
-
     _cargs_check_mandatory_arguments();
 }
 
 const char* cargs_get_error()
 {
-    if(cargs_error_code == 0) return NULL;
+    if(cargs_error_code == CARGS_NO_ERROR) return NULL;
 
     const uint8_t message_offset = 13; /*(Initial error string:) The argument ...*/
-    size_t arg_length = (_cargs_is_extended ? strlen(_cargs_error_argument) : 1), err_message_length = strlen(_cargs_error_strings[cargs_error_code]);
+    size_t 
+        arg_length = (_cargs_is_extended ? strlen(_cargs_error_argument) : 1), 
+        err_message_length = strlen(_cargs_error_strings[cargs_error_code]);
     
     _cargs_error_buffer_str = (char*)malloc(message_offset + arg_length +2/*space + null last char*/ + err_message_length);
     char* write_point = _cargs_error_buffer_str;

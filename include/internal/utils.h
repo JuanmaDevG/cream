@@ -143,7 +143,12 @@ uint8_t _find_extended_argument(const char* ext_arg);
 
     WARNING:
     To use this function with non extended arguments, first must execute
-    _find_argument_char function to store the read_point and and checkpoint
+    _find_argument_char function to store the read_point and and checkpoint.
+
+    If the argument count is not enough to accomplish the minimum number of 
+    arguments required or the argument option is redundant and cargs is 
+    configured to treat redundant options as errors, this function will stop 
+    working and declare the appropiate error in cargs_error_code
 */
 bool _add_argument_data(const int argc, const char** argv, uint32_t* actual_position, const uint32_t* extended_argument_position);
 

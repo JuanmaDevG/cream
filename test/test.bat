@@ -31,7 +31,7 @@ setlocal
 rem This can be changed to gcc if you prefer to use MinGW compiler interface, should not but might produce any error
 set compiler=clang
 
-set options=-Wall -Wextra -Werror -Wno-undefined-inline -O3
+set options=-Wall -Wextra -Werror -Wno-undefined-inline
 set include_dir=..\include\internal\
 set source_dir=..\src\
 
@@ -60,9 +60,12 @@ rem     test (no arguments means run all the test files)
 rem     test 1 (will execute just the test one)
 rem     test utils (will execute all the utils test_files)
 :run_test_files
-set test_package=src\*
+set test_package=src\
 if not -%1-==-- (
     set test_package=%test_package%%1*
+)
+if -%1-==-- (
+    set test_package=%test_package%*
 )
 
 for %%f in (%test_package%) do (

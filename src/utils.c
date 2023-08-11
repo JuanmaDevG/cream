@@ -203,19 +203,20 @@ bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, con
         _cargs_declare_error(argv[(*index)] + (is_extended ? 2 : 1), is_extended, CARGS_NOT_ENOUGH_DATA);
         return false;
     }
-    //If the argument option is redundant in the program input, will be stored in the redundant data argument linked list
-    if(_data_args[associated_option] == '\\')
-    {
-        _cargs_push_redundant_argument(associated_option, data_pointer, count);
-    }
-    else
-    {   //There is no read_point association because _data_packs belong to _data_args read point
-        _data_packs.packages[associated_option].count = count;
-        _data_packs.packages[associated_option].values = (count == 0 ? NULL : (char**)data_pointer);
-    }
+    //Check if error because of redundant arg
+    if(!_cargs_check_redundant_arg_error(_data_args, associated_option, argv[*index] + (is_extended ? 2 : 1), is_extended))
+        _cargs_push_list_node(
+            &(_cargs_redundant_arguments[associated_option].first_node),
+            &(_cargs_redundant_arguments[associated_option].last_node), 
+            (count == 0 ? NULL : data_pointer), count
+        );
+    else if(cargs_error_code) return false;
+
+    //No redundant and new arg so check
+    _data_packs.packages[associated_option].count = count;
+    _data_packs.packages[associated_option].values = (count == 0 ? NULL : (char**)data_pointer);
     //Set offset to argument iterator
     (*index) += count;
-
     return true;
 }
 
@@ -278,7 +279,8 @@ void _cargs_store_anonymous_arguments(const int argc, const char* argv[], uint32
         (*arg_index)++;
     }
     (*arg_index)--;     //Next iteration, the index variable will increment
-    _cargs_push_anon_node(argv + anon_arg_pack_position, count);
+    _cargs_anon_arg_count++;
+    _cargs_push_list_node(&_cargs_anon_args, &_cargs_anon_last, argv + anon_arg_pack_position, count);
 }
 
 bool _cargs_check_mandatory_arguments()
