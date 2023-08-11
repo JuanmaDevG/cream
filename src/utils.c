@@ -229,11 +229,8 @@ bool _read_non_extended_argument(const int argc, const char* argv[], uint32_t* i
     {
         if(_find_argument_char(argv[(*index)][j]))
         {
-            //Check if redundant argument error
             if(_cargs_check_redundant_arg_error(
-                _get_actual_read_point(),
-                _get_actual_checkpoint() -1,
-                argv[*index] +1, false
+                _get_actual_read_point(), _get_actual_checkpoint() -1, argv[*index] +1, false
             )) return false;
 
             //Check if data argument and write data
@@ -249,7 +246,6 @@ bool _read_non_extended_argument(const int argc, const char* argv[], uint32_t* i
                     return false;
                 } 
             }
-
             _get_actual_read_point()[_get_actual_checkpoint() -1] = '\\';
         }
         else
