@@ -18,10 +18,10 @@
 */
 
 
-inline void _cargs_push_list_node(
+extern inline void _cargs_push_list_node(
     _cargs_anonymous_node** first, _cargs_anonymous_node** last, const char** data_pointer, const uint32_t count
 );
 
-inline bool _cargs_delete_list_head(_cargs_anonymous_node** node, _cargs_anonymous_node** last);
+extern inline bool _cargs_delete_list_head(_cargs_anonymous_node** node, _cargs_anonymous_node** last);
 
-inline ArgPackage* _cargs_get_list_package(_cargs_anonymous_node* first_node, uint32_t position);
+extern inline const ArgPackage* _cargs_get_list_package(_cargs_anonymous_node* first_node, uint32_t position);

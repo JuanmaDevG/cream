@@ -39,7 +39,7 @@ inline bool _cargs_delete_list_head(_cargs_anonymous_node** node, _cargs_anonymo
     return true;
 }
 
-inline ArgPackage* _cargs_get_list_package(_cargs_anonymous_node* first_node, uint32_t position)
+inline const ArgPackage* _cargs_get_list_package(_cargs_anonymous_node* first_node, uint32_t position)
 {
     if(!first_node) return NULL;
     _cargs_anonymous_node* iterator =  first_node;

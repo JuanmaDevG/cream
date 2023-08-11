@@ -5,7 +5,6 @@
 
 #include "utils.h"
 
-#include <stdio.h>
 
 char new_bool_args[] = "abcdef";
 char new_data_args[] = "ghijkl";
@@ -36,6 +35,7 @@ void init_test_args()
     _cargs_equals_operator_pointer_bank = (char**)malloc(strlen(new_data_args));
     _cargs_maximum_data = (uint8_t*)calloc(strlen(new_data_args), sizeof(uint8_t));
     _cargs_minimum_data = (uint8_t*)calloc(strlen(new_data_args), sizeof(uint8_t));
+    _cargs_redundant_arguments = (_cargs_redundant_data_storage*)calloc(_data_packs.size, sizeof(_cargs_redundant_data_storage));
 }
 
 void init_ext_arg_vec()

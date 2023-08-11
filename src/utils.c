@@ -204,15 +204,19 @@ bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, con
         return false;
     }
     //Check if error because of redundant arg
-    if(!_cargs_check_redundant_arg_error(_data_args, associated_option, argv[*index] + (is_extended ? 2 : 1), is_extended))
+    if(_cargs_check_redundant_arg_error(_data_args, associated_option, argv[*index] + (is_extended ? 2 : 1), is_extended))
+        return false;
+    if(!_cargs_treat_repeated_args_as_errors && _data_args[associated_option] == '\\')
+    {
         _cargs_push_list_node(
             &(_cargs_redundant_arguments[associated_option].first_node),
             &(_cargs_redundant_arguments[associated_option].last_node), 
             (count == 0 ? NULL : data_pointer), count
         );
-    else if(cargs_error_code) return false;
+        return true;
+    }
 
-    //No redundant and new arg so check
+    //No redundant and new arg so add data
     _data_packs.packages[associated_option].count = count;
     _data_packs.packages[associated_option].values = (count == 0 ? NULL : (char**)data_pointer);
     //Set offset to argument iterator
