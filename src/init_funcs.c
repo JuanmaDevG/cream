@@ -1,14 +1,13 @@
 #include "init_funcs.h"
+#include <stdio.h> //MOD
 
 
 void cargs_set_identificator(const char new_id) { _arg_id = new_id; }
 
 void cargs_set_args(const char* bool_args, const char* data_args)
 {
-    //Cleanup
-    if(_bool_args) { free(_bool_args); _bool_args = NULL; _data_args = NULL; }
-    else /*just data*/ { free(_data_args); _data_args = NULL; }
-    _bool_args_count = 0; _data_packs.size = 0;
+    cargs_clean();
+    if(!(bool_args || data_args)) return;
 
     //Measures
     if(bool_args) _bool_args_count = strlen(bool_args);
@@ -18,7 +17,7 @@ void cargs_set_args(const char* bool_args, const char* data_args)
         + _data_packs.size                                          /*data argument characters*/ 
         + (bool_args && data_args ? 2 : 1)                          /*If both buffers (bool and data args), two null characters*/
         + (_data_packs.size * sizeof(char*))                        /*equals operator pointer bank*/ 
-        + (_data_packs.size * sizeof(_cargs_data_storage_list))/*redundant argument option data bank*/
+        + (_data_packs.size * sizeof(_cargs_data_storage_list))     /*redundant argument option data bank*/
         + (_data_packs.size * sizeof(ArgPackage))                   /*argument data packages for non redundant (no linked list)*/
         + _data_packs.size                                          /*for maximum data per argument limits*/
         + _data_packs.size;                                         /*for minimum data per argument limits*/
@@ -48,6 +47,39 @@ void cargs_set_args(const char* bool_args, const char* data_args)
         _cargs_minimum_data = (uint8_t*)(_cargs_maximum_data + _data_packs.size);
         memset(_cargs_maximum_data, 0, _data_packs.size *2);
     }
+}
+
+bool cargs_clean()
+{
+    if(!(_bool_args || _data_args || _extended_args.args || _cargs_mandatory_args)) 
+        return false; //When nothing allocated
+    
+    //General purpose main buffer
+    bool bool_args_free = false, data_free = false;
+    if(_bool_args) 
+    {
+        free(_bool_args); _bool_args = NULL; _bool_args_count = 0;
+        bool_args_free = true;
+    }
+    if(!bool_args_free && _data_args) { free(_data_args); data_free = true; }
+    printf("IM THE FUCK HERE\n"); //MOD
+
+    if(data_free) //NULL the rest of the buffers
+    {
+        _data_args = NULL; _data_packs.size = 0; _data_packs.packages = NULL;
+        _cargs_bank_stack_pointer = 0; _cargs_equals_operator_pointer_bank = NULL;
+
+        _cargs_anon_arg_count = 0; _cargs_anon_args = NULL; _cargs_anon_last = NULL;
+        _cargs_maximum_data = NULL; _cargs_minimum_data = NULL;
+        
+        _reset_finders(); _reset_ext_finders();
+        _cargs_redundant_arguments = NULL;
+    }
+
+    //Other buffers
+    if(_extended_args.args) { free(_extended_args.args); _extended_args.args = NULL; _extended_args.size = 0; }
+    if(_cargs_mandatory_args) { free(_cargs_mandatory_args); _cargs_mandatory_args = NULL; _cargs_mandatory_arg_count = 0; }
+    return true;
 }
 
 void cargs_associate_extended(const char* arg_characters, ...) {

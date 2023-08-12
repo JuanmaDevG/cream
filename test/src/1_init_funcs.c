@@ -1,7 +1,7 @@
 #include "init_funcs_test.h"
 
 /*
-    TESTING IDENTIFICATOR CHANGE AND ARGUMENTS SET
+    TESTING IDENTIFICATOR CHANGE, ARGUMENTS SET AND CLEANUP
 */
 
 int main()
@@ -24,6 +24,11 @@ int main()
     cargs_set_args("abcd", "aefgh"); //Adding a redundnacy 'a'
     assert(_bool_args != NULL && _data_args != NULL);
     assert(strcmp(_data_args, "efgh") == 0);
+
+    cargs_clean();
+    cargs_set_args(NULL, NULL);
+    printf("Set double null\n"); //MOD
+    assert(!(_bool_args || _data_args || _extended_args.args || _cargs_mandatory_args)); //Everything is empty
 
     finish(1, "init functions");
     return 0;

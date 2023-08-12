@@ -24,9 +24,23 @@ void cargs_set_identificator(const char new_identificator);
     WARNING:
     Data arguments are allowed to be empty in the program input, to allways 
     require data when the program starts is recommended to call 
-    cargs_set_minimum_data()
+    cargs_set_minimum_data() after this function.
+
+    Each time this function is called, it calls cargs_clean() so every data 
+    or argument buffer declared previously will be deleted for security 
+    and argument consistency reasons.
 */
 void cargs_set_args(const char* boolean_arguments, const char* data_arguments);
+
+/*
+    Cleans up all the cargs metadata, buffers and whatever is allocated.
+
+    After this function call, cargs can be reused with whatever purpose 
+    with any kind of arguments.
+
+    Will return false is there is nothing to clean.
+*/
+bool cargs_clean();
 
 /*
     Associates an extended version of an argument letter to make the argument 
