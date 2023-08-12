@@ -38,7 +38,7 @@ ExtArgVec _extended_args = {0, NULL};
     -------------------
 */
 
-_cargs_mandatory_position* _cargs_mandatory_args = NULL;
+_cargs_buffer_position* _cargs_mandatory_args = NULL;
 uint32_t _cargs_mandatory_arg_count = 0;
 
 /*
@@ -70,4 +70,4 @@ uint32_t _extended_checkpoint = 0;
     ------------------------------------------
 */
 
-_cargs_redundant_data_storage* _cargs_redundant_arguments = NULL;
+_cargs_data_storage_list* _cargs_redundant_arguments = NULL;

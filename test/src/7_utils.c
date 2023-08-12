@@ -8,7 +8,6 @@ int main()
 {
     init_test_args();
     init_ext_arg_vec();
-    init_data_packages();
 
     //Extended argument test
     uint32_t arg_index = 1;

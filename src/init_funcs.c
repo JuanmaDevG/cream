@@ -6,8 +6,9 @@ void cargs_set_identificator(const char new_id) { _arg_id = new_id; }
 void cargs_set_args(const char* bool_args, const char* data_args)
 {
     //Cleanup
-    if(_bool_args) { free(_bool_args); _bool_args = NULL; }
-    if(_data_args) { free(_data_args); _data_args = NULL; }
+    if(_bool_args) { free(_bool_args); _bool_args = NULL; _data_args = NULL; }
+    else /*just data*/ { free(_data_args); _data_args = NULL; }
+    _bool_args_count = 0; _data_packs.size = 0;
 
     //Measures
     if(bool_args) _bool_args_count = strlen(bool_args);
@@ -17,7 +18,7 @@ void cargs_set_args(const char* bool_args, const char* data_args)
         + _data_packs.size                                          /*data argument characters*/ 
         + (bool_args && data_args ? 2 : 1)                          /*If both buffers (bool and data args), two null characters*/
         + (_data_packs.size * sizeof(char*))                        /*equals operator pointer bank*/ 
-        + (_data_packs.size * sizeof(_cargs_redundant_data_storage))/*redundant argument option data bank*/
+        + (_data_packs.size * sizeof(_cargs_data_storage_list))/*redundant argument option data bank*/
         + (_data_packs.size * sizeof(ArgPackage))                   /*argument data packages for non redundant (no linked list)*/
         + _data_packs.size                                          /*for maximum data per argument limits*/
         + _data_packs.size;                                         /*for minimum data per argument limits*/
@@ -37,8 +38,8 @@ void cargs_set_args(const char* bool_args, const char* data_args)
         //Equals operator pointer bank to point to the specific argument determined by equals sign
         _cargs_equals_operator_pointer_bank = (char**)(_data_args + _data_packs.size +1);
         //Redundant argument options data pointers storage
-        _cargs_redundant_arguments = (_cargs_redundant_data_storage*)(_cargs_equals_operator_pointer_bank + _data_packs.size);
-        memset(_cargs_redundant_arguments, 0, _data_packs.size * sizeof(_cargs_redundant_data_storage));
+        _cargs_redundant_arguments = (_cargs_data_storage_list*)(_cargs_equals_operator_pointer_bank + _data_packs.size);
+        memset(_cargs_redundant_arguments, 0, _data_packs.size * sizeof(_cargs_data_storage_list));
         //Non redundant option data packages storage
         _data_packs.packages = (ArgPackage*)(_cargs_redundant_arguments + _data_packs.size);
         memset(_data_packs.packages, 0, _data_packs.size * sizeof(ArgPackage));
@@ -76,7 +77,7 @@ void cargs_make_mandatory(const char* arg_characters)
 {
     size_t length = strlen(arg_characters) +1;
     _cargs_mandatory_arg_count = length;
-    _cargs_mandatory_args = (_cargs_mandatory_position*)calloc(length, sizeof(_cargs_mandatory_position));
+    _cargs_mandatory_args = (_cargs_buffer_position*)calloc(length, sizeof(_cargs_buffer_position));
     for(uint32_t i=0; i < length; i++)
     {
         if(_find_argument_char(arg_characters[i]) == 0)

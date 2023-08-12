@@ -11,7 +11,7 @@ char new_data_args[] = "ghijkl";
 
 const char* finish_msg = "Finished test %d from %s\n";
 
-const int tmp_argc = 11;
+const int tmp_argc = 16;
 char* tmp_argv[] = {
     "program_name.exe",
     "--goto",
@@ -21,9 +21,14 @@ char* tmp_argv[] = {
     "something.lib",
     "some-other.dll",
     "any_module.lib",
-    "-j",               //should give error because has non associated data
+    "-j",               //Should not give error if has not minimum argument number set
     "-abc",
-    "-dkf"
+    "-dkf",
+    "anonymous_arg1",   //Some anonymous arguments 
+    "anonymous_arg2", 
+    "anonymous_arg3", 
+    "anonymous_arg4",
+    "-k=some_argument"
 };
 
 void init_test_args()
@@ -32,10 +37,11 @@ void init_test_args()
     _bool_args_count = strlen(new_bool_args);
     _data_args = new_data_args;
     _data_packs.size = strlen(new_data_args);
+    _data_packs.packages = (ArgPackage*)calloc(_data_packs.size, sizeof(ArgPackage));
     _cargs_equals_operator_pointer_bank = (char**)malloc(strlen(new_data_args));
     _cargs_maximum_data = (uint8_t*)calloc(strlen(new_data_args), sizeof(uint8_t));
     _cargs_minimum_data = (uint8_t*)calloc(strlen(new_data_args), sizeof(uint8_t));
-    _cargs_redundant_arguments = (_cargs_redundant_data_storage*)calloc(_data_packs.size, sizeof(_cargs_redundant_data_storage));
+    _cargs_redundant_arguments = (_cargs_data_storage_list*)calloc(_data_packs.size, sizeof(_cargs_data_storage_list));
 }
 
 void init_ext_arg_vec()
@@ -56,12 +62,6 @@ void init_ext_arg_vec()
     memcpy(_extended_args.args[1].name, "goto", strlen("goto") +1);
 
     //Third element empty...
-}
-
-void init_data_packages()
-{
-    _data_packs.size = tmp_argc;
-    _data_packs.packages = (ArgPackage*)calloc(_data_packs.size, sizeof(ArgPackage));
 }
 
 void finish(uint32_t test_id, const char* test_name) { printf(finish_msg, test_id, test_name); }

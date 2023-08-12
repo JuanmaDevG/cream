@@ -278,7 +278,7 @@ void _cargs_store_anonymous_arguments(const int argc, const char* argv[], uint32
         (*arg_index)++;
     }
     (*arg_index)--;     //Next iteration, the index variable will increment
-    _cargs_anon_arg_count++;
+    _cargs_anon_arg_count += count;
     _cargs_push_list_node(&_cargs_anon_args, &_cargs_anon_last, argv + anon_arg_pack_position, count);
 }
 

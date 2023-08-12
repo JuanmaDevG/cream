@@ -71,9 +71,9 @@ extern ExtArgVec _extended_args;
 typedef struct {
     char* read_point;
     uint32_t position;
-} _cargs_mandatory_position;
+} _cargs_buffer_position;
 
-extern _cargs_mandatory_position* _cargs_mandatory_args;
+extern _cargs_buffer_position* _cargs_mandatory_args;
 extern uint32_t _cargs_mandatory_arg_count;
 
 
@@ -141,10 +141,10 @@ extern uint32_t _extended_checkpoint;   //Checkpoint just made for extended argu
     ------------------------------------------
 */
 
-typedef struct _cargs_redundant_data_storage {
+typedef struct _cargs_data_storage_list {
     _cargs_anonymous_node* first_node;
     _cargs_anonymous_node* last_node;
-} _cargs_redundant_data_storage;
+} _cargs_data_storage_list;
 
 /*
     Contains as many places as as the _data_packs vector size.
@@ -153,4 +153,4 @@ typedef struct _cargs_redundant_data_storage {
     options are not recognized as errors (_cargs_treat_redundant_arguments_as_errors = false)
     the data package of the redunant option is full, so will be allocated here.
 */
-extern _cargs_redundant_data_storage* _cargs_redundant_arguments;
+extern _cargs_data_storage_list* _cargs_redundant_arguments;

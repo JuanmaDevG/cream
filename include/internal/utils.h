@@ -95,7 +95,7 @@ extern inline void _cargs_declare_error(const char* error_arg, const uint8_t is_
 */
 
 /*
-    Removes redundant option letters
+    Removes redundant option characters
 
     The mode must be a _redunancy_remove_mode enum type
 */
