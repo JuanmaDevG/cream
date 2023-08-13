@@ -6,7 +6,7 @@
 
 int main()
 {
-    cargs_set_identificator('/'); //Windows like id
+    cargs_set_identificator('/'); //Windows like option id
     assert(_arg_id == '/');
     cargs_set_identificator('-'); //I personally prefer Unix like id
 

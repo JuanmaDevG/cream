@@ -61,7 +61,6 @@ bool cargs_clean()
         free(_bool_args); _bool_args = NULL; _bool_args_count = 0;
         bool_args_free = true;
     }
-    printf("Data args = %s\n", _data_args); //MOD
     if(!bool_args_free && _data_args) { free(_data_args); data_free = true; }
     printf("IM THE FUCK HERE\n"); //MOD
 
