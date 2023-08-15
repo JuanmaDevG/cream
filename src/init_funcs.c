@@ -95,14 +95,12 @@ void cargs_associate_extended(const char* arg_characters, ...) {
     const size_t length = strlen(arg_characters); 
     if(!length) return;
     if(_extended_args.args)
-        for(size_t i=0; i < _extended_args.size; i++) 
-        { 
-            free(_extended_args.args[i].name);
-            memset(_extended_args.args, 0, _extended_args.size * sizeof(ExtArg));
-        }
+    {
+        for(size_t i=0; i < _extended_args.size; i++) free(_extended_args.args[i].name);
+        memset(_extended_args.args, 0, _extended_args.size * sizeof(ExtArg));
+    }
     
-    //Extended args vector setting up
-    if(length != _extended_args.size)
+    if(length != _extended_args.size) //If need ext_arg reallocation
     {
         free(_extended_args.args);
         _extended_args.args = (ExtArg*)calloc(length, sizeof(ExtArg));

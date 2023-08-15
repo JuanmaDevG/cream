@@ -7,17 +7,17 @@ int main()
 
     assert(_extended_args.size == 3);
     assert(_extended_args.args);
-    assert(cargs_clean());
-    ExtArg* ptr = _extended_args.args;
-    printf("Assertions 1\n"); //MOD
     
+    ExtArg* ptr = _extended_args.args;
     assert(strcmp(ptr[0].name, "copy") == 0);
     assert(strcmp(ptr[1].name, "export") == 0);
     assert(strcmp(ptr[2].name, "file") == 0);
 
+    assert(cargs_clean());
     cargs_set_args(NULL, "lsi");
     cargs_associate_extended("lsi", "load", "save_in", "ignore");
     assert(_extended_args.size == 3); //Reallocation went well
+    assert(strcmp(_extended_args.args[0].name, "load") == 0);
 
     finish(2, "init functions");
 }
