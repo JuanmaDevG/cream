@@ -55,6 +55,8 @@ bool cargs_clean();
     WARNING:
     This function is more efficient for the library to receive the arg_characters string ordered as given  
     in cargs_set_args function. Otherwise the loop will be much longer.
+
+    In this function call, if any argument char does not exist, cargs will simply ignore it.
 */
 void cargs_associate_extended(const char* arg_characters, ...);
 

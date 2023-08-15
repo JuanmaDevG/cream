@@ -25,9 +25,13 @@ int main()
     assert(_bool_args != NULL && _data_args != NULL);
     assert(strcmp(_data_args, "efgh") == 0);
 
-    cargs_clean();
+    assert(cargs_clean());
     cargs_set_args(NULL, NULL);
     assert(!(_bool_args || _data_args || _extended_args.args || _cargs_mandatory_args)); //Everything is empty
+
+    assert(!cargs_clean());
+    cargs_set_args("abc", "def");
+    assert(cargs_clean());
 
     finish(1, "init functions");
     return 0;

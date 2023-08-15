@@ -44,7 +44,7 @@ void cargs_set_args(const char* bool_args, const char* data_args)
         //Allocation of maximum and minimum data required argument counts
         _cargs_maximum_data = (uint8_t*)(_data_packs.packages + _data_packs.size);
         _cargs_minimum_data = (uint8_t*)(_cargs_maximum_data + _data_packs.size);
-        memset(_cargs_maximum_data, 0, _data_packs.size *2);
+        memset(_cargs_maximum_data, 0, _data_packs.size << 1);/*2 times data packs = left shift*/
     }
 }
 
@@ -75,28 +75,49 @@ bool cargs_clean()
     }
 
     //Other buffers
-    if(_extended_args.args) { free(_extended_args.args); _extended_args.args = NULL; _extended_args.size = 0; }
+    if(_extended_args.args) 
+    {
+        for(size_t i=0; i < _extended_args.size; i++)
+            free(_extended_args.args[i].name);
+        free(_extended_args.args); _extended_args.args = NULL; _extended_args.size = 0;
+    }
     if(_cargs_mandatory_args) { free(_cargs_mandatory_args); _cargs_mandatory_args = NULL; _cargs_mandatory_arg_count = 0; }
     return true;
 }
 
 void cargs_associate_extended(const char* arg_characters, ...) {
+    if(!arg_characters) return;
     _obtain_read_point();
     if(_get_actual_read_point() == NULL) return;
-
-    size_t length = strlen(arg_characters);
     va_list arg_l;
     va_start(arg_l, arg_characters);
 
+    const size_t length = strlen(arg_characters); 
+    if(!length) return;
+    if(_extended_args.args)
+        for(size_t i=0; i < _extended_args.size; i++) 
+        { 
+            free(_extended_args.args[i].name);
+            memset(_extended_args.args, 0, _extended_args.size * sizeof(ExtArg));
+        }
+    
     //Extended args vector setting up
+    if(length != _extended_args.size)
+    {
+        free(_extended_args.args);
+        _extended_args.args = (ExtArg*)calloc(length, sizeof(ExtArg));
+    }
     _extended_args.size = length;
-    _extended_args.args = (ExtArg*)calloc(length, sizeof(ExtArg));
 
     //Loops over the argument buffers finding the argument characters to associate
     for(uint32_t i=0; i < length; i++)
     {
         if(_find_argument_char(arg_characters[i]))
-            _cargs_push_extended_argument(va_arg(arg_l, const char*), _get_actual_checkpoint() -1, _get_actual_read_point(), i);
+            _cargs_push_extended_argument(
+                va_arg(arg_l, const char*), /*argument string*/
+                _get_actual_checkpoint() -1 /*associated option*/, 
+                _get_actual_read_point(), i
+            );
     }
     _reset_finders();
 
@@ -110,7 +131,7 @@ void cargs_make_mandatory(const char* arg_characters)
     _cargs_mandatory_args = (_cargs_buffer_position*)calloc(length, sizeof(_cargs_buffer_position));
     for(uint32_t i=0; i < length; i++)
     {
-        if(_find_argument_char(arg_characters[i]) == 0)
+        if(!_find_argument_char(arg_characters[i]))
         {
             _cargs_mandatory_args[i].position = UINT32_MAX;
             _cargs_mandatory_args[i].read_point = NULL;
