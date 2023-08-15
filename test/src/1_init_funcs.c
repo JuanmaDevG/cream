@@ -27,7 +27,6 @@ int main()
 
     cargs_clean();
     cargs_set_args(NULL, NULL);
-    printf("Set double null\n"); //MOD
     assert(!(_bool_args || _data_args || _extended_args.args || _cargs_mandatory_args)); //Everything is empty
 
     finish(1, "init functions");

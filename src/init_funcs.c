@@ -1,5 +1,4 @@
 #include "init_funcs.h"
-#include <stdio.h> //MOD
 
 
 void cargs_set_identificator(const char new_id) { _arg_id = new_id; }
@@ -52,19 +51,18 @@ void cargs_set_args(const char* bool_args, const char* data_args)
 bool cargs_clean()
 {
     if(!(_bool_args || _data_args || _extended_args.args || _cargs_mandatory_args)) 
-        return false; //When nothing allocated
+        return false; //No buffers
     
     //General purpose main buffer
-    bool bool_args_free = false, data_free = false;
+    bool bool_args_free = false;
     if(_bool_args) 
     {
         free(_bool_args); _bool_args = NULL; _bool_args_count = 0;
         bool_args_free = true;
     }
-    if(!bool_args_free && _data_args) { free(_data_args); data_free = true; }
-    printf("IM THE FUCK HERE\n"); //MOD
+    if(!bool_args_free && _data_args) free(_data_args);
 
-    if(data_free) //NULL the rest of the buffers
+    if(_data_args) //There was data -> set to NULL associated buffer information
     {
         _data_args = NULL; _data_packs.size = 0; _data_packs.packages = NULL;
         _cargs_bank_stack_pointer = 0; _cargs_equals_operator_pointer_bank = NULL;
