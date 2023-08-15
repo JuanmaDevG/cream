@@ -1,5 +1,9 @@
 #include "init_funcs_test.h"
 
+/*
+    Associating extended arguments to it's short version
+*/
+
 int main()
 {
     cargs_set_args("abc", "def");
@@ -18,6 +22,12 @@ int main()
     cargs_associate_extended("lsi", "load", "save_in", "ignore");
     assert(_extended_args.size == 3); //Reallocation went well
     assert(strcmp(_extended_args.args[0].name, "load") == 0);
+
+    cargs_set_args("abc", NULL);
+    cargs_associate_extended("ac", "abort", "copy");
+    ptr = _extended_args.args;
+    assert(strcmp(ptr[0].name, "abort") == 0);
+    assert(strcmp(ptr[1].name, "copy") == 0);
 
     finish(2, "init functions");
 }
