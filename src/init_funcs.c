@@ -124,23 +124,39 @@ void cargs_associate_extended(const char* arg_characters, ...) {
 
 void cargs_make_mandatory(const char* arg_characters)
 {
-    size_t length = strlen(arg_characters) +1;
-    _cargs_mandatory_arg_count = length;
-    _cargs_mandatory_args = (_cargs_buffer_position*)calloc(length, sizeof(_cargs_buffer_position));
-    for(uint32_t i=0; i < length; i++)
+    size_t length = (arg_characters ? strlen(arg_characters) : 0);
+    if(length == 0)
     {
-        if(!_find_argument_char(arg_characters[i]))
-        {
-            _cargs_mandatory_args[i].position = UINT32_MAX;
-            _cargs_mandatory_args[i].read_point = NULL;
-        }
-        else
-        {
-            _cargs_mandatory_args[i].position = _get_actual_checkpoint() -1;
-            _cargs_mandatory_args[i].read_point = _get_actual_read_point();
-        }
+        free(_cargs_mandatory_args); _cargs_mandatory_args = NULL;
+        _cargs_mandatory_arg_count = 0;
+        return;
     }
 
+    if(_cargs_mandatory_args) //Is there allocated memory?
+    {
+        if(length > _cargs_mandatory_arg_count)
+        {
+            size_t buf_size = length * sizeof(_cargs_buffer_position);
+            realloc(_cargs_mandatory_args, buf_size);
+            memset(_cargs_mandatory_args, 0, buf_size);
+        }
+    }
+    else //No -> allocate
+        _cargs_mandatory_args = (_cargs_buffer_position*)calloc(length, sizeof(_cargs_buffer_position));
+
+    size_t fail_offset = 0;
+    for(size_t i=0; i < length; i++)
+    {
+        if(!_find_argument_char(arg_characters[i])) fail_offset++;
+        else
+        {
+            _cargs_mandatory_args[i - fail_offset].position = _get_actual_checkpoint() -1;
+            _cargs_mandatory_args[i - fail_offset].read_point = _get_actual_read_point();
+        }
+    }
+    if(fail_offset)
+        memset(_cargs_mandatory_args + length, 0, fail_offset * sizeof(_cargs_buffer_position));
+    _cargs_mandatory_arg_count = length;
     _reset_finders();
 }
 
