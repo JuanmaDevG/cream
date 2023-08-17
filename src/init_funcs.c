@@ -1,5 +1,4 @@
 #include "init_funcs.h"
-#include <stdio.h> //MOD
 
 
 void cargs_set_identificator(const char new_id) { _arg_id = new_id; }

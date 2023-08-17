@@ -139,8 +139,15 @@ uint32_t _find_argument_char(const char argument_char)
         
         //Not found, and if looked everywhere, return
         if(
-            (j == _checkpoint -1 && checkpoint_read_point == _read_point) ||                        //Checkpoint is not zero
-            (_checkpoint == 0 && _read_point[j+1] == '\0' && _read_point != checkpoint_read_point)  //Checkpoint is zero
+            (j == _checkpoint -1 && checkpoint_read_point == _read_point) ||                            //Checkpoint is not zero
+            (
+                _checkpoint == 0 && _read_point[j+1] == '\0' && 
+                (
+                    (_read_point != checkpoint_read_point) || 
+                    (_get_actual_checkpoint() == _data_args && !_bool_args) ||
+                    (_get_actual_checkpoint() == _bool_args && !_data_args)
+                )
+            )
         ) {
             _reset_finders();
             return _checkpoint;
@@ -260,6 +267,7 @@ bool _read_non_extended_argument(const int argc, const char* argv[], uint32_t* i
 
 inline void _cargs_set_data_limit(const char* data_arg_string, va_list arg_limits, uint8_t* write_point)
 {
+    if(!write_point) return;
     for(uint32_t i=0; data_arg_string[i] != '\0'; i++)
     {
         if(_find_argument_char(data_arg_string[i]))
