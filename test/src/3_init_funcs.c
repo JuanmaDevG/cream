@@ -13,7 +13,26 @@ int main()
     assert(_cargs_mandatory_args[2].position == 2);
     assert(_cargs_mandatory_args[2].read_point == _data_args);
 
-    //Invalid arguments should be invalidated
+    cargs_make_mandatory("ab");
+    assert(_cargs_mandatory_arg_count == 2);
+    assert(_cargs_mandatory_args[0].position == 0);
+    assert(_cargs_mandatory_args[0].read_point == _bool_args);
+    assert(_cargs_mandatory_args[1].position == 1);
+    assert(_cargs_mandatory_args[1].read_point == _bool_args);
+
+    //No mandatory args should deallocate
+    cargs_make_mandatory(NULL);
+    assert(_cargs_mandatory_arg_count == 0);
+    assert(!_cargs_mandatory_args);
+    cargs_make_mandatory("");
+    assert(_cargs_mandatory_arg_count == 0);
+    assert(!_cargs_mandatory_args);
+
+    //Not found arguments
+    cargs_make_mandatory("akeiou");
+    assert(_cargs_mandatory_arg_count == 2);
+    assert(_cargs_mandatory_args[1].position == 1);
+    assert(_cargs_mandatory_args[1].read_point == _data_args);
 
     finish(3, "init functions");
 }
