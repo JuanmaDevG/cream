@@ -144,8 +144,8 @@ uint32_t _find_argument_char(const char argument_char)
                 _checkpoint == 0 && _read_point[j+1] == '\0' && 
                 (
                     (_read_point != checkpoint_read_point) || 
-                    (_get_actual_checkpoint() == _data_args && !_bool_args) ||
-                    (_get_actual_checkpoint() == _bool_args && !_data_args)
+                    (_get_actual_read_point() == _data_args && !_bool_args) ||
+                    (_get_actual_read_point() == _bool_args && !_data_args)
                 )
             )
         ) {
@@ -243,9 +243,9 @@ bool _read_non_extended_argument(const int argc, const char* argv[], uint32_t* i
             //Check if data argument and write data
             if(_get_actual_read_point() == _data_args)
             {
-                if(j == 1 && argv[(*index)][2] == '\0')
+                if(j == 1 && (argv[(*index)][2] == '\0' || argv[*index][2] == '='))
                 {
-                    if(!_add_argument_data(argc, argv, index, NULL)) return 0;
+                    if(!_add_argument_data(argc, argv, index, NULL)) return false;
                 }
                 else
                 {
