@@ -26,7 +26,7 @@ char* tmp_argv1[] = {
     "-ct",
     "-f=file.txt",
     "anonymous_arg3",
-    "-save-in",
+    "--save-in",
     "file_result.txt",
     "another_file.txt"
 };
@@ -40,6 +40,7 @@ int main()
     cargs_load_args(tmp_argc, (const char**)tmp_argv1);
 
     printf("%s %s\n", _cargs_error_argument, _cargs_error_strings[cargs_error_code]); //MOD
+    printf("Minimum_data: %u\n", _cargs_minimum_data[1]); //MOD
     assert(cargs_error_code == CARGS_NO_ERROR);
     assert(_cargs_anon_args != NULL);
     assert(_cargs_anon_arg_count == 3);
