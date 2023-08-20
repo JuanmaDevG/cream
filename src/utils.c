@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <stdio.h> //MOD
 
 /*
     ---------------------------
@@ -214,6 +215,7 @@ bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, con
         return false;
     if(!_cargs_treat_repeated_args_as_errors && _data_args[associated_option] == '\\')
     {
+        printf("Push list node because repeated\n"); //MOD
         _cargs_push_list_node(
             &(_cargs_redundant_arguments[associated_option].first_node),
             &(_cargs_redundant_arguments[associated_option].last_node), 
