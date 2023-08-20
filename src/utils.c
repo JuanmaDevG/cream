@@ -1,5 +1,4 @@
 #include "utils.h"
-#include <stdio.h> //MOD
 
 /*
     ---------------------------
@@ -215,7 +214,6 @@ bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, con
         return false;
     if(!_cargs_treat_repeated_args_as_errors && _data_args[associated_option] == '\\')
     {
-        printf("Push list node because repeated\n"); //MOD
         _cargs_push_list_node(
             &(_cargs_redundant_arguments[associated_option].first_node),
             &(_cargs_redundant_arguments[associated_option].last_node), 
@@ -248,7 +246,11 @@ bool _read_non_extended_argument(const int argc, const char* argv[], uint32_t* i
                 if(j == 1 && (argv[(*index)][2] == '\0' || argv[*index][2] == '='))
                 {
                     if(!_add_argument_data(argc, argv, index, NULL)) return false;
-                    if(argv[*index][2] == '=') return true; //Equals operator means captured data
+                    if(argv[*index][2] == '=') //Equals operator -> no more to read
+                    {
+                        _get_actual_read_point()[_get_actual_checkpoint() -1] = '\\';
+                        return true;
+                    }  
                 }
                 else
                 {

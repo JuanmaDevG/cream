@@ -60,7 +60,7 @@ int main()
     assert(_cargs_bank_stack_pointer);
     assert(_cargs_equals_operator_pointer_bank);
     assert(_data_packs.size == 2);
-    assert(_data_packs.packages[0].count == 1); //There must be only one because of equals operator pointer!!!!!!!!!!!!!!
+    assert(_data_packs.packages[0].count == 1);
     assert(strcmp(_data_packs.packages[0].values[0], "file.txt") == 0);
     assert(_data_packs.packages[1].count == 2);
     assert(_cargs_get_list_package(_cargs_redundant_arguments->first_node, 0));
