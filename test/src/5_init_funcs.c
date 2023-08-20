@@ -34,13 +34,12 @@ char* tmp_argv1[] = {
 int main()
 {
     cargs_set_args(tmp_bool_args, tmp_data_args);
+    printf("Data packs %zu\n", _data_packs.size); //MOD
     cargs_associate_extended("actfs", "abort-when-fail", "copy-symbols", "time-benchmark", "file", "save-in");
 
     tmp_argc = 9;
     cargs_load_args(tmp_argc, (const char**)tmp_argv1);
 
-    printf("%s %s\n", _cargs_error_argument, _cargs_error_strings[cargs_error_code]); //MOD
-    printf("Minimum_data: %u\n", _cargs_minimum_data[1]); //MOD
     assert(cargs_error_code == CARGS_NO_ERROR);
     assert(_cargs_anon_args != NULL);
     assert(_cargs_anon_arg_count == 3);
@@ -53,7 +52,6 @@ int main()
     assert(_data_packs.size == 2);
     assert(_data_packs.packages[0].count == 1);
     assert(_data_packs.packages[1].count == 2);
-
 
     finish(5, "init functions");
 }

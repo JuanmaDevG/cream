@@ -96,9 +96,9 @@ void _remove_redundancies(const uint32_t mode)
     }
 
     //Look for redundancies and remove them
-    for(uint64_t i=0; i <= *read_length; i++)
+    for(uint64_t i=0; i < *read_length; i++)
     {
-        for(uint64_t j=0; j <= *write_length; j++)
+        for(uint64_t j=0; j < *write_length; j++)
             if(read_point[i] == write_point[j])
             {
                 memcpy(write_point +j, write_point +j +1, (*write_length) - j);

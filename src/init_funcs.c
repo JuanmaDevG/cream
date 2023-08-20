@@ -11,6 +11,7 @@ void cargs_set_args(const char* bool_args, const char* data_args)
     //Measures
     if(bool_args) _bool_args_count = strlen(bool_args);
     if(data_args) _data_packs.size = strlen(data_args);
+
     size_t buf_length = 
         _bool_args_count                                            /*boolean argument characters*/
         + _data_packs.size                                          /*data argument characters*/ 
@@ -24,12 +25,13 @@ void cargs_set_args(const char* bool_args, const char* data_args)
 
     //Cache friendly single buffer with multi-pointer support
     _bool_args = (char*) malloc(buf_length);
+    memset(_bool_args, 0, buf_length);
 
     if(bool_args) memcpy(_bool_args, bool_args, _bool_args_count +1);
     if(data_args)
     {
         //Data arguments pointer offset
-        _data_args = _bool_args + _bool_args_count + (bool_args ? 1 : 0);
+        _data_args = _bool_args + (bool_args ? _bool_args_count + 1 : 0);
         if(!bool_args) _bool_args = NULL;
         memcpy(_data_args, data_args, _data_packs.size + 1);
         _remove_redundancies(REMOVE_DATA_REDUNDANCIES);
@@ -37,14 +39,11 @@ void cargs_set_args(const char* bool_args, const char* data_args)
         _cargs_equals_operator_pointer_bank = (char**)(_data_args + _data_packs.size +1);
         //Redundant argument options data pointers storage
         _cargs_redundant_arguments = (_cargs_data_storage_list*)(_cargs_equals_operator_pointer_bank + _data_packs.size);
-        memset(_cargs_redundant_arguments, 0, _data_packs.size * sizeof(_cargs_data_storage_list));
         //Non redundant option data packages storage
         _data_packs.packages = (ArgPackage*)(_cargs_redundant_arguments + _data_packs.size);
-        memset(_data_packs.packages, 0, _data_packs.size * sizeof(ArgPackage));
         //Allocation of maximum and minimum data required argument counts
         _cargs_maximum_data = (uint8_t*)(_data_packs.packages + _data_packs.size);
         _cargs_minimum_data = (uint8_t*)(_cargs_maximum_data + _data_packs.size);
-        memset(_cargs_maximum_data, 0, _data_packs.size << 1);/*2 times data packs = left shift*/
     }
 }
 
