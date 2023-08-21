@@ -84,6 +84,15 @@ bool cargs_clean()
         free(_extended_args.args); _extended_args.args = NULL; _extended_args.size = 0;
     }
     if(_cargs_mandatory_args) { free(_cargs_mandatory_args); _cargs_mandatory_args = NULL; _cargs_mandatory_arg_count = 0; }
+
+    //Error buffers
+    if(_cargs_error_argument)
+    {
+        _cargs_error_argument = NULL;
+        free(_cargs_error_buffer_str); _cargs_error_buffer_str = NULL;
+        cargs_error_code = CARGS_NO_ERROR;
+    }
+
     return true;
 }
 

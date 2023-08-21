@@ -107,7 +107,8 @@ void cargs_set_minimum_data(const char* data_arg_string, ...);
 void cargs_set_maximum_data(const char* data_arg_string, ...);
 
 /*
-    This function will treat the arguments that are not related to any data argument, as errors.
+    This function will treat the arguments that are not related to any argument option
+    (previously declared with cargs_set_args), as errors.
 
     EXAMPLE:
     If the program my_program has:

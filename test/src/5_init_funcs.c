@@ -46,6 +46,34 @@ char* tmp_argv3[] = {
     "-az"
 };
 
+//Option --some-random-option does not exist in extended arguments
+char* tmp_argv4[] = {
+    "program_name",
+    "--some-random-option"
+};
+
+//Let's assume argument option a is mandatory and throws an error
+char* tmp_argv5[] = {
+    "program_name", 
+    "-ct",
+    "some_anon_arg", 
+    "-f"                //Lonely data options should be possible if there's no minimum data required
+};
+
+//A wrong identificator should give an error when anonymous arguments are interpreted as errors
+char* tmp_argv6[] = {
+    "program_name",
+    "-c",
+    "/h"
+};
+
+//Is not allowed to set a data argument into a multiple boolean string (my girl: te quiero :3)
+char* tmp_argv7[] = {
+    "program_name",
+    "-acf"
+};
+
+
 int main()
 {
     cargs_set_args(tmp_bool_args, tmp_data_args);
@@ -77,6 +105,33 @@ int main()
     assert(_cargs_get_list_package(_cargs_redundant_arguments->first_node, 0));
     assert(!_cargs_get_list_package(_cargs_redundant_arguments->first_node, 1));
     assert(cargs_clean());
+
+    //Error throwing tests
+
+    tmp_argc = 2;
+    cargs_set_args(tmp_bool_args, tmp_data_args);
+    cargs_load_args(tmp_argc, (const char**)tmp_argv2);
+    assert(cargs_error_code == CARGS_NON_EXISTENT);
+
+    cargs_load_args(tmp_argc, (const char**)tmp_argv3);
+    assert(cargs_error_code == CARGS_NON_EXISTENT);
+
+    cargs_associate_extended("actfs", "abort-when-fail", "copy-symbols", "time-benchmark", "file", "save-in");
+    cargs_load_args(tmp_argc, (const char**)tmp_argv4);
+    assert(cargs_error_code == CARGS_NON_EXISTENT);
+    assert(cargs_clean());
+
+    cargs_set_args(tmp_bool_args, tmp_data_args);
+    cargs_make_mandatory("a");
+    cargs_load_args(tmp_argc, (const char**)tmp_argv5);
+    assert(cargs_error_code == CARGS_MANDATORY);
+    assert(cargs_clean());
+
+    cargs_set_args(tmp_bool_args, tmp_data_args);
+    cargs_treat_anonymous_args_as_errors(true);
+    tmp_argc = 3;
+    cargs_load_args(tmp_argc, (const char**)tmp_argv6);
+    assert(cargs_error_code == CARGS_WRONG_ID);
 
     finish(5, "init functions");
 }
