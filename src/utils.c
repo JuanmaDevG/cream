@@ -219,12 +219,12 @@ bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, con
             &(_cargs_redundant_arguments[associated_option].last_node), 
             (count == 0 ? NULL : data_pointer), count
         );
-        return true;
     }
-
-    //No redundant and new arg so add data
-    _data_packs.packages[associated_option].count = count;
-    _data_packs.packages[associated_option].values = (count == 0 ? NULL : (char**)data_pointer);
+    else    //No redundant and new arg so add data
+    {
+        _data_packs.packages[associated_option].count = count;
+        _data_packs.packages[associated_option].values = (count == 0 ? NULL : (char**)data_pointer);
+    }
     //Set offset to argument iterator
     (*index) += count;
     return true;

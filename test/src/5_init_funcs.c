@@ -34,6 +34,18 @@ char* tmp_argv1[] = {
     "overload_arg_pointer_list.txt"
 };
 
+//Option z does not exist and should throw errors
+char* tmp_argv2[] = {
+    "program_name",
+    "-z"
+};
+
+//Option z does not exist in multi_boolean format
+char* tmp_argv3[] = {
+    "program_name",
+    "-az"
+};
+
 int main()
 {
     cargs_set_args(tmp_bool_args, tmp_data_args);
@@ -47,7 +59,6 @@ int main()
     cargs_load_args(tmp_argc, (const char**)tmp_argv1);
 
     assert(cargs_error_code == CARGS_NO_ERROR);
-    assert(_cargs_anon_args != NULL);
     assert(_cargs_anon_arg_count == 3);
     assert(_cargs_anon_args->package.count == 2);
     assert(_cargs_get_list_package(_cargs_anon_args, 1));
@@ -65,6 +76,7 @@ int main()
     assert(_data_packs.packages[1].count == 2);
     assert(_cargs_get_list_package(_cargs_redundant_arguments->first_node, 0));
     assert(!_cargs_get_list_package(_cargs_redundant_arguments->first_node, 1));
+    assert(cargs_clean());
 
     finish(5, "init functions");
 }

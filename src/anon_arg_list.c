@@ -53,3 +53,12 @@ inline const ArgPackage* _cargs_get_list_package(_cargs_anonymous_node* first_no
 
     return (const ArgPackage*) &(iterator->package);
 }
+
+inline bool _cargs_free_data_list(_cargs_data_storage_list* list)
+{
+    if(!list) return false;
+    if(!list->first_node) return false;
+
+    while(list->first_node) _cargs_delete_list_head(&(list->first_node), &(list->last_node));
+    return true;
+}

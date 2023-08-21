@@ -25,3 +25,5 @@ extern inline void _cargs_push_list_node(
 extern inline bool _cargs_delete_list_head(_cargs_anonymous_node** node, _cargs_anonymous_node** last);
 
 extern inline const ArgPackage* _cargs_get_list_package(_cargs_anonymous_node* first_node, uint32_t position);
+
+extern inline bool _cargs_free_data_list(_cargs_data_storage_list* list);

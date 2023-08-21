@@ -52,6 +52,9 @@ bool cargs_clean()
     if(!(_bool_args || _data_args || _extended_args.args || _cargs_mandatory_args)) 
         return false; //No buffers
     
+    //Free all the redundant data information nodes
+    for(uint32_t i=0; i < _data_packs.size; i++) _cargs_free_data_list(_cargs_redundant_arguments + i);
+
     //General purpose main buffer
     bool bool_args_free = false;
     if(_bool_args) 
