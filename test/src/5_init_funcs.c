@@ -73,6 +73,19 @@ char* tmp_argv7[] = {
     "-acf"
 };
 
+//Error because -f now accepts a minimum of one ergument (like a filename for example)
+char* tmp_argv8[] = {
+    "program_name",
+    "-f"
+};
+
+//Error because repeated argument options are treated as errors
+char* tmp_argv9[] = {
+    "program_name",
+    "-f=file.txt",
+    "-f"
+};
+
 
 int main()
 {
@@ -132,6 +145,39 @@ int main()
     tmp_argc = 3;
     cargs_load_args(tmp_argc, (const char**)tmp_argv6);
     assert(cargs_error_code == CARGS_WRONG_ID);
+
+    //Multiple arguments just accept boolean arguments
+    cargs_set_args(tmp_bool_args, tmp_data_args);
+    tmp_argc = 2;
+    cargs_load_args(tmp_argc, (const char**)tmp_argv7);
+    assert(cargs_error_code == CARGS_MULTI_BOOL_ARG_ISSUE);
+
+    //Setting a minimum of arguments to option -f and checking error
+    cargs_set_args(tmp_bool_args, tmp_data_args);
+    cargs_set_minimum_data("f", 1);
+    tmp_argc = 2;
+    cargs_load_args(tmp_argc, (const char**)tmp_argv8);
+    assert(cargs_error_code == CARGS_NOT_ENOUGH_DATA);
+
+    //Treating redudant argument options as errors
+    cargs_set_args(tmp_bool_args, tmp_data_args);
+    cargs_treat_repeated_args_as_errors(true);
+    tmp_argc = 3;
+    cargs_load_args(tmp_argc, (const char**)tmp_argv9);
+    /*
+        WRONG HERE:
+        This does not find the argument option because it is checked out with \
+        
+        TODO:
+        Make an extra stack buffer that stores the repeated arguments some way
+        (avoiding iteration to be possible) and check repeated arguments as 
+        errors.
+        Revise the extended arguments
+    */
+    printf("Error is: %s %s\n", _cargs_error_argument, _cargs_error_strings[cargs_error_code]);
+    assert(cargs_error_code == CARGS_REDUNDANT_ARGUMENT);
+
+    assert(cargs_clean());
 
     finish(5, "init functions");
 }
