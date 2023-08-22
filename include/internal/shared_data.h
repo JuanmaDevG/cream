@@ -59,6 +59,8 @@ extern ArgPackageVec _data_packs;
 extern uint32_t _cargs_bank_stack_pointer;
 extern char** _cargs_equals_operator_pointer_bank;
 
+extern char* _cargs_redundant_options_buffer; //TODO: Allocate the space needed
+
 extern ExtArgVec _extended_args;
 
 
