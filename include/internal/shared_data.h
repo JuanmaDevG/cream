@@ -4,11 +4,6 @@
 #include <stdbool.h>
 #include <string.h>
 
-/*
-    -----------------
-    Argument packages
-    -----------------
-*/
 
 //Argument package associated to a single option
 typedef struct ArgPackage{
@@ -22,12 +17,6 @@ typedef struct ArgPackageVec {
     ArgPackage* packages;
 } ArgPackageVec;
 
-
-/*
-    ----------------------------
-    Extended argument structures
-    ----------------------------
-*/
 
 //Extended argument name associated to the corresponding char argument argument
 typedef struct {
@@ -43,6 +32,28 @@ typedef struct {
 } ExtArgVec;
 
 
+typedef struct {
+    char* read_point;
+    uint32_t position;
+} _cargs_buffer_position;
+
+typedef struct _cargs_anonymous_node {
+    ArgPackage package;
+    struct _cargs_anonymous_node* next;
+    struct _cargs_anonymous_node* previous;
+} _cargs_anonymous_node;
+
+typedef struct _cargs_data_storage_list {
+    _cargs_anonymous_node* first_node;
+    _cargs_anonymous_node* last_node;
+} _cargs_data_storage_list;
+
+typedef struct {
+    bool should_contain_data;
+    char option;
+} _cargs_redundant_option;
+
+
 /*
     ------------------------
     Shared data declarations
@@ -51,15 +62,15 @@ typedef struct {
 
 extern char _arg_id;
 
-extern size_t _bool_args_count;
-extern char* _bool_args;
+extern size_t _cargs_bool_args_count;
+extern char* _cargs_bool_args;
+extern uint8_t* _cargs_bool_bit_vec;
 
-extern char* _data_args;
-extern ArgPackageVec _data_packs;
+extern char* _cargs_data_args;
+extern uint8_t* _cargs_data_bit_vec;
+extern ArgPackageVec _cargs_data_packs;
 extern uint32_t _cargs_bank_stack_pointer;
 extern char** _cargs_equals_operator_pointer_bank;
-
-extern char* _cargs_redundant_options_buffer; //TODO: Allocate the space needed
 
 extern ExtArgVec _extended_args;
 
@@ -70,11 +81,6 @@ extern ExtArgVec _extended_args;
     ------------------------------------------
 */
 
-typedef struct {
-    char* read_point;
-    uint32_t position;
-} _cargs_buffer_position;
-
 extern _cargs_buffer_position* _cargs_mandatory_args;
 extern uint32_t _cargs_mandatory_arg_count;
 
@@ -84,12 +90,6 @@ extern uint32_t _cargs_mandatory_arg_count;
     Anonymous args and data limits on argument control
     --------------------------------------------------
 */
-
-typedef struct _cargs_anonymous_node {
-    ArgPackage package;
-    struct _cargs_anonymous_node* next;
-    struct _cargs_anonymous_node* previous;
-} _cargs_anonymous_node;
 
 extern uint32_t _cargs_anon_arg_count;
 extern _cargs_anonymous_node* _cargs_anon_args;
@@ -143,16 +143,12 @@ extern uint32_t _extended_checkpoint;   //Checkpoint just made for extended argu
     ------------------------------------------
 */
 
-typedef struct _cargs_data_storage_list {
-    _cargs_anonymous_node* first_node;
-    _cargs_anonymous_node* last_node;
-} _cargs_data_storage_list;
 
 /*
-    Contains as many places as as the _data_packs vector size.
+    Contains as many places as as the _cargs_data_packs vector size.
     
     If any data argument option is repeated, and the redundant argument 
     options are not recognized as errors (_cargs_treat_redundant_arguments_as_errors = false)
     the data package of the redunant option is full, so will be allocated here.
 */
-extern _cargs_data_storage_list* _cargs_redundant_arguments;
+extern _cargs_data_storage_list* _cargs_redundant_opt_data;

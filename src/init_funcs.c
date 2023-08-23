@@ -9,71 +9,84 @@ void cargs_set_args(const char* bool_args, const char* data_args)
     if(!(bool_args || data_args)) return;
 
     //Measures
-    if(bool_args) _bool_args_count = strlen(bool_args);
-    if(data_args) _data_packs.size = strlen(data_args);
+    if(bool_args) _cargs_bool_args_count = strlen(bool_args);
+    if(data_args) _cargs_data_packs.size = strlen(data_args);
 
     size_t buf_length = 
-        _bool_args_count                                            /*boolean argument characters*/
-        + _data_packs.size                                          /*data argument characters*/ 
+        _cargs_bool_args_count                                          /*boolean argument characters*/
+        + _cargs_data_packs.size                                        /*data argument characters*/ 
         + (bool_args && data_args ? 2 : 1)                          /*If both buffers (bool and data args), two null characters*/
-        + (_data_packs.size * sizeof(char*))                        /*equals operator pointer bank*/ 
-        + (_data_packs.size * sizeof(_cargs_data_storage_list))     /*redundant argument option data bank*/
-        + (_data_packs.size * sizeof(ArgPackage))                   /*argument data packages for non redundant (no linked list)*/
-        + _data_packs.size                                          /*for maximum data per argument limits*/
-        + _data_packs.size;                                         /*for minimum data per argument limits*/
+        + (_cargs_bool_args_count >> 3) 
+        + (_cargs_bool_args_count % 8 == 0 ? 0 : 1)                     /*boolean arg bit vector existence confirmator*/
+        + (_cargs_data_packs.size >> 3)
+        + (_cargs_data_packs.size % 8 == 0 ? 0 : 1)                     /*data arg bit vector existence confirmator*/
+        + (_cargs_data_packs.size * sizeof(char*))                      /*equals operator pointer bank*/ 
+        + (_cargs_data_packs.size * sizeof(_cargs_data_storage_list))   /*redundant argument option data bank*/
+        + (_cargs_data_packs.size * sizeof(ArgPackage))                 /*argument data packages for non redundant (no linked list)*/
+        + _cargs_data_packs.size                                        /*for maximum data per argument limits*/
+        + _cargs_data_packs.size                                        /*for minimum data per argument limits*/
+        + (
+            (_cargs_bool_args_count + _cargs_data_packs.size) 
+            * sizeof(_cargs_redundant_option)                       /*To store repeated argument characters plus the null one*/
+        );
     if(buf_length == 0) return;
 
     //Cache friendly single buffer with multi-pointer support
-    _bool_args = (char*) malloc(buf_length);
-    memset(_bool_args, 0, buf_length);
+    _cargs_bool_args = (char*) malloc(buf_length);
+    memset(_cargs_bool_args, 0, buf_length);
 
-    if(bool_args) memcpy(_bool_args, bool_args, _bool_args_count +1);
+    if(bool_args)
+    {
+        memcpy(_cargs_bool_args, bool_args, _cargs_bool_args_count +1);
+        _cargs_bool_bit_vec = (uint8_t*)(_cargs_bool_args + _cargs_bool_args_count +1);
+    }
     if(data_args)
     {
         //Data arguments pointer offset
-        _data_args = _bool_args + (bool_args ? _bool_args_count + 1 : 0);
-        if(!bool_args) _bool_args = NULL;
-        memcpy(_data_args, data_args, _data_packs.size + 1);
+        _cargs_data_args = (bool_args ? _cargs_bool_bit_vec + /*TODO: fix bit offset calculation*/_cargs_bool_args_count + 1 : _cargs_bool_args);
+        if(!bool_args) _cargs_bool_args = NULL;
+        memcpy(_cargs_data_args, data_args, _cargs_data_packs.size + 1);
         _remove_redundancies(REMOVE_DATA_REDUNDANCIES);
+        _cargs_data_bit_vec = (uint8_t*)(_cargs_data_args + _cargs_data_packs.size +1);
         //Equals operator pointer bank to point to the specific argument determined by equals sign
-        _cargs_equals_operator_pointer_bank = (char**)(_data_args + _data_packs.size +1);
+        _cargs_equals_operator_pointer_bank = (char**)(_cargs_data_args /*TODO: fix bit offset calculation*/ + _cargs_data_packs.size +1);
         //Redundant argument options data pointers storage
-        _cargs_redundant_arguments = (_cargs_data_storage_list*)(_cargs_equals_operator_pointer_bank + _data_packs.size);
+        _cargs_redundant_opt_data = (_cargs_data_storage_list*)(_cargs_equals_operator_pointer_bank + _cargs_data_packs.size);
         //Non redundant option data packages storage
-        _data_packs.packages = (ArgPackage*)(_cargs_redundant_arguments + _data_packs.size);
+        _cargs_data_packs.packages = (ArgPackage*)(_cargs_redundant_opt_data + _cargs_data_packs.size);
         //Allocation of maximum and minimum data required argument counts
-        _cargs_maximum_data = (uint8_t*)(_data_packs.packages + _data_packs.size);
-        _cargs_minimum_data = (uint8_t*)(_cargs_maximum_data + _data_packs.size);
+        _cargs_maximum_data = (uint8_t*)(_cargs_data_packs.packages + _cargs_data_packs.size);
+        _cargs_minimum_data = (uint8_t*)(_cargs_maximum_data + _cargs_data_packs.size);
     }
 }
 
 bool cargs_clean()
 {
-    if(!(_bool_args || _data_args || _extended_args.args || _cargs_mandatory_args)) 
+    if(!(_cargs_bool_args || _cargs_data_args || _extended_args.args || _cargs_mandatory_args)) 
         return false; //No buffers
     
     //Free all the redundant data information nodes
-    for(uint32_t i=0; i < _data_packs.size; i++) _cargs_free_data_list(_cargs_redundant_arguments + i);
+    for(uint32_t i=0; i < _cargs_data_packs.size; i++) _cargs_free_data_list(_cargs_redundant_opt_data + i);
 
     //General purpose main buffer
     bool bool_args_free = false;
-    if(_bool_args) 
+    if(_cargs_bool_args) 
     {
-        free(_bool_args); _bool_args = NULL; _bool_args_count = 0;
+        free(_cargs_bool_args); _cargs_bool_args = NULL; _cargs_bool_args_count = 0;
         bool_args_free = true;
     }
-    if(!bool_args_free && _data_args) free(_data_args);
+    if(!bool_args_free && _cargs_data_args) free(_cargs_data_args);
 
-    if(_data_args) //There was data -> set to NULL associated buffer information
+    if(_cargs_data_args) //There was data -> set to NULL associated buffer information
     {
-        _data_args = NULL; _data_packs.size = 0; _data_packs.packages = NULL;
+        _cargs_data_args = NULL; _cargs_data_packs.size = 0; _cargs_data_packs.packages = NULL;
         _cargs_bank_stack_pointer = 0; _cargs_equals_operator_pointer_bank = NULL;
 
         _cargs_anon_arg_count = 0; _cargs_anon_args = NULL; _cargs_anon_last = NULL;
         _cargs_maximum_data = NULL; _cargs_minimum_data = NULL;
         
         _reset_finders(); _reset_ext_finders();
-        _cargs_redundant_arguments = NULL;
+        _cargs_redundant_opt_data = NULL;
     }
 
     //Other buffers
@@ -217,8 +230,8 @@ void cargs_load_args(const int argc, const char** argv)
             }
 
             const uint32_t pos = _get_actual_ext_checkpoint() -1;
-            //If is data args, fill data pointers to _data_packs
-            if(_extended_args.args[pos].read_point == _data_args && !_add_argument_data(argc, argv, &i, &pos)) return;
+            //If is data args, fill data pointers to _cargs_data_packs
+            if(_extended_args.args[pos].read_point == _cargs_data_args && !_add_argument_data(argc, argv, &i, &pos)) return;
             //Check the argument storage
             _extended_args.args[pos].read_point[_extended_args.args[pos].associated_opt] = '\\';
         }

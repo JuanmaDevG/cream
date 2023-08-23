@@ -33,15 +33,15 @@ char* tmp_argv[] = {
 
 void init_test_args()
 {
-    _bool_args = new_bool_args;
-    _bool_args_count = strlen(new_bool_args);
-    _data_args = new_data_args;
-    _data_packs.size = strlen(new_data_args);
-    _data_packs.packages = (ArgPackage*)calloc(_data_packs.size, sizeof(ArgPackage));
+    _cargs_bool_args = new_bool_args;
+    _cargs_bool_args_count = strlen(new_bool_args);
+    _cargs_data_args = new_data_args;
+    _cargs_data_packs.size = strlen(new_data_args);
+    _cargs_data_packs.packages = (ArgPackage*)calloc(_cargs_data_packs.size, sizeof(ArgPackage));
     _cargs_equals_operator_pointer_bank = (char**)malloc(strlen(new_data_args));
     _cargs_maximum_data = (uint8_t*)calloc(strlen(new_data_args), sizeof(uint8_t));
     _cargs_minimum_data = (uint8_t*)calloc(strlen(new_data_args), sizeof(uint8_t));
-    _cargs_redundant_arguments = (_cargs_data_storage_list*)calloc(_data_packs.size, sizeof(_cargs_data_storage_list));
+    _cargs_redundant_opt_data = (_cargs_data_storage_list*)calloc(_cargs_data_packs.size, sizeof(_cargs_data_storage_list));
 }
 
 void init_ext_arg_vec()
@@ -51,13 +51,13 @@ void init_ext_arg_vec()
 
     //First element boolean argument
     _extended_args.args[0].associated_opt = 0;
-    _extended_args.args[0].read_point = _bool_args;
+    _extended_args.args[0].read_point = _cargs_bool_args;
     _extended_args.args[0].name = (char*)malloc(strlen("abort") +1);
     memcpy(_extended_args.args[0].name, "abort", strlen("abort") +1);
 
     //Second element data argument
     _extended_args.args[1].associated_opt = 0;
-    _extended_args.args[1].read_point = _data_args;
+    _extended_args.args[1].read_point = _cargs_data_args;
     _extended_args.args[1].name = (char*)malloc(strlen("goto") +1);
     memcpy(_extended_args.args[1].name, "goto", strlen("goto") +1);
 

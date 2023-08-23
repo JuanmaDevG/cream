@@ -10,11 +10,11 @@ int main()
 
     _cargs_mandatory_args = (_cargs_buffer_position*)calloc(2, sizeof(_cargs_buffer_position));
     _cargs_mandatory_arg_count = 2;
-    _bool_args[0] = '\\';
+    _cargs_bool_args[0] = '\\';
     _cargs_mandatory_args[0].position = 0;
-    _cargs_mandatory_args[0].read_point = _bool_args;
+    _cargs_mandatory_args[0].read_point = _cargs_bool_args;
     _cargs_mandatory_args[1].position = 2;
-    _cargs_mandatory_args[1].read_point = _data_args;
+    _cargs_mandatory_args[1].read_point = _cargs_data_args;
 
     assert(!_cargs_check_mandatory_arguments());
     assert(cargs_error_code == CARGS_MANDATORY);

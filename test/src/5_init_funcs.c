@@ -104,19 +104,19 @@ int main()
     assert(_cargs_anon_args->package.count == 2);
     assert(_cargs_get_list_package(_cargs_anon_args, 1));
     assert(!_cargs_get_list_package(_cargs_anon_args, 2));
-    assert(_bool_args[0] == '\\');
-    assert(_bool_args[1] == '\\');
-    assert(_bool_args[2] == '\\');
-    assert(_data_args[0] == '\\');
-    assert(_data_args[1] == '\\');
+    assert(_cargs_bool_args[0] == '\\');
+    assert(_cargs_bool_args[1] == '\\');
+    assert(_cargs_bool_args[2] == '\\');
+    assert(_cargs_data_args[0] == '\\');
+    assert(_cargs_data_args[1] == '\\');
     assert(_cargs_bank_stack_pointer);
     assert(_cargs_equals_operator_pointer_bank);
-    assert(_data_packs.size == 2);
-    assert(_data_packs.packages[0].count == 1);
-    assert(strcmp(_data_packs.packages[0].values[0], "file.txt") == 0);
-    assert(_data_packs.packages[1].count == 2);
-    assert(_cargs_get_list_package(_cargs_redundant_arguments->first_node, 0));
-    assert(!_cargs_get_list_package(_cargs_redundant_arguments->first_node, 1));
+    assert(_cargs_data_packs.size == 2);
+    assert(_cargs_data_packs.packages[0].count == 1);
+    assert(strcmp(_cargs_data_packs.packages[0].values[0], "file.txt") == 0);
+    assert(_cargs_data_packs.packages[1].count == 2);
+    assert(_cargs_get_list_package(_cargs_redundant_opt_data->first_node, 0));
+    assert(!_cargs_get_list_package(_cargs_redundant_opt_data->first_node, 1));
     assert(cargs_clean());
 
     //Error throwing tests

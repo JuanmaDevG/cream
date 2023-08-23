@@ -8,8 +8,9 @@ char _arg_id = '-';
     ---------------------------
 */
 
-size_t _bool_args_count = 0;
-char* _bool_args = NULL;
+size_t _cargs_bool_args_count = 0;
+char* _cargs_bool_args = NULL;
+uint8_t* _cargs_bool_bit_vec = NULL;
 
 
 /*
@@ -18,8 +19,9 @@ char* _bool_args = NULL;
     ------------------------
 */
 
-char* _data_args = NULL;
-ArgPackageVec _data_packs = {0, NULL};
+char* _cargs_data_args = NULL;
+uint8_t* _cargs_data_bit_vec = NULL;
+ArgPackageVec _cargs_data_packs = {0, NULL};
 uint32_t _cargs_bank_stack_pointer = 0;
 char** _cargs_equals_operator_pointer_bank = NULL;
 
@@ -70,4 +72,4 @@ uint32_t _extended_checkpoint = 0;
     ------------------------------------------
 */
 
-_cargs_data_storage_list* _cargs_redundant_arguments = NULL;
+_cargs_data_storage_list* _cargs_redundant_opt_data = NULL;

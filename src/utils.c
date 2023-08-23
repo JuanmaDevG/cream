@@ -26,19 +26,19 @@ void _cargs_push_extended_argument(
 
 inline void _obtain_read_point()
 {
-    _read_point = _bool_args;
-    if(_read_point == NULL) _read_point = _data_args;
+    _read_point = _cargs_bool_args;
+    if(_read_point == NULL) _read_point = _cargs_data_args;
 }
 
 inline void _swap_read_point()
 {
-    if(_bool_args == NULL) _read_point = _data_args;
-    else if(_data_args == NULL) _read_point = _bool_args;
+    if(_cargs_bool_args == NULL) _read_point = _cargs_data_args;
+    else if(_cargs_data_args == NULL) _read_point = _cargs_bool_args;
     else    //Both not null
     {
-        if(_read_point == _bool_args) _read_point = _data_args;
-        else //is _data_args
-            _read_point = _bool_args;
+        if(_read_point == _cargs_bool_args) _read_point = _cargs_data_args;
+        else //is _cargs_data_args
+            _read_point = _cargs_bool_args;
     }
 }
 
@@ -74,7 +74,7 @@ inline void _cargs_declare_error(const char* error_arg, const uint8_t is_extende
 
 void _remove_redundancies(const uint32_t mode)
 {
-    if(_bool_args == NULL || _data_args == NULL) return;
+    if(_cargs_bool_args == NULL || _cargs_data_args == NULL) return;
     char const* read_point = NULL;
     size_t* read_length = NULL;
     char* write_point = NULL;
@@ -82,17 +82,17 @@ void _remove_redundancies(const uint32_t mode)
 
     if(mode == REMOVE_BOOL_REDUNDANCIES)
     {
-        read_point = _data_args;
-        read_length = &(_data_packs.size);
-        write_point = _bool_args;
-        write_length = &_bool_args_count;
+        read_point = _cargs_data_args;
+        read_length = &(_cargs_data_packs.size);
+        write_point = _cargs_bool_args;
+        write_length = &_cargs_bool_args_count;
     }
     else    //REMOVE_DATA_REDUNDANCIES
     {
-        read_point = _bool_args;
-        read_length = &_bool_args_count;
-        write_point = _data_args;
-        write_length = &(_data_packs.size);
+        read_point = _cargs_bool_args;
+        read_length = &_cargs_bool_args_count;
+        write_point = _cargs_data_args;
+        write_length = &(_cargs_data_packs.size);
     }
 
     //Look for redundancies and remove them
@@ -144,8 +144,8 @@ uint32_t _find_argument_char(const char argument_char)
                 _checkpoint == 0 && _read_point[j+1] == '\0' && 
                 (
                     (_read_point != checkpoint_read_point) || 
-                    (_get_actual_read_point() == _data_args && !_bool_args) ||
-                    (_get_actual_read_point() == _bool_args && !_data_args)
+                    (_get_actual_read_point() == _cargs_data_args && !_cargs_bool_args) ||
+                    (_get_actual_read_point() == _cargs_bool_args && !_cargs_data_args)
                 )
             )
         ) {
@@ -210,20 +210,20 @@ bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, con
         return false;
     }
     //Check if error because of redundant arg
-    if(_cargs_check_redundant_arg_error(_data_args, associated_option, argv[*index] + (is_extended ? 2 : 1), is_extended))
+    if(_cargs_check_redundant_arg_error(_cargs_data_args, associated_option, argv[*index] + (is_extended ? 2 : 1), is_extended))
         return false;
-    if(!_cargs_treat_repeated_args_as_errors && _data_args[associated_option] == '\\')
+    if(!_cargs_treat_repeated_args_as_errors && _cargs_data_args[associated_option] == '\\')
     {
         _cargs_push_list_node(
-            &(_cargs_redundant_arguments[associated_option].first_node),
-            &(_cargs_redundant_arguments[associated_option].last_node), 
+            &(_cargs_redundant_opt_data[associated_option].first_node),
+            &(_cargs_redundant_opt_data[associated_option].last_node), 
             (count == 0 ? NULL : data_pointer), count
         );
     }
     else    //No redundant and new arg so add data
     {
-        _data_packs.packages[associated_option].count = count;
-        _data_packs.packages[associated_option].values = (count == 0 ? NULL : (char**)data_pointer);
+        _cargs_data_packs.packages[associated_option].count = count;
+        _cargs_data_packs.packages[associated_option].values = (count == 0 ? NULL : (char**)data_pointer);
     }
     //Set offset to argument iterator
     (*index) += count;
@@ -241,7 +241,7 @@ bool _read_non_extended_argument(const int argc, const char* argv[], uint32_t* i
             )) return false;
 
             //Check if data argument and write data
-            if(_get_actual_read_point() == _data_args)
+            if(_get_actual_read_point() == _cargs_data_args)
             {
                 if(j == 1 && (argv[(*index)][2] == '\0' || argv[*index][2] == '='))
                 {
@@ -262,6 +262,12 @@ bool _read_non_extended_argument(const int argc, const char* argv[], uint32_t* i
         }
         else
         {
+            //TODO:
+            //Redundant argument logic:
+            // - If find the redundant argument
+            //   - If not allowed declare error
+            //   - If is data -> add the data
+            // - else does not exist
             _cargs_declare_error(argv[(*index)] +j, 0, CARGS_NON_EXISTENT);
             return false;
         }
@@ -322,11 +328,11 @@ inline uint32_t _cargs_search_equals_operator(const char* argument_pointer)
 
 inline bool _cargs_store_equals_operator_data(const char* data_pointer, const uint32_t associated_option)
 {
-    if(_cargs_bank_stack_pointer == _data_packs.size) return false; //The pointer bank is full
+    if(_cargs_bank_stack_pointer == _cargs_data_packs.size) return false; //The pointer bank is full
 
-    _data_packs.packages[associated_option].count = 1;
+    _cargs_data_packs.packages[associated_option].count = 1;
     _cargs_equals_operator_pointer_bank[_cargs_bank_stack_pointer] = (char*)data_pointer;
-    _data_packs.packages[associated_option].values = _cargs_equals_operator_pointer_bank + _cargs_bank_stack_pointer;
+    _cargs_data_packs.packages[associated_option].values = _cargs_equals_operator_pointer_bank + _cargs_bank_stack_pointer;
     _cargs_bank_stack_pointer++;
     return true;
 }
