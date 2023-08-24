@@ -225,10 +225,20 @@ void cargs_load_args(const int argc, const char** argv)
             }
 
             const uint32_t pos = _get_actual_ext_checkpoint() -1;
-            //If is data args, fill data pointers to _cargs_data_packs
-            if(_extended_args.args[pos].read_point == _cargs_data_args)
+            if(_extended_args.args[pos].read_point == _cargs_data_args) //Is data arg option
             {
                 if(!_add_argument_data(argc, argv, &i, &pos)) return;
+            }
+            else
+            {
+                if(
+                    _cargs_treat_repeated_args_as_errors
+                    && _cargs_get_bit(_cargs_bool_bit_vec, _extended_args.args[pos].associated_opt)
+                ) {
+                    _cargs_declare_error(_extended_args.args[pos].name, true, CARGS_REDUNDANT_ARGUMENT);
+                    return;
+                }
+                _cargs_set_bit(_cargs_bool_args, _extended_args.args[pos].associated_opt, true);
             }
         }
         else if(!_read_non_extended_argument(argc, argv, &i)) return;

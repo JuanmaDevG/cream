@@ -242,9 +242,16 @@ bool _read_non_extended_argument(const int argc, const char* argv[], uint32_t* i
     {
         if(_find_argument_char(argv[(*index)][j]))
         {
-            if(_cargs_check_redundant_arg_error(
-                _get_actual_read_point(), _get_actual_checkpoint() -1, argv[*index] +1, false
-            )) return false;
+            if( //It is repeated argument and it was called
+                _cargs_treat_repeated_args_as_errors
+                && _cargs_get_bit(
+                    (_get_actual_read_point() == _cargs_bool_args ? _cargs_bool_bit_vec : _cargs_data_bit_vec),
+                    _get_actual_checkpoint() -1
+                )
+            ) {
+                _cargs_declare_error(argv[*index], false, CARGS_REDUNDANT_ARGUMENT);
+                return false;
+            }
 
             //Check if data argument and write data
             if(_get_actual_read_point() == _cargs_data_args)
@@ -254,26 +261,21 @@ bool _read_non_extended_argument(const int argc, const char* argv[], uint32_t* i
                     if(!_add_argument_data(argc, argv, index, NULL)) return false;
                     if(argv[*index][2] == '=') //Equals operator -> no more to read
                     {
-                        _get_actual_read_point()[_get_actual_checkpoint() -1] = '\\';
+                        _cargs_set_bit(_cargs_data_bit_vec, _get_actual_checkpoint() -1, true);
                         return true;
-                    }  
+                    }
                 }
                 else
                 {
                     _cargs_declare_error(argv[(*index)] +j, 0, CARGS_MULTI_BOOL_ARG_ISSUE);
                     return false;
-                } 
+                }
+                _cargs_set_bit(_cargs_data_bit_vec, _get_actual_checkpoint() -1, true);
             }
-            _get_actual_read_point()[_get_actual_checkpoint() -1] = '\\';
+            else _cargs_set_bit(_cargs_bool_bit_vec, _get_actual_checkpoint() -1, true);
         }
         else
         {
-            //TODO:
-            //Redundant argument logic:
-            // - If find the redundant argument
-            //   - If not allowed declare error
-            //   - If is data -> add the data
-            // - else does not exist
             _cargs_declare_error(argv[(*index)] +j, 0, CARGS_NON_EXISTENT);
             return false;
         }
