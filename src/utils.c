@@ -209,22 +209,28 @@ bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, con
         _cargs_declare_error(argv[(*index)] + (is_extended ? 2 : 1), is_extended, CARGS_NOT_ENOUGH_DATA);
         return false;
     }
-    //Check if error because of redundant arg
-    if(_cargs_check_redundant_arg_error(_cargs_data_args, associated_option, argv[*index] + (is_extended ? 2 : 1), is_extended))
-        return false;
-    if(!_cargs_treat_repeated_args_as_errors && _cargs_data_args[associated_option] == '\\')
+
+    if(_cargs_get_bit(_cargs_data_bit_vec, associated_option))
     {
-        _cargs_push_list_node(
-            &(_cargs_redundant_opt_data[associated_option].first_node),
-            &(_cargs_redundant_opt_data[associated_option].last_node), 
-            (count == 0 ? NULL : data_pointer), count
-        );
+        if(_cargs_treat_repeated_args_as_errors)
+        {
+            _cargs_declare_error(argv[*index], is_extended, CARGS_REDUNDANT_ARGUMENT);
+            return false;
+        }
+        else
+            _cargs_push_list_node(
+                &(_cargs_redundant_opt_data[associated_option].first_node),
+                &(_cargs_redundant_opt_data[associated_option].last_node), 
+                (count == 0 ? NULL : data_pointer), count
+            );
     }
     else    //No redundant and new arg so add data
     {
         _cargs_data_packs.packages[associated_option].count = count;
         _cargs_data_packs.packages[associated_option].values = (count == 0 ? NULL : (char**)data_pointer);
+        _cargs_set_bit(_cargs_data_bit_vec, associated_option, true);
     }
+
     //Set offset to argument iterator
     (*index) += count;
     return true;
@@ -335,20 +341,6 @@ inline bool _cargs_store_equals_operator_data(const char* data_pointer, const ui
     _cargs_data_packs.packages[associated_option].values = _cargs_equals_operator_pointer_bank + _cargs_bank_stack_pointer;
     _cargs_bank_stack_pointer++;
     return true;
-}
-
-inline bool _cargs_check_redundant_arg_error(
-    const char* read_point, const uint32_t option_pos, const char* arg_name, const bool is_extended
-) {
-    if(
-        _cargs_treat_repeated_args_as_errors
-        && read_point[option_pos] == '\\'
-    ) {
-        _cargs_declare_error(arg_name, is_extended, CARGS_REDUNDANT_ARGUMENT);
-        return true;
-    }
-
-    return false;
 }
 
 inline bool _cargs_configure_and_store_equals_operator_data(const char* arg_option, const uint32_t associated_option)

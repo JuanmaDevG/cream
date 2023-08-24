@@ -226,9 +226,10 @@ void cargs_load_args(const int argc, const char** argv)
 
             const uint32_t pos = _get_actual_ext_checkpoint() -1;
             //If is data args, fill data pointers to _cargs_data_packs
-            if(_extended_args.args[pos].read_point == _cargs_data_args && !_add_argument_data(argc, argv, &i, &pos)) return;
-            //Check the argument storage
-            _extended_args.args[pos].read_point[_extended_args.args[pos].associated_opt] = '\\';
+            if(_extended_args.args[pos].read_point == _cargs_data_args)
+            {
+                if(!_add_argument_data(argc, argv, &i, &pos)) return;
+            }
         }
         else if(!_read_non_extended_argument(argc, argv, &i)) return;
     }

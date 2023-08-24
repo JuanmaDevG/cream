@@ -216,15 +216,6 @@ extern inline uint32_t _cargs_search_equals_operator(const char* argument_pointe
 extern inline bool _cargs_store_equals_operator_data(const char* data_pointer, const uint32_t associated_option);
 
 /*
-    Checks if the actual argument is redundant and if the _cargs_treat_repeated_args_as_errors flag is set.
-
-    If those conditions are true, this function declares a cargs_error and then returns true
-*/
-extern inline bool _cargs_check_redundant_arg_error(
-    const char* read_point, const uint32_t option_pos, const char* name, const bool is_extended
-);
-
-/*
     Searches the equals operator in the argument given and if found, stores the data into the argument 
     package vector using the pointer bank as nexus to directly point to the argument data.
 */
