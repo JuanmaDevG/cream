@@ -48,11 +48,6 @@ typedef struct _cargs_data_storage_list {
     _cargs_anonymous_node* last_node;
 } _cargs_data_storage_list;
 
-typedef struct {
-    bool should_contain_data;
-    char option;
-} _cargs_redundant_option;
-
 
 /*
     ------------------------

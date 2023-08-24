@@ -5,6 +5,7 @@
 
 #include "shared_data.h"
 #include "anon_arg_list.h"
+#include "bit_vec_ops.h"
 
 enum _reduncancy_remove_mode { REMOVE_BOOL_REDUNDANCIES, REMOVE_DATA_REDUNDANCIES, REMOVE_REDUNDANCIES_COUNT};
 
