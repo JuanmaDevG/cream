@@ -2,7 +2,7 @@
 
 inline size_t _cargs_get_byte_size(const size_t __bit_count)
 {
-    return (__bit_count >> 3) + (__bit_count & 0b111 == 0 ? 0 : 1);
+    return (__bit_count >> 3) + ((__bit_count & 0b111) == 0 ? 0 : 1);
 }
 
 inline bool _cargs_get_bit(const uint8_t* _bit_vector, const size_t _position)

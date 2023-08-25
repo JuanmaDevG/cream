@@ -242,14 +242,14 @@ bool _read_non_extended_argument(const int argc, const char* argv[], uint32_t* i
     {
         if(_find_argument_char(argv[(*index)][j]))
         {
-            if( //It is repeated argument and it was called
+            if( //It is repeated and is treated as an error
                 _cargs_treat_repeated_args_as_errors
                 && _cargs_get_bit(
                     (_get_actual_read_point() == _cargs_bool_args ? _cargs_bool_bit_vec : _cargs_data_bit_vec),
                     _get_actual_checkpoint() -1
                 )
             ) {
-                _cargs_declare_error(argv[*index], false, CARGS_REDUNDANT_ARGUMENT);
+                _cargs_declare_error(argv[*index] +j, false, CARGS_REDUNDANT_ARGUMENT);
                 return false;
             }
 

@@ -37,7 +37,8 @@ void cargs_set_args(const char* bool_args, const char* data_args)
     if(data_args)
     {
         //Data arguments pointer offset
-        _cargs_data_args = (bool_args ? _cargs_bool_bit_vec + _cargs_get_byte_size(_cargs_bool_args_count) : _cargs_bool_args);
+        _cargs_data_args = 
+            (bool_args ? (char*)_cargs_bool_bit_vec + _cargs_get_byte_size(_cargs_bool_args_count) : _cargs_bool_args);
         if(!bool_args) _cargs_bool_args = NULL;
         memcpy(_cargs_data_args, data_args, _cargs_data_packs.size + 1);
         _remove_redundancies(REMOVE_DATA_REDUNDANCIES);
@@ -238,7 +239,7 @@ void cargs_load_args(const int argc, const char** argv)
                     _cargs_declare_error(_extended_args.args[pos].name, true, CARGS_REDUNDANT_ARGUMENT);
                     return;
                 }
-                _cargs_set_bit(_cargs_bool_args, _extended_args.args[pos].associated_opt, true);
+                _cargs_set_bit(_cargs_bool_bit_vec, _extended_args.args[pos].associated_opt, true);
             }
         }
         else if(!_read_non_extended_argument(argc, argv, &i)) return;
