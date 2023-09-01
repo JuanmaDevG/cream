@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <stdio.h> //MOD
 
 /*
     ---------------------------
@@ -313,15 +314,15 @@ bool _cargs_check_mandatory_arguments()
 {
     for(uint32_t i=0; i < _cargs_mandatory_arg_count; i++)
     {
-        if(_cargs_mandatory_args[i].read_point != NULL)
-            if(_cargs_mandatory_args[i].read_point[_cargs_mandatory_args[i].position] != '\\')
-            {
-                _cargs_declare_error(
-                    _cargs_mandatory_args[i].read_point + _cargs_mandatory_args[i].position,
-                    0, CARGS_MANDATORY
-                );
-                return false;
-            }
+        if(!_cargs_mandatory_args[i].read_point) break; //NULL read point means no more mandatory args
+        if(!_cargs_get_bit(_cargs_mandatory_args[i].read_point, _cargs_mandatory_args[i].position))
+        {
+            _cargs_declare_error(
+                (_cargs_mandatory_args[i].read_point == _cargs_bool_bit_vec ? _cargs_bool_args : _cargs_data_args) + _cargs_mandatory_args[i].position,
+                0, CARGS_MANDATORY
+            );
+            return false;
+        }
     }
 
     return true;
@@ -350,6 +351,7 @@ inline bool _cargs_configure_and_store_equals_operator_data(const char* arg_opti
     const uint32_t cur_data_location = _cargs_search_equals_operator(arg_option);
     if(cur_data_location != 0)
     {
+        _cargs_set_bit(_cargs_data_bit_vec, associated_option, true);
         _cargs_store_equals_operator_data(arg_option + cur_data_location, associated_option);
         return true;
     }

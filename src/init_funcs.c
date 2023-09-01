@@ -18,7 +18,7 @@ void cargs_set_args(const char* bool_args, const char* data_args)
         + (bool_args && data_args ? 2 : 1)                              /*If both buffers (bool and data args), two null characters*/
         + _cargs_get_byte_size(_cargs_bool_args_count)                  /*boolean arg bit vector existence confirmator*/
         + _cargs_get_byte_size(_cargs_data_packs.size)                  /*data arg bit vector existence confirmator*/
-        + (_cargs_data_packs.size * sizeof(char*))                      /*equals operator pointer bank*/ 
+        + (_cargs_data_packs.size * sizeof(char*))                      /*equals operator pointer bank*/
         + (_cargs_data_packs.size * sizeof(_cargs_data_storage_list))   /*redundant argument option data bank*/
         + (_cargs_data_packs.size * sizeof(ArgPackage))                 /*argument data packages for non redundant (no linked list)*/
         + _cargs_data_packs.size                                        /*for maximum data per argument limits*/
@@ -155,7 +155,7 @@ void cargs_make_mandatory(const char* arg_characters)
     if(_cargs_mandatory_args) //Is there allocated memory?
     {
         size_t buf_size = length * sizeof(_cargs_buffer_position);
-        if(length > _cargs_mandatory_arg_count) //Not enough -> reallocate
+        if(length > _cargs_mandatory_arg_count)     //Not enough -> reallocate
             realloc(_cargs_mandatory_args, buf_size);
         memset(_cargs_mandatory_args, 0, (buf_size < _cargs_mandatory_arg_count ? _cargs_mandatory_arg_count : buf_size));
     }
@@ -170,7 +170,7 @@ void cargs_make_mandatory(const char* arg_characters)
         else
         {
             _cargs_mandatory_args[i - fail_offset].position = _get_actual_checkpoint() -1;
-            _cargs_mandatory_args[i - fail_offset].read_point = _get_actual_read_point();
+            _cargs_mandatory_args[i - fail_offset].read_point = (_get_actual_read_point() == _cargs_bool_args ? _cargs_bool_bit_vec : _cargs_data_bit_vec);
         }
     }
     _reset_finders();

@@ -33,7 +33,7 @@ typedef struct {
 
 
 typedef struct {
-    char* read_point;
+    uint8_t* read_point;        //Pointer to the corresponding bit vector
     uint32_t position;
 } _cargs_buffer_position;
 

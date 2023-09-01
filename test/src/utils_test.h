@@ -25,7 +25,7 @@ char* tmp_argv[] = {
     "-j",               //Should not give error if has not minimum argument number set
     "-abc",
     "-dkf",
-    "anonymous_arg1",   //Some anonymous arguments 
+    "anonymous_arg1",   //Some anonymous arguments
     "anonymous_arg2", 
     "anonymous_arg3", 
     "anonymous_arg4",

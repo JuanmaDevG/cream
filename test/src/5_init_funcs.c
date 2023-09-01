@@ -104,11 +104,11 @@ int main()
     assert(_cargs_anon_args->package.count == 2);
     assert(_cargs_get_list_package(_cargs_anon_args, 1));
     assert(!_cargs_get_list_package(_cargs_anon_args, 2));
-    assert(_cargs_bool_args[0] == '\\');
-    assert(_cargs_bool_args[1] == '\\');
-    assert(_cargs_bool_args[2] == '\\');
-    assert(_cargs_data_args[0] == '\\');
-    assert(_cargs_data_args[1] == '\\');
+    assert(_cargs_get_bit(_cargs_bool_bit_vec, 0));
+    assert(_cargs_get_bit(_cargs_bool_bit_vec, 1));
+    assert(_cargs_get_bit(_cargs_bool_bit_vec, 2));
+    assert(_cargs_get_bit(_cargs_data_bit_vec, 0));
+    assert(_cargs_get_bit(_cargs_data_bit_vec, 1));
     assert(_cargs_bank_stack_pointer);
     assert(_cargs_equals_operator_pointer_bank);
     assert(_cargs_data_packs.size == 2);
@@ -119,7 +119,7 @@ int main()
     assert(!_cargs_get_list_package(_cargs_redundant_opt_data->first_node, 1));
     assert(cargs_clean());
 
-    //Error throwing tests
+    //Test: error managing and declaring
 
     tmp_argc = 2;
     cargs_set_args(tmp_bool_args, tmp_data_args);

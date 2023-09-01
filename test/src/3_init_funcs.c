@@ -7,18 +7,18 @@ int main()
 
     assert(_cargs_mandatory_arg_count == 3);
     assert(_cargs_mandatory_args[0].position == 0); //the position is the associated option, not the mandatory vector position
-    assert(_cargs_mandatory_args[0].read_point == _cargs_bool_args);
+    assert(_cargs_mandatory_args[0].read_point == _cargs_bool_bit_vec);
     assert(_cargs_mandatory_args[1].position == 1);
-    assert(_cargs_mandatory_args[1].read_point == _cargs_data_args);
+    assert(_cargs_mandatory_args[1].read_point == _cargs_data_bit_vec);
     assert(_cargs_mandatory_args[2].position == 2);
-    assert(_cargs_mandatory_args[2].read_point == _cargs_data_args);
+    assert(_cargs_mandatory_args[2].read_point == _cargs_data_bit_vec);
 
     cargs_make_mandatory("ab");
     assert(_cargs_mandatory_arg_count == 2);
     assert(_cargs_mandatory_args[0].position == 0);
-    assert(_cargs_mandatory_args[0].read_point == _cargs_bool_args);
+    assert(_cargs_mandatory_args[0].read_point == _cargs_bool_bit_vec);
     assert(_cargs_mandatory_args[1].position == 1);
-    assert(_cargs_mandatory_args[1].read_point == _cargs_bool_args);
+    assert(_cargs_mandatory_args[1].read_point == _cargs_bool_bit_vec);
 
     //No mandatory args should deallocate
     cargs_make_mandatory(NULL);
@@ -32,9 +32,9 @@ int main()
     cargs_make_mandatory("akeiou");
     assert(_cargs_mandatory_arg_count == 2);
     assert(_cargs_mandatory_args[0].position == 0);
-    assert(_cargs_mandatory_args[0].read_point == _cargs_bool_args);
+    assert(_cargs_mandatory_args[0].read_point == _cargs_bool_bit_vec);
     assert(_cargs_mandatory_args[1].position == 1);
-    assert(_cargs_mandatory_args[1].read_point == _cargs_data_args);
+    assert(_cargs_mandatory_args[1].read_point == _cargs_data_bit_vec);
 
     assert(cargs_clean());
 
