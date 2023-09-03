@@ -82,3 +82,6 @@ rem Takes the test filename as only argument, then compiles and executes
 %compiler% %options% -o %test_file% -I%include_dir% %1 %sources%
 %test_file%
 exit /b
+
+
+rem I just learned WinDbg and now need to implement a single compile functionality with arguments
