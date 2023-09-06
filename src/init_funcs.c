@@ -44,7 +44,7 @@ void cargs_set_args(const char* bool_args, const char* data_args)
         _remove_redundancies(REMOVE_DATA_REDUNDANCIES);
         _cargs_data_bit_vec = (uint8_t*)(_cargs_data_args + _cargs_data_packs.size +1);
         //Equals operator pointer bank to point to the specific argument determined by equals sign
-        _cargs_equals_operator_pointer_bank = (char**)(_cargs_data_args + _cargs_get_byte_size(_cargs_data_packs.size));
+        _cargs_equals_operator_pointer_bank = (char**)(_cargs_data_bit_vec + _cargs_get_byte_size(_cargs_data_packs.size));
         //Redundant argument options data pointers storage
         _cargs_redundant_opt_data = (_cargs_data_storage_list*)(_cargs_equals_operator_pointer_bank + _cargs_data_packs.size);
         //Non redundant option data packages storage

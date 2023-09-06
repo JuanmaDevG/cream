@@ -42,6 +42,14 @@ set test_file=tmp_test.exe
 
 rem ----------------- MAIN -----------------
 
+if %1==windbg (
+    call :debug_compile %2
+    exit /b
+)
+if %1==clean (
+    del tmp_test.*
+    exit /b
+)
 call :run_test_files %1
 
 endlocal
@@ -49,10 +57,7 @@ exit /b
 
 
 
-rem         --------------------
-rem         MAIN USAGE FUNCTIONS
-rem         --------------------
-
+rem ------------- FUNCTIONS ----------------
 
 rem This reads the first argument to execute a specific test or a specific set of tests
 rem For example:
@@ -84,4 +89,12 @@ rem Takes the test filename as only argument, then compiles and executes
 exit /b
 
 
-rem I just learned WinDbg and now need to implement a single compile functionality with arguments
+rem Compiles the given filename with debug information and no execution
+:debug_compile
+if -%1-==-- (
+    echo Usage: 
+    echo test windbg any_test_filename.c
+    exit /b
+)
+%compiler% %options% -g -o %test_file% -I%include_dir% src\%1 %sources%
+exit /b
