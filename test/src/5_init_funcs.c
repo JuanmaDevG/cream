@@ -164,17 +164,6 @@ int main()
     cargs_treat_repeated_args_as_errors(true);
     tmp_argc = 3;
     cargs_load_args(tmp_argc, (const char**)tmp_argv9);
-    /*
-        WRONG HERE:
-        This does not find the argument option because it is checked out with \
-        
-        TODO:
-        Make an extra stack buffer that stores the repeated arguments some way
-        (avoiding iteration to be possible) and check repeated arguments as 
-        errors.
-        Revise the extended arguments
-    */
-    printf("Error is: %s %s\n", _cargs_error_argument, _cargs_error_strings[cargs_error_code]);
     assert(cargs_error_code == CARGS_REDUNDANT_ARGUMENT);
 
     assert(cargs_clean());
