@@ -257,19 +257,14 @@ bool _read_non_extended_argument(const int argc, const char* argv[], uint32_t* i
             //Check if data argument and write data
             if(_get_actual_read_point() == _cargs_data_args)
             {
-                if(j == 1 && (argv[(*index)][2] == '\0' || argv[*index][2] == '='))
+                if(j == 1 && argv[*index][2] == '=')
                 {
                     if(!_add_argument_data(argc, argv, index, NULL)) return false;
-                    if(argv[*index][2] == '=') //Equals operator -> no more to read
+                    else
                     {
                         _cargs_set_bit(_cargs_data_bit_vec, _get_actual_checkpoint() -1, true);
                         return true;
                     }
-                }
-                else
-                {
-                    _cargs_declare_error(argv[(*index)] +j, 0, CARGS_MULTI_BOOL_ARG_ISSUE);
-                    return false;
                 }
                 _cargs_set_bit(_cargs_data_bit_vec, _get_actual_checkpoint() -1, true);
             }

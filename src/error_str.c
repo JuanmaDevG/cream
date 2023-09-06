@@ -12,7 +12,6 @@ const char* _cargs_error_strings[] = {
     "does not exist.",
     "is required.",
     "has a wrong identificator.",
-    "is into a multi-bool argument string \n(Note:) Data arguments require input and must be alone.",
     "requires extra elements and not enough were given.\n(Note:) Read the usage message",
     "is repeated and this program doesn't allow the repetition of argument options."
 };

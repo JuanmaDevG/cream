@@ -67,12 +67,6 @@ char* tmp_argv6[] = {
     "/h"
 };
 
-//Is not allowed to set a data argument into a multiple boolean string (my girl: te quiero :3)
-char* tmp_argv7[] = {
-    "program_name",
-    "-acf"
-};
-
 //Error because -f now accepts a minimum of one ergument (like a filename for example)
 char* tmp_argv8[] = {
     "program_name",
@@ -145,12 +139,6 @@ int main()
     tmp_argc = 3;
     cargs_load_args(tmp_argc, (const char**)tmp_argv6);
     assert(cargs_error_code == CARGS_WRONG_ID);
-
-    //Multiple arguments just accept boolean arguments
-    cargs_set_args(tmp_bool_args, tmp_data_args);
-    tmp_argc = 2;
-    cargs_load_args(tmp_argc, (const char**)tmp_argv7);
-    assert(cargs_error_code == CARGS_MULTI_BOOL_ARG_ISSUE);
 
     //Setting a minimum of arguments to option -f and checking error
     cargs_set_args(tmp_bool_args, tmp_data_args);
