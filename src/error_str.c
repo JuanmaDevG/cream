@@ -3,7 +3,7 @@
 enum cargs_error cargs_error_code = CARGS_NO_ERROR;
 char* _cargs_error_buffer_str = NULL;
 
-uint8_t _cargs_is_extended = 0;
+uint8_t _cargs_is_error_extended = 0;
 char* _cargs_error_argument = NULL;
 
 //All the error messages start by "The argument arg_name " and then the error string

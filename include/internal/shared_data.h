@@ -112,7 +112,7 @@ enum cargs_error {
 extern enum cargs_error cargs_error_code;
 extern char* _cargs_error_buffer_str;
 
-extern uint8_t _cargs_is_extended;
+extern uint8_t _cargs_is_error_extended;
 extern char* _cargs_error_argument;
 
 extern const char* _cargs_error_strings[];

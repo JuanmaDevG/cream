@@ -20,7 +20,7 @@ int main()
     assert(!_cargs_check_mandatory_arguments());
     assert(cargs_error_code == CARGS_MANDATORY);
     assert(_cargs_error_argument[0] == 'l');
-    assert(_cargs_is_extended == 0);
+    assert(_cargs_is_error_extended == 0);
 
     finish(10, "utils");
 }

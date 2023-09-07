@@ -255,7 +255,7 @@ const char* cargs_get_error()
 
     const uint8_t message_offset = 13; /*(Initial error string:) The argument ...*/
     size_t 
-        arg_length = (_cargs_is_extended ? strlen(_cargs_error_argument) : 1), 
+        arg_length = (_cargs_is_error_extended ? strlen(_cargs_error_argument) : 1), 
         err_message_length = strlen(_cargs_error_strings[cargs_error_code]);
     
     _cargs_error_buffer_str = (char*)malloc(message_offset + arg_length +2/*space + null last char*/ + err_message_length);
