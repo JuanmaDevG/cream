@@ -18,3 +18,4 @@ const char* _cargs_error_strings[] = {
 
 bool _cargs_treat_anonymous_args_as_errors = false;
 bool _cargs_treat_repeated_args_as_errors = false;
+bool _cargs_include_argument_zero = false;

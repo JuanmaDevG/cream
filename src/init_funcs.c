@@ -198,18 +198,20 @@ void cargs_set_maximum_data(const char* data_arg_string, ...)
     _reset_finders();
 }
 
-inline void cargs_treat_anonymous_args_as_errors(const bool value) { _cargs_treat_anonymous_args_as_errors = value; }
+inline void cargs_treat_anonymous_args_as_errors(const bool _value) { _cargs_treat_anonymous_args_as_errors = _value; }
 
-inline void cargs_treat_repeated_args_as_errors(const bool value) { _cargs_treat_repeated_args_as_errors = value; }
+inline void cargs_treat_repeated_args_as_errors(const bool _value) { _cargs_treat_repeated_args_as_errors = _value; }
+
+inline void cargs_include_argument_zero(const bool _value) { _cargs_include_argument_zero = _value; }
 
 void cargs_load_args(const int argc, const char** argv)
 {
-    for(uint32_t i=1; i < (uint32_t)argc; i++)
+    for(uint32_t i=(_cargs_include_argument_zero ? 0 : 1); i < (uint32_t)argc; i++)
     {
         if(argv[i][0] != _arg_id)
         {
             if(_cargs_treat_anonymous_args_as_errors) {
-                _cargs_declare_error(argv[i], 1, CARGS_WRONG_ID);
+                _cargs_declare_error(argv[i], 1, CARGS_NON_EXISTENT);
                 return;
             }
             //Do not treat as errors
@@ -252,6 +254,7 @@ void cargs_load_args(const int argc, const char** argv)
 const char* cargs_get_error()
 {
     if(cargs_error_code == CARGS_NO_ERROR) return NULL;
+    if(_cargs_error_buffer_str) { free(_cargs_error_buffer_str); _cargs_error_buffer_str = NULL; }
 
     const uint8_t message_offset = 13; /*(Initial error string:) The argument ...*/
     size_t 

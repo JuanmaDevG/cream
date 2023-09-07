@@ -39,6 +39,12 @@ void cargs_set_args(const char* boolean_arguments, const char* data_arguments);
     with any kind of arguments.
 
     Will return false is there is nothing to clean.
+
+    WARNING:
+    This function does NOT reset the state of:
+    - Treating repeated arguments as errors
+    - Treating anonymous arguments as errors
+    - Including the argument zero when call cargs_load_args
 */
 bool cargs_clean();
 
@@ -130,6 +136,11 @@ extern inline void cargs_treat_anonymous_args_as_errors(const bool value);
     > program_name -f file.txt -f another_file.txt (WILL STORE ERROR)
 */
 extern inline void cargs_treat_repeated_args_as_errors(const bool value);
+
+/*
+    Includes the absolute first argument (like the program name in case of argv)
+*/
+extern inline void cargs_include_argument_zero(const bool value);
 
 /*
     Loads the program arguments, checks them and sets the data pointers ready to use.

@@ -80,6 +80,13 @@ char* tmp_argv9[] = {
     "-f"
 };
 
+//Error as while treating anonymous arguments as errors
+char* tmp_argv10[] = {
+    "program_name",
+    "-acf",
+    "-s=some_file.devnotes",
+    "anonymous_arg_that_should_fail"
+};
 
 int main()
 {
@@ -153,7 +160,15 @@ int main()
     tmp_argc = 3;
     cargs_load_args(tmp_argc, (const char**)tmp_argv9);
     assert(cargs_error_code == CARGS_REDUNDANT_ARGUMENT);
+    assert(cargs_clean());
 
+    //Treating anonymous arguments as errors
+    cargs_treat_repeated_args_as_errors(false);
+    cargs_treat_anonymous_args_as_errors(true);
+    cargs_set_args(tmp_bool_args, tmp_data_args);
+    tmp_argc = 4;
+    cargs_load_args(tmp_argc, (const char**)tmp_argv10);
+    assert(cargs_error_code == CARGS_NON_EXISTENT);
     assert(cargs_clean());
 
     finish(5, "init functions");
