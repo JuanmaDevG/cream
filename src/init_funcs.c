@@ -256,7 +256,7 @@ const char* cargs_get_error()
     if(cargs_error_code == CARGS_NO_ERROR) return NULL;
     if(_cargs_error_buffer_str) { free(_cargs_error_buffer_str); _cargs_error_buffer_str = NULL; }
 
-    const uint8_t message_offset = 13; /*(Initial error string:) The argument ...*/
+    const uint8_t message_offset = 11; /*(Initial error string:) The argument ...*/
     size_t 
         arg_length = (_cargs_is_error_extended ? strlen(_cargs_error_argument) : 1), 
         err_message_length = strlen(_cargs_error_strings[cargs_error_code]);
@@ -264,7 +264,7 @@ const char* cargs_get_error()
     _cargs_error_buffer_str = (char*)malloc(message_offset + arg_length +2/*space + null last char*/ + err_message_length);
     char* write_point = _cargs_error_buffer_str;
 
-    memcpy(write_point, "The argument ", message_offset);
+    memcpy(write_point, "The option ", message_offset);
     write_point += message_offset;
     memcpy(write_point, _cargs_error_argument, arg_length);
     write_point += arg_length;

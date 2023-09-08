@@ -11,9 +11,9 @@ const char* _cargs_error_strings[] = {
     NULL,
     "does not exist.",
     "is required.",
-    "has a wrong identificator.",
-    "requires extra elements and not enough were given.\n(Note:) Read the usage message",
-    "is repeated and this program doesn't allow the repetition of argument options."
+    "has a wrong option identificator.",
+    "requires extra data and there is not enough.",
+    "is repeated and it is not allowed to repeat argument options."
 };
 
 bool _cargs_treat_anonymous_args_as_errors = false;
