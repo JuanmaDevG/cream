@@ -145,7 +145,7 @@ int main()
     cargs_treat_anonymous_args_as_errors(true);
     tmp_argc = 3;
     cargs_load_args(tmp_argc, (const char**)tmp_argv6);
-    assert(cargs_error_code == CARGS_WRONG_ID);
+    assert(cargs_error_code == CARGS_NON_EXISTENT);
 
     //Setting a minimum of arguments to option -f and checking error
     cargs_set_args(tmp_bool_args, tmp_data_args);

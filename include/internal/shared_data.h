@@ -6,7 +6,7 @@
 
 
 //Argument package associated to a single option
-typedef struct ArgPackage{
+typedef struct ArgPackage {
     uint32_t count;
     char** values;          //Pointer to first value position in argv
 } ArgPackage;
@@ -147,3 +147,5 @@ extern uint32_t _extended_checkpoint;   //Checkpoint just made for extended argu
     the data package of the redunant option is full, so will be allocated here.
 */
 extern _cargs_data_storage_list* _cargs_redundant_opt_data;
+
+extern uint8_t* _cargs_is_data_relocated_bit_vec;

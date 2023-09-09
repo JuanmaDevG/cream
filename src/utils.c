@@ -218,11 +218,11 @@ bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, con
             _cargs_declare_error(argv[*index], is_extended, CARGS_REDUNDANT_ARGUMENT);
             return false;
         }
-        else
+        else if(count > 0)
             _cargs_push_list_node(
                 &(_cargs_redundant_opt_data[associated_option].first_node),
                 &(_cargs_redundant_opt_data[associated_option].last_node), 
-                (count == 0 ? NULL : data_pointer), count
+                data_pointer, count
             );
     }
     else    //No redundant and new arg so add data

@@ -73,3 +73,5 @@ uint32_t _extended_checkpoint = 0;
 */
 
 _cargs_data_storage_list* _cargs_redundant_opt_data = NULL;
+
+uint8_t* _cargs_is_data_relocated_bit_vec = NULL;

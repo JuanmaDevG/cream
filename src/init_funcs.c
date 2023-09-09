@@ -14,16 +14,16 @@ void cargs_set_args(const char* bool_args, const char* data_args)
 
     size_t buf_length = 
         _cargs_bool_args_count                                          /*boolean argument characters*/
+        + _cargs_get_byte_size(_cargs_bool_args_count)                  /*boolean arg bit vector existence confirmator*/
         + _cargs_data_packs.size                                        /*data argument characters*/ 
         + (bool_args && data_args ? 2 : 1)                              /*If both buffers (bool and data args), two null characters*/
-        + _cargs_get_byte_size(_cargs_bool_args_count)                  /*boolean arg bit vector existence confirmator*/
         + _cargs_get_byte_size(_cargs_data_packs.size)                  /*data arg bit vector existence confirmator*/
         + (_cargs_data_packs.size * sizeof(char*))                      /*equals operator pointer bank*/
         + (_cargs_data_packs.size * sizeof(_cargs_data_storage_list))   /*redundant argument option data bank*/
         + (_cargs_data_packs.size * sizeof(ArgPackage))                 /*argument data packages for non redundant (no linked list)*/
         + _cargs_data_packs.size                                        /*for maximum data per argument limits*/
-        + _cargs_data_packs.size;                                       /*for minimum data per argument limits*/
-    if(buf_length == 0) return;
+        + _cargs_data_packs.size                                        /*for minimum data per argument limits*/
+        + _cargs_get_byte_size(_cargs_data_packs.size);                 /*for the is_data_relocated bit vector*/
 
     //Cache friendly single buffer with multi-pointer support
     _cargs_bool_args = (char*) malloc(buf_length);
@@ -52,6 +52,7 @@ void cargs_set_args(const char* bool_args, const char* data_args)
         //Allocation of maximum and minimum data required argument counts
         _cargs_maximum_data = (uint8_t*)(_cargs_data_packs.packages + _cargs_data_packs.size);
         _cargs_minimum_data = (uint8_t*)(_cargs_maximum_data + _cargs_data_packs.size);
+        _cargs_is_data_relocated_bit_vec = _cargs_minimum_data + _cargs_data_packs.size;
     }
 }
 
@@ -60,8 +61,14 @@ bool cargs_clean()
     if(!(_cargs_bool_args || _cargs_data_args || _extended_args.args || _cargs_mandatory_args)) 
         return false; //No buffers
     
-    //Free all the redundant data information nodes
-    for(uint32_t i=0; i < _cargs_data_packs.size; i++) _cargs_free_data_list(_cargs_redundant_opt_data + i);
+    //Free the memory blocks that have been relocated during getters or free redundant arg data linked list
+    for(uint32_t i=0; i < _cargs_data_packs.size; i++)
+    {
+        if(_cargs_get_bit(_cargs_is_data_relocated_bit_vec, i)) 
+            free(_cargs_data_packs.packages[i].values);
+        else //data getter was never used so deallocate linked list
+            _cargs_free_data_list(_cargs_redundant_opt_data + i);
+    }
 
     //General purpose main buffer
     bool bool_args_free = false;
@@ -83,6 +90,7 @@ bool cargs_clean()
         
         _reset_finders(); _reset_ext_finders();
         _cargs_redundant_opt_data = NULL;
+        _cargs_is_data_relocated_bit_vec = NULL;
     }
 
     //Other buffers
