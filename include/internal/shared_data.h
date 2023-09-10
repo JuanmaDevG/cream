@@ -97,8 +97,7 @@ extern uint8_t* _cargs_maximum_data;
 enum cargs_error { 
     CARGS_NO_ERROR, 
     CARGS_NON_EXISTENT, 
-    CARGS_MANDATORY, 
-    CARGS_WRONG_ID, 
+    CARGS_MANDATORY,
     CARGS_NOT_ENOUGH_DATA, 
     CARGS_REDUNDANT_ARGUMENT
 };

@@ -1,0 +1,33 @@
+#Build script for windows
+compiler = clang
+flags = -Wall -Wextra -Werror -Wno-undefined-inline -O3
+buid_dir = build\
+header_dir = include\internal\
+src_dir = src\
+lib_name = cargs
+object_list = ${build_dir}anon_arg_list.obj ${build_dir}bit_vec_ops.obj ${build_dir}error_str.obj ${build_dir}init_funcs.obj $
+    ${build_dir}main_funcs.obj ${build_dir}shared_data.obj ${build_dir}utils.obj
+
+rule compile_object
+    command = $compiler $flags -I $header_dir -c ${src_dir}$in -o ${build_dir}${out}
+
+rule create_lib
+    command = llvm-lib /wx /out:${build_dir}${lib_name}.lib $object_list
+
+rule create_dll
+    command = $compiler -fPIC -shared $flags -o ${build_dir}${lib_name}.dll $object_list
+
+
+#Object files
+build anon_arg_list.obj: compile_object anon_arg_list.c
+build bit_vec_ops.obj: compile_object bit_vec_ops.c
+build error_str.obj: compile_object error_str.c
+build init_funcs.obj: compile_object init_funcs.c
+build main_funcs.obj: compile_object main_funcs.c
+build shared_data.obj: compile_object shared_data.c
+build utils.obj: compile_object utils.c
+
+#Static library
+build $lib_name: create_lib | $object_list
+#Dynamic link library
+build $lib_name: create_dll | $object_list

@@ -11,7 +11,6 @@ const char* _cargs_error_strings[] = {
     NULL,
     "does not exist.",
     "is required.",
-    "has a wrong option identificator.",
     "requires extra data and there is not enough.",
     "is repeated and it is not allowed to repeat argument options."
 };
