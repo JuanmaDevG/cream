@@ -112,10 +112,10 @@ int main()
     assert(_cargs_get_bit(_cargs_data_bit_vec, 1));
     assert(_cargs_bank_stack_pointer);
     assert(_cargs_equals_operator_pointer_bank);
-    assert(_cargs_data_packs.size == 2);
-    assert(_cargs_data_packs.packages[0].count == 1);
-    assert(strcmp(_cargs_data_packs.packages[0].values[0], "file.txt") == 0);
-    assert(_cargs_data_packs.packages[1].count == 2);
+    assert(_cargs_data_args_count == 2);
+    assert(_cargs_data_packs[0].count == 1);
+    assert(strcmp(_cargs_data_packs[0].values[0], "file.txt") == 0);
+    assert(_cargs_data_packs[1].count == 2);
     assert(_cargs_get_list_package(_cargs_redundant_opt_data->first_node, 0));
     assert(!_cargs_get_list_package(_cargs_redundant_opt_data->first_node, 1));
     assert(cargs_clean());

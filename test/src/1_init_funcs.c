@@ -19,7 +19,7 @@ int main()
     cargs_set_args(NULL, "abc");
     assert(_cargs_bool_args == NULL && _cargs_data_args != NULL);
     assert(strcmp(_cargs_data_args, "abc") == 0);
-    assert(_cargs_minimum_data[_cargs_data_packs.size -1] == 0); //The last allocation position is accessible (no segfault)
+    assert(_cargs_minimum_data[_cargs_data_args_count -1] == 0); //The last allocation position is accessible (no segfault)
 
     cargs_set_args("abcd", "aefgh"); //Adding a redundnacy 'a'
     assert(_cargs_bool_args != NULL && _cargs_data_args != NULL);

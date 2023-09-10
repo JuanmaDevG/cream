@@ -19,9 +19,10 @@ uint8_t* _cargs_bool_bit_vec = NULL;
     ------------------------
 */
 
+size_t _cargs_data_args_count = 0;
 char* _cargs_data_args = NULL;
 uint8_t* _cargs_data_bit_vec = NULL;
-ArgPackageVec _cargs_data_packs = {0, NULL};
+ArgPackage* _cargs_data_packs = NULL;
 uint32_t _cargs_bank_stack_pointer = 0;
 char** _cargs_equals_operator_pointer_bank = NULL;
 

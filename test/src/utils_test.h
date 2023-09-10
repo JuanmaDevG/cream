@@ -38,13 +38,13 @@ void init_test_args()
     _cargs_bool_args_count = strlen(new_bool_args);
     _cargs_bool_bit_vec = (uint8_t*)calloc(_cargs_get_byte_size(strlen(new_bool_args)), sizeof(uint8_t));
     _cargs_data_args = new_data_args;
-    _cargs_data_packs.size = strlen(new_data_args);
+    _cargs_data_args_count = strlen(new_data_args);
     _cargs_data_bit_vec = (uint8_t*)calloc(_cargs_get_byte_size(strlen(new_data_args)), sizeof(uint8_t));
-    _cargs_data_packs.packages = (ArgPackage*)calloc(_cargs_data_packs.size, sizeof(ArgPackage));
+    _cargs_data_packs = (ArgPackage*)calloc(_cargs_data_args_count, sizeof(ArgPackage));
     _cargs_equals_operator_pointer_bank = (char**)malloc(strlen(new_data_args));
     _cargs_maximum_data = (uint8_t*)calloc(strlen(new_data_args), sizeof(uint8_t));
     _cargs_minimum_data = (uint8_t*)calloc(strlen(new_data_args), sizeof(uint8_t));
-    _cargs_redundant_opt_data = (_cargs_data_storage_list*)calloc(_cargs_data_packs.size, sizeof(_cargs_data_storage_list));
+    _cargs_redundant_opt_data = (_cargs_data_storage_list*)calloc(_cargs_data_args_count, sizeof(_cargs_data_storage_list));
 }
 
 void init_ext_arg_vec()

@@ -84,7 +84,7 @@ void _remove_redundancies(const uint32_t mode)
     if(mode == REMOVE_BOOL_REDUNDANCIES)
     {
         read_point = _cargs_data_args;
-        read_length = &(_cargs_data_packs.size);
+        read_length = &(_cargs_data_args_count);
         write_point = _cargs_bool_args;
         write_length = &_cargs_bool_args_count;
     }
@@ -93,7 +93,7 @@ void _remove_redundancies(const uint32_t mode)
         read_point = _cargs_bool_args;
         read_length = &_cargs_bool_args_count;
         write_point = _cargs_data_args;
-        write_length = &(_cargs_data_packs.size);
+        write_length = &(_cargs_data_args_count);
     }
 
     //Look for redundancies and remove them
@@ -227,8 +227,8 @@ bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, con
     }
     else    //No redundant and new arg so add data
     {
-        _cargs_data_packs.packages[associated_option].count = count;
-        _cargs_data_packs.packages[associated_option].values = (count == 0 ? NULL : (char**)data_pointer);
+        _cargs_data_packs[associated_option].count = count;
+        _cargs_data_packs[associated_option].values = (count == 0 ? NULL : (char**)data_pointer);
         _cargs_set_bit(_cargs_data_bit_vec, associated_option, true);
     }
 
@@ -332,11 +332,11 @@ inline uint32_t _cargs_search_equals_operator(const char* argument_pointer)
 
 inline bool _cargs_store_equals_operator_data(const char* data_pointer, const uint32_t associated_option)
 {
-    if(_cargs_bank_stack_pointer == _cargs_data_packs.size) return false; //The pointer bank is full
+    if(_cargs_bank_stack_pointer == _cargs_data_args_count) return false; //The pointer bank is full
 
-    _cargs_data_packs.packages[associated_option].count = 1;
+    _cargs_data_packs[associated_option].count = 1;
     _cargs_equals_operator_pointer_bank[_cargs_bank_stack_pointer] = (char*)data_pointer;
-    _cargs_data_packs.packages[associated_option].values = _cargs_equals_operator_pointer_bank + _cargs_bank_stack_pointer;
+    _cargs_data_packs[associated_option].values = _cargs_equals_operator_pointer_bank + _cargs_bank_stack_pointer;
     _cargs_bank_stack_pointer++;
     return true;
 }
@@ -356,10 +356,10 @@ inline bool _cargs_configure_and_store_equals_operator_data(const char* arg_opti
 
 inline void _cargs_remove_redundant_args_linked_lists()
 {
-    for(uint32_t i=0; i < _cargs_data_packs.size; i++)
+    for(uint32_t i=0; i < _cargs_data_args_count; i++)
     {
         if(_cargs_get_bit(_cargs_is_data_relocated_bit_vec, i))
-            free(_cargs_data_packs.packages[i].values);
+            free(_cargs_data_packs[i].values);
         else //data getter was never used so deallocate linked list
             _cargs_free_data_list(_cargs_redundant_opt_data + i);
     }

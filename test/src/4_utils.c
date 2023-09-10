@@ -9,7 +9,7 @@ int main()
     _cargs_bool_args = new_bool_args;
     _cargs_data_args = new_data_args;
     _cargs_bool_args_count = strlen(new_bool_args);
-    _cargs_data_packs.size = strlen(new_data_args);
+    _cargs_data_args_count = strlen(new_data_args);
 
     _cargs_data_args[0] = 'a';
     _cargs_data_args[2] = 'b';

@@ -11,13 +11,6 @@ typedef struct ArgPackage {
     char** values;          //Pointer to first value position in argv
 } ArgPackage;
 
-//Argument Package Vector that contains mutiple Argument Packages
-typedef struct ArgPackageVec {
-    size_t size;
-    ArgPackage* packages;
-} ArgPackageVec;
-
-
 //Extended argument name associated to the corresponding char argument argument
 typedef struct {
     char* read_point;
@@ -61,9 +54,10 @@ extern size_t _cargs_bool_args_count;
 extern char* _cargs_bool_args;
 extern uint8_t* _cargs_bool_bit_vec;
 
+extern size_t _cargs_data_args_count;
 extern char* _cargs_data_args;
 extern uint8_t* _cargs_data_bit_vec;
-extern ArgPackageVec _cargs_data_packs;
+extern ArgPackage* _cargs_data_packs;
 extern uint32_t _cargs_bank_stack_pointer;
 extern char** _cargs_equals_operator_pointer_bank;
 
