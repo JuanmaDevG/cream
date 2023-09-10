@@ -220,3 +220,30 @@ extern inline bool _cargs_store_equals_operator_data(const char* data_pointer, c
     package vector using the pointer bank as nexus to directly point to the argument data.
 */
 extern inline bool _cargs_configure_and_store_equals_operator_data(const char* arg_option, const uint32_t associated_option);
+
+/*
+    Free the memory blocks that have been relocated during getters 
+    or free redundant arg data linked lists.
+
+    WARNING:
+    Does not set any pointer to NULL
+*/
+extern inline void _cargs_remove_redundant_args_linked_lists();
+
+/*
+    Frees the extended argument buffers and sets the pointers 
+    NULL to let them be reused
+*/
+extern inline void _cargs_reset_ext_arg_buffers();
+
+/*
+    Frees the mandatory argument buffers and sets the pointers 
+    to NULL to let them be reused
+*/
+extern inline void _cargs_reset_mandatory_arg_buffers();
+
+/*
+    Frees the error argument buffers and sets the pointers 
+    to NULL to let them be reused
+*/
+extern inline void _cargs_reset_error_buffers();

@@ -149,11 +149,24 @@ extern inline void cargs_include_argument_zero(const bool value);
     If any argument error is given, it will stop and store the error code in 
     cargs_error_code
 
+    Argument loads are accumulative, so two argument loads will store all the 
+    needed information per argument
+
     WARNING:
     This function must be called when the argument setters are called, otherwise
     will have no effect (but of course you can leave boolean or data arguments empty) 
 */
 void cargs_load_args(const int argc, const char** argv);
+
+/*
+    Cancels all argument loads previously made and so frees all
+    argument caching structures and buffers, BUT NOT the 
+    previous constraints that the user of this library has set
+
+    This will let the pointers cleaned up to make another 
+    cargs_load_args like nothing has happened.
+*/
+void cargs_cancel_argument_loads();
 
 /*
     Gets the pointer to a a loaded error string

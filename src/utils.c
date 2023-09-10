@@ -353,3 +353,44 @@ inline bool _cargs_configure_and_store_equals_operator_data(const char* arg_opti
 
     return false;
 }
+
+inline void _cargs_remove_redundant_args_linked_lists()
+{
+    for(uint32_t i=0; i < _cargs_data_packs.size; i++)
+    {
+        if(_cargs_get_bit(_cargs_is_data_relocated_bit_vec, i))
+            free(_cargs_data_packs.packages[i].values);
+        else //data getter was never used so deallocate linked list
+            _cargs_free_data_list(_cargs_redundant_opt_data + i);
+    }
+}
+
+inline void _cargs_reset_ext_arg_buffers()
+{
+    if(_extended_args.args) 
+    {
+        for(size_t i=0; i < _extended_args.size; i++)
+            free(_extended_args.args[i].name);
+        free(_extended_args.args); _extended_args.args = NULL; _extended_args.size = 0;
+    }
+}
+
+inline void _cargs_reset_mandatory_arg_buffers()
+{
+    if(_cargs_mandatory_args) 
+    { 
+        free(_cargs_mandatory_args); 
+        _cargs_mandatory_args = NULL; 
+        _cargs_mandatory_arg_count = 0; 
+    }
+}
+
+inline void _cargs_reset_error_buffers()
+{
+    if(_cargs_error_argument)
+    {
+        _cargs_error_argument = NULL;
+        free(_cargs_error_buffer_str); _cargs_error_buffer_str = NULL;
+        cargs_error_code = CARGS_NO_ERROR;
+    }
+}

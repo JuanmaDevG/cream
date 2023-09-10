@@ -60,15 +60,7 @@ bool cargs_clean()
 {
     if(!(_cargs_bool_args || _cargs_data_args || _extended_args.args || _cargs_mandatory_args)) 
         return false; //No buffers
-    
-    //Free the memory blocks that have been relocated during getters or free redundant arg data linked list
-    for(uint32_t i=0; i < _cargs_data_packs.size; i++)
-    {
-        if(_cargs_get_bit(_cargs_is_data_relocated_bit_vec, i)) 
-            free(_cargs_data_packs.packages[i].values);
-        else //data getter was never used so deallocate linked list
-            _cargs_free_data_list(_cargs_redundant_opt_data + i);
-    }
+    _cargs_remove_redundant_args_linked_lists();
 
     //General purpose main buffer
     bool bool_args_free = false;
@@ -92,23 +84,9 @@ bool cargs_clean()
         _cargs_redundant_opt_data = NULL;
         _cargs_is_data_relocated_bit_vec = NULL;
     }
-
-    //Other buffers
-    if(_extended_args.args) 
-    {
-        for(size_t i=0; i < _extended_args.size; i++)
-            free(_extended_args.args[i].name);
-        free(_extended_args.args); _extended_args.args = NULL; _extended_args.size = 0;
-    }
-    if(_cargs_mandatory_args) { free(_cargs_mandatory_args); _cargs_mandatory_args = NULL; _cargs_mandatory_arg_count = 0; }
-
-    //Error buffers
-    if(_cargs_error_argument)
-    {
-        _cargs_error_argument = NULL;
-        free(_cargs_error_buffer_str); _cargs_error_buffer_str = NULL;
-        cargs_error_code = CARGS_NO_ERROR;
-    }
+    _cargs_reset_ext_arg_buffers();
+    _cargs_reset_mandatory_arg_buffers();
+    _cargs_reset_error_buffers();
 
     return true;
 }
@@ -257,6 +235,17 @@ void cargs_load_args(const int argc, const char** argv)
     _reset_ext_finders();
     _reset_finders();
     _cargs_check_mandatory_arguments();
+}
+
+void cargs_cancel_argument_loads()
+{
+    _cargs_remove_redundant_args_linked_lists();
+    memset(_cargs_bool_bit_vec, 0, _cargs_get_byte_size(_cargs_bool_args_count));
+    //Set 0 one after data packages (_cargs_maximum_data addr) to actually remove data packages information
+    memset(_cargs_data_bit_vec, 0, (size_t)(((uint8_t*)_cargs_maximum_data) - ((uint8_t*)_cargs_data_bit_vec)));
+    _cargs_bank_stack_pointer = 0;
+    //memset del bit vec de las relocations de las linked lists
+    memset(_cargs_is_data_relocated_bit_vec, 0, _cargs_get_byte_size(_cargs_data_packs.size));
 }
 
 const char* cargs_get_error()
