@@ -2,7 +2,7 @@
 #include <assert.h>
 #include "init_funcs.h"
 
-const char* finish_msg = "Finished %d from %s\n";
+const char* finish_msg = "Finished test %d from %s\n";
 
 //Some more needed data...
 

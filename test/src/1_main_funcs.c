@@ -67,6 +67,7 @@ int main()
     cargs_cancel_argument_loads();
     cargs_cancel_argument_loads();
     assert(cargs_clean());
+    assert(!cargs_clean());
 
     finish(1, "main functions");
     return 0;

@@ -42,12 +42,12 @@ set test_file=tmp_test.exe
 
 rem ----------------- MAIN -----------------
 
-if %1==windbg (
+if -%1-==windbg (
     call :debug_compile %2
     exit /b
 )
 
-if %1==clean (
+if -%1-==clean (
     del tmp_test.*
     exit /b
 )

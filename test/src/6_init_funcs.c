@@ -25,8 +25,5 @@ int main()
     cargs_error_code = CARGS_REDUNDANT_ARGUMENT;
     printf("%s\n", cargs_get_error());
 
-    cargs_error_code = CARGS_WRONG_ID;
-    printf("%s\n", cargs_get_error());
-
     finish(6, "init functions");
 }

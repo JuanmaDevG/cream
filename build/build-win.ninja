@@ -1,0 +1,45 @@
+#Build script for windows
+#Note: 
+# Every object in a build needs a specific location for ninja to know where to find it, it cannot be found 
+# while the rule command execution because ninja wants it like that
+#Note:
+# Moved ninja build files to build dir because Ninja does not have any option to remove undesired object files
+# so I did have to make batch files to solve this problem
+
+compiler = clang
+flags = -Wall -Wextra -Werror -Wno-undefined-inline -O3
+build_dir = build\result\
+header_dir = include\internal\
+src_dir = src\
+lib_name = cargs
+object_list = ${build_dir}anon_arg_list.obj ${build_dir}bit_vec_ops.obj ${build_dir}error_str.obj ${build_dir}init_funcs.obj $
+    ${build_dir}main_funcs.obj ${build_dir}shared_data.obj ${build_dir}utils.obj
+
+rule compile_object
+    command = $compiler $flags -I $header_dir -c $in -o $out
+
+rule create_lib
+    command = llvm-lib /wx /out:$out $object_list
+
+rule create_dll
+    command = $compiler -fPIC -shared $flags -o $out $object_list
+
+rule clean_objects
+    command = del $out
+
+
+#Object files
+build ${build_dir}anon_arg_list.obj: compile_object ${src_dir}anon_arg_list.c
+build ${build_dir}bit_vec_ops.obj: compile_object ${src_dir}bit_vec_ops.c
+build ${build_dir}error_str.obj: compile_object ${src_dir}error_str.c
+build ${build_dir}init_funcs.obj: compile_object ${src_dir}init_funcs.c
+build ${build_dir}main_funcs.obj: compile_object ${src_dir}main_funcs.c
+build ${build_dir}shared_data.obj: compile_object ${src_dir}shared_data.c
+build ${build_dir}utils.obj: compile_object ${src_dir}utils.c
+
+#Static library
+build ${build_dir}$lib_name.lib: create_lib | ${build_dir}anon_arg_list.obj ${build_dir}bit_vec_ops.obj ${build_dir}error_str.obj ${build_dir}init_funcs.obj $
+    ${build_dir}main_funcs.obj ${build_dir}shared_data.obj ${build_dir}utils.obj
+#Dynamic link library
+build ${build_dir}$lib_name.dll: create_dll | ${build_dir}anon_arg_list.obj ${build_dir}bit_vec_ops.obj ${build_dir}error_str.obj ${build_dir}init_funcs.obj $
+    ${build_dir}main_funcs.obj ${build_dir}shared_data.obj ${build_dir}utils.obj
