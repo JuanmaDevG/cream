@@ -35,7 +35,7 @@ set options=-Wall -Wextra -Werror -Wno-undefined-inline
 set include_dir=..\include\internal\
 set source_dir=..\src\
 
-rem There here will be more source files with more updates TODO: make a cleaner syntax
+rem There here will be more source files with more updates
 set sources=%source_dir%error_str.c %source_dir%shared_data.c %source_dir%utils.c %source_dir%anon_arg_list.c %source_dir%init_funcs.c %source_dir%bit_vec_ops.c %source_dir%main_funcs.c
 set test_file=tmp_test.exe
 

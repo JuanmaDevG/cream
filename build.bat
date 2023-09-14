@@ -1,4 +1,4 @@
-echo off
+@echo off
 setlocal
 rem -----------------------------------------------------------
 rem Windows build file that removes unnecessary object binaries
