@@ -30,7 +30,7 @@ int main()
     _cargs_bool_args = custom_bool_args;
     _cargs_data_args = custom_data_args;
     _swap_read_point();
-    assert(_read_point = _cargs_bool_args);
+    assert(_read_point == _cargs_bool_args);
     _swap_read_point();
     assert(_read_point == _cargs_data_args);
     _swap_read_point();
