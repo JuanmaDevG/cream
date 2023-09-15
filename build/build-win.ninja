@@ -1,10 +1,14 @@
 #Build script for windows
+
 #Note: 
 # Every object in a build needs a specific location for ninja to know where to find it, it cannot be found 
 # while the rule command execution because ninja wants it like that
 #Note:
 # Moved ninja build files to build dir because Ninja does not have any option to remove undesired object files
 # so I did have to make batch files to solve this problem
+#Note:
+# Windows based systems do not support -fPIC flag, it is not necessary to generate position indeoendent code 
+# because the system interprets the addresses different for shared libraries with the runtime linker
 
 compiler = clang
 flags = -Wall -Wextra -Werror -Wno-undefined-inline -O3
@@ -17,7 +21,7 @@ lib_name = cargs
 object_list = ${build_dir}anon_arg_list.obj ${build_dir}bit_vec_ops.obj ${build_dir}error_str.obj ${build_dir}init_funcs.obj $
     ${build_dir}main_funcs.obj ${build_dir}shared_data.obj ${build_dir}utils.obj
 
-source_list = ${src_dir}anon_arg_list.c ${src_dir}bit_vec_ops.c ${src_dir}error_str.c ${build_dir}init_funcs.c $
+source_list = ${src_dir}anon_arg_list.c ${src_dir}bit_vec_ops.c ${src_dir}error_str.c ${src_dir}init_funcs.c $
     ${src_dir}main_funcs.c ${src_dir}shared_data.c ${src_dir}utils.c
 
 #Rules
@@ -28,7 +32,7 @@ rule create_lib
     command = llvm-lib /wx /out:$out $object_list
 
 rule create_dll
-    command = $compiler -fPIC -shared $flags -I $header_dir -o $out $source_list
+    command = $compiler -shared $flags -I $header_dir -o $out $source_list
 
 rule clean_objects
     command = del $out
