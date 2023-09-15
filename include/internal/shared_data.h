@@ -83,6 +83,8 @@ extern uint32_t _cargs_mandatory_arg_count;
 extern uint32_t _cargs_anon_arg_count;
 extern _cargs_anonymous_node* _cargs_anon_args;
 extern _cargs_anonymous_node* _cargs_anon_last;
+extern uint32_t _cargs_anonymous_relocated_buf_size;
+extern char** _cargs_anonymous_relocated_args;
 
 extern uint8_t* _cargs_minimum_data;
 extern uint8_t* _cargs_maximum_data;

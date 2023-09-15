@@ -394,3 +394,16 @@ inline void _cargs_reset_error_buffers()
         cargs_error_code = CARGS_NO_ERROR;
     }
 }
+
+inline void _cargs_remove_anonymous_arguments()
+{
+    if(_cargs_anonymous_relocated_args) 
+    {
+        free(_cargs_anonymous_relocated_args); 
+        _cargs_anonymous_relocated_args = NULL; 
+        _cargs_anonymous_relocated_buf_size = 0;
+    }
+
+    while(_cargs_anon_args) _cargs_delete_list_head(&_cargs_anon_args, &_cargs_anon_last);
+    _cargs_anon_arg_count = 0;
+}

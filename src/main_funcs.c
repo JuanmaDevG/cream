@@ -1,8 +1,7 @@
 #include "main_funcs.h"
-#include <stdio.h> //MOD
 
 
-inline bool _cargs_data_unready(const uint32_t _arg_index)
+bool _cargs_data_unready(const uint32_t _arg_index)
 {
     return
         !_cargs_data_args 
@@ -44,6 +43,11 @@ void _cargs_update_data_buffer(const uint32_t _arg_index)
     }
 }
 
+void _cargs_update_anonymous_buffer()
+{
+    
+}
+
 //-------------------------------------------------------------
 
 inline bool cargs_check_bool(const uint32_t __arg_index)
@@ -68,4 +72,37 @@ inline char** cargs_get_data(const uint32_t __arg_index)
     if(_cargs_data_unready(__arg_index)) { return NULL; }
     _cargs_update_data_buffer(__arg_index);
     return _cargs_data_packs[__arg_index].values;
+}
+
+inline uint32_t cargs_get_anonymous_arg_count()
+{
+    return _cargs_anon_arg_count;
+}
+
+inline char** cargs_get_anonymous_args()
+{
+    //Dev note: 
+    //  _cargs_anon_arg_count can only be zero in clean functions to always return the correct number of loaded arguments
+    //Check linked list to view if return or relocate
+    if(!_cargs_anon_args) return _cargs_anonymous_relocated_args;
+
+    //New elements into the linked list means more argument loads and so reallocate
+    if(_cargs_anonymous_relocated_args)
+        _cargs_anonymous_relocated_args = (char**)realloc(_cargs_anonymous_relocated_args, _cargs_anon_arg_count * sizeof(char*));
+    else 
+        _cargs_anonymous_relocated_args = (char**)malloc(_cargs_anon_arg_count * sizeof(char*));
+
+    while(_cargs_anon_args)
+    {
+        memcpy(
+            _cargs_anonymous_relocated_args + _cargs_anonymous_relocated_buf_size, 
+            _cargs_anon_args->package.values, 
+            _cargs_anon_args->package.count * sizeof(char*)
+        );
+        _cargs_anonymous_relocated_buf_size += _cargs_anon_args->package.count;
+        _cargs_delete_list_head(&_cargs_anon_args, &_cargs_anon_last);
+    }
+    _cargs_anonymous_relocated_buf_size = _cargs_anon_arg_count;
+
+    return _cargs_anonymous_relocated_args;
 }

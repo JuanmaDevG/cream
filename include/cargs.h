@@ -10,6 +10,16 @@
 #include <stdarg.h>
 #include <stdint.h>
 
+enum cargs_error { 
+    CARGS_NO_ERROR, 
+    CARGS_NON_EXISTENT, 
+    CARGS_MANDATORY,
+    CARGS_NOT_ENOUGH_DATA, 
+    CARGS_REDUNDANT_ARGUMENT
+};
+
+extern enum _cargs_error cargs_error_code;
+
 
 /*
     Sets the identificator character for arguments. If this function is 
@@ -205,11 +215,13 @@ extern inline bool cargs_check_bool(const uint32_t __arg_index);
 */
 extern inline bool cargs_check_data(const uint32_t __arg_index);
 
+
 /*
     Returns the number of elements associated to the given data argument 
     index
 */
 extern inline uint32_t cargs_get_data_count(const uint32_t arg_index);
+
 
 /*
     Returns a char pointer vector with all the strings that the 
@@ -222,3 +234,17 @@ extern inline uint32_t cargs_get_data_count(const uint32_t arg_index);
     cargs_check_... functions
 */
 extern inline char** cargs_get_data(const uint32_t arg_index);
+
+
+/*
+    Returns the number of anonymous arguments cached by cargs after the 
+    last argument loads
+*/
+extern inline uint32_t cargs_get_anonymous_arg_count();
+
+
+/*
+    Returns a dual char pointer that countains all the pointed 
+    argument strings cached by cargs after the last argument loads
+*/
+extern inline char** cargs_get_anonymous_args();

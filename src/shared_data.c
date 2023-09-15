@@ -53,6 +53,8 @@ uint32_t _cargs_mandatory_arg_count = 0;
 uint32_t _cargs_anon_arg_count = 0;
 _cargs_anonymous_node* _cargs_anon_args = NULL;
 _cargs_anonymous_node* _cargs_anon_last = NULL;
+uint32_t _cargs_anonymous_relocated_buf_size = 0;
+char** _cargs_anonymous_relocated_args = NULL;
 
 uint8_t* _cargs_maximum_data = NULL;
 uint8_t* _cargs_minimum_data = NULL;

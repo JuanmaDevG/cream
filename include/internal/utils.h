@@ -247,3 +247,9 @@ extern inline void _cargs_reset_mandatory_arg_buffers();
     to NULL to let them be reused
 */
 extern inline void _cargs_reset_error_buffers();
+
+/*
+    Removes all the anonymous argument buffers cached after 
+    any argument load
+*/
+extern inline void _cargs_remove_anonymous_arguments();

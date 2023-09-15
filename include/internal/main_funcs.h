@@ -42,3 +42,15 @@ extern inline uint32_t cargs_get_data_count(const uint32_t arg_index);
     cargs_check_... functions
 */
 extern inline char** cargs_get_data(const uint32_t arg_index);
+
+/*
+    Returns the number of anonymous arguments cached by cargs after the 
+    last argument loads
+*/
+extern inline uint32_t cargs_get_anonymous_arg_count();
+
+/*
+    Returns a dual char pointer that countains all the pointed 
+    argument strings cached by cargs after the last argument loads
+*/
+extern inline char** cargs_get_anonymous_args();

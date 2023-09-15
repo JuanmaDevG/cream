@@ -61,6 +61,7 @@ bool cargs_clean()
     if(!(_cargs_bool_args || _cargs_data_args || _extended_args.args || _cargs_mandatory_args)) 
         return false; //No buffers
     _cargs_remove_redundant_args_linked_lists();
+    _cargs_remove_anonymous_arguments();
 
     //General purpose main buffer
     bool bool_args_free = false;
@@ -77,7 +78,7 @@ bool cargs_clean()
         _cargs_data_bit_vec = NULL;
         _cargs_bank_stack_pointer = 0; _cargs_equals_operator_pointer_bank = NULL;
 
-        _cargs_anon_arg_count = 0; _cargs_anon_args = NULL; _cargs_anon_last = NULL;
+        //Anonymous arguments were reset by the specific function...
         _cargs_maximum_data = NULL; _cargs_minimum_data = NULL;
         
         _reset_finders(); _reset_ext_finders();
@@ -246,6 +247,7 @@ void cargs_cancel_argument_loads()
     _cargs_bank_stack_pointer = 0;
     //memset del bit vec de las relocations de las linked lists
     memset(_cargs_is_data_relocated_bit_vec, 0, _cargs_get_byte_size(_cargs_data_args_count));
+    _cargs_remove_anonymous_arguments();
 }
 
 const char* cargs_get_error()
