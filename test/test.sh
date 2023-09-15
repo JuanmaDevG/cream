@@ -31,7 +31,8 @@ then
     return
 fi
 
-
+run_test_files
+exit
 
 
 # Functions
@@ -56,5 +57,6 @@ run_test_files()
 
 compile_and_run()
 {
-    #tomorrow more commands
+    $compiler $options -o $test_file -I $inlcude_dir src/$1 $sources
+    ./$test_file
 }

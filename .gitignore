@@ -60,3 +60,4 @@ dkms.conf
 
 #Ninja logfile
 .ninja_log
+.ninja_deps

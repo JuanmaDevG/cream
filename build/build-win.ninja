@@ -12,9 +12,15 @@ build_dir = build\result\
 header_dir = include\internal\
 src_dir = src\
 lib_name = cargs
+
+
 object_list = ${build_dir}anon_arg_list.obj ${build_dir}bit_vec_ops.obj ${build_dir}error_str.obj ${build_dir}init_funcs.obj $
     ${build_dir}main_funcs.obj ${build_dir}shared_data.obj ${build_dir}utils.obj
 
+source_list = ${src_dir}anon_arg_list.c ${src_dir}bit_vec_ops.c ${src_dir}error_str.c ${build_dir}init_funcs.c $
+    ${src_dir}main_funcs.c ${src_dir}shared_data.c ${src_dir}utils.c
+
+#Rules
 rule compile_object
     command = $compiler $flags -I $header_dir -c $in -o $out
 
@@ -22,7 +28,7 @@ rule create_lib
     command = llvm-lib /wx /out:$out $object_list
 
 rule create_dll
-    command = $compiler -fPIC -shared $flags -o $out $object_list
+    command = $compiler -fPIC -shared $flags -I $header_dir -o $out $source_list
 
 rule clean_objects
     command = del $out
@@ -41,5 +47,4 @@ build ${build_dir}utils.obj: compile_object ${src_dir}utils.c
 build ${build_dir}$lib_name.lib: create_lib | ${build_dir}anon_arg_list.obj ${build_dir}bit_vec_ops.obj ${build_dir}error_str.obj ${build_dir}init_funcs.obj $
     ${build_dir}main_funcs.obj ${build_dir}shared_data.obj ${build_dir}utils.obj
 #Dynamic link library
-build ${build_dir}$lib_name.dll: create_dll | ${build_dir}anon_arg_list.obj ${build_dir}bit_vec_ops.obj ${build_dir}error_str.obj ${build_dir}init_funcs.obj $
-    ${build_dir}main_funcs.obj ${build_dir}shared_data.obj ${build_dir}utils.obj
+build ${build_dir}$lib_name.dll: create_dll

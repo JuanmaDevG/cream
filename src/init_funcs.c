@@ -142,7 +142,7 @@ void cargs_make_mandatory(const char* arg_characters)
     {
         size_t buf_size = length * sizeof(_cargs_buffer_position);
         if(length > _cargs_mandatory_arg_count)     //Not enough -> reallocate
-            realloc(_cargs_mandatory_args, buf_size);
+            _cargs_mandatory_args = realloc(_cargs_mandatory_args, buf_size);
         memset(_cargs_mandatory_args, 0, (buf_size < _cargs_mandatory_arg_count ? _cargs_mandatory_arg_count : buf_size));
     }
     else //No -> allocate
