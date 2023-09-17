@@ -43,11 +43,6 @@ void _cargs_update_data_buffer(const uint32_t _arg_index)
     }
 }
 
-void _cargs_update_anonymous_buffer()
-{
-    
-}
-
 //-------------------------------------------------------------
 
 inline bool cargs_check_bool(const uint32_t __arg_index)
