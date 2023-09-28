@@ -35,27 +35,27 @@ I will post the releases link here, just let me some time
 **DO NOT EXACTLY COPY THE FOLLOWING BUILD INSTRUCTIONS, you'll understand why while reading...**
 
 First (Windows cmd or Linux bash is valid) clone the repo:
-'''
+```bash
     git clone https://github.com/JuanmaDevG/cargs
-    cd cargs\
-'''
+    cd cargs
+```
 
 Windows build instructions:
-'''
+```cmd
     build
     cd build\result\
     move cargs.lib \wherever\you\wanna\place\the\library\
     move cargs.dll \wherever\you\wanna\place\the\library\
-    cd ..\\..\include\
+    cd ..\..\include\
     move cargs.h \wherever\you\wanna\place\the\header_file/
-'''
+```
 
 Linux build instructions:
-'''
+```bash
     ./build.sh
     cd build/result/
     mv libcargs.a /wherever/you/want/to/place/the/library/
     mv libcargs.so /wherever/you/want/to/place/the/library/
     cd ../../include
     mv cargs.h /wherever/you/wanna/place/the/header_file/
-'''
+```
