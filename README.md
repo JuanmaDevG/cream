@@ -6,7 +6,7 @@ any programming language that can load DLLs (Dynamic Link Libraries)
 ## What is cargs?
 
 cargs is essentially an entire library that offers a very lightweigh runtime that can be used for any argument parsing purpose.
-It provides a set of functions that let you manage every little detail about the argument parsing in your program.
+It provides a set of functions that let you manage every little detail about the argument parsing in your program **THE EASIEST WAY POSSIBLE**.
 
 It is **NOT JUST command line arguments**, it supports multiple argument loads, integrated _argument rule creation_, has a little **error system** 
 that will be updated with time, and integrated automatic self memory management default set of functions (no need to free or manage pointer ownership).
@@ -61,7 +61,7 @@ Linux build instructions:
     mv cargs.h /wherever/you/wanna/place/the/header_file/
 ```
 
-### How to LINK cargs to your programs? (for newbies like I was)
+## How to LINK cargs to your programs? (for newbies like I was)
 
 Once you've obtained the library binaries or you've built the library yourself like a true sigma. 
 Have you ever used an external library? If not, you're lucky because this section is written as an introduction to the usage of external libraries. To be the simplest 
