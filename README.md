@@ -68,7 +68,7 @@ Have you ever used an external library? If not, you're lucky because this sectio
 as possible, an external library is a piece of code that contains functions to call, or classes to instantiate (c++) and use in your program's code.
 
 If you're using the Dynamic Link Library (.dll for Windows) or Shared Object (.so for Linux), you would tipically need to use the runtime linker, BUT you're lucky to 
-have the header file ``cargs.h`` that will make the linkage much more simple. In the case you're using the Static Library (.lib for Windows / .a for Windows) the 
+have the header file ``cargs.h`` that will make the linkage much more simple. In the case you're using the Static Library (.lib for Windows / .a for Linux) the 
 header file is MANDATORY.
 
 You have some **OPTIONS** to locate the header file (cargs.h) and the cargs.lib/libcargs.a (or for dynamic linking cargs.dll/libcargs.so) file:
@@ -105,4 +105,93 @@ declare the ouput file to generate with ``-o`` option and introduce the source c
 
 ## The official cargs user manual
 
-Actually writing... but the cargs.h header file is really self descriptive...
+Let's start by learning about two concepts, command line argument options can be **boolean arguments** (existent or not in the argument input) or **data arguments** 
+(those that can have additional parameters to work). For example, the program:
+
+``$ clang -c -o program.o source.c``
+
+As you can see, an argument option is allways preceded by an unique identifier in Unix like programs, the option identifier is '-' and it has become a standard.
+
+Focusing on the example, the compiler gets a boolean argument option (-c) that means just to compile without performing the linking phase, and a 
+data argument option (-o) wich **needs data**, that data is the output filename, and last but not least, the source code filename. 
+
+What happens to the source filename? It is not linked to any argument option (neither -o), that's what cargs calls **anonymous argument**, it's simply an argument that 
+is just data itself, interesting data for the program.
+
+This library is capable to clone the same behaviour with a few functions:
+
+```c
+    #include <stdio.h>
+    #include <cargs.h>
+
+    /*
+        The enumerated types are just numbers that determine the position of each argument character
+        For efficiency, the data needs to be accessed at by the argument character index.
+    */
+    enum BOOL_ARGS {ARG_C}
+    enum DATA_ARGS {ARG_O, ARG_L_UPPER, ARG_I_UPPER}
+
+    int main(int argc, char** argv)
+    {
+        //You will almost never use this function because the default argument identifier set is '-'
+        cargs_set_identificator('-');
+
+        // Boolean arguments: { -c }    Data arguments: { -o , -L , -I }
+        cargs_set_args("c", "oLI");
+
+        /*
+            As you can appreciate, the argument options from clang compiler can handle minimum 1 piece of data and also maximum one, 
+            you cannot leave -o option empty.
+
+            cargs is desiged to support up to 255 maximum and minimum options, and assigning zero means no limits (this comes by default)
+        */
+        cargs_set_minimum_data("oLI", 1, 1, 1); //Each argument option character must have a minimum of one piece of data (like a filename)
+        cargs_set_maximum_data("oLI", 1, 1, 1); //And so, each argument option character can handle a maximum of one pice of data
+
+        //Yes, you can treat anonymous arguments as errors
+        cargs_treat_anonymous_args_as_errors(false); //By default this is false but is better you know this function exists.
+
+        //Because in clang you can do it like: clang -L some/dir/ -L some/another/dir/ -I some/include/dir -I some/other/ ...
+        //cargs by default allows repeated argument options, but you will know whenever you want to configure this to true
+        cargs_treat_repeated_args_as_errors(false);
+
+        //This is also false by default but yeah, you can take the absolute first argument with the argument load (in this case the program name is useless)
+        //The real life utility case of this function will be explained later
+        cargs_include_argument_zero(false);
+
+        //After previous cargs configuration, cargs-state-machine is ready to load the command line arguments
+        cargs_load_args(argc, argv);
+
+        //Was there any error? Let's check out the cargs error system
+        if(cargs_error_code != CARGS_NO_ERROR)
+        {
+            printf("%s\n", cargs_get_error());
+            cargs_clean();  //Frees all the memory needed by the library, avoiding memory leaks
+            return 0;
+        }
+
+        //And finally, after the argument load that follows the previously set configuration, we can obtain our data
+        if(cargs_check_bool(ARG_C)) printf("The argument option c has been set");
+        
+        if(cargs_check_data(ARG_O))
+        {
+            unsigned int data_count = cargs_get_data_count(ARG_O);
+            char** actual_data = cargs_get_data(ARG_O);
+
+            for(unsigned int i=0; i < data_count; i++)
+            {
+                printf("Data piece number %u is %s\n", i, actual_data[i]);
+            }
+        }
+
+        //Don't forget that you can get the anonymous arguments
+        unsigned int anon_count = cargs_get_anonymous_arg_count();
+        char** anonymous_args = cargs_get_anonymous_args();
+
+        //And so, iterate and do whatever you want with them
+
+        return 0;
+    }
+```
+
+This has been a short and incomplete example about what cargs is able to do, but you may get the idea.
