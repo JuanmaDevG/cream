@@ -87,20 +87,6 @@ You have a project with a source file called ``my_app.c``, a project dir called 
 library file ``lib/cargs.lib`` (or libcargs.a), each with it's own directory. Your project's source file contains the ``#include <cargs.h>`` directive and uses some 
 functions.
 
-my_project_dir
-|
-|___my_app.c
-|
-|___dependencies
-    |
-    |___include
-    |   |
-    |   |___cargs.h
-    |
-    |___lib
-        |
-        |___cargs.lib (or libcargs.a)
-
 To finally get your executable to life, the compile command would be:
 
 > Pro tip, use backslash on Windows for directories AND is also a Windows convention to name the output files as whatever.exe
