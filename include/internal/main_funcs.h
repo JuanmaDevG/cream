@@ -3,7 +3,8 @@
 #include "utils.h"
 
 /*
-    Checks the existence of the boolean argument
+    Returns a boolean value checking the existence of the bool argument option in the argument input 
+    using it's boolean argument index.
 
     If you set:
     cargs_set_args("abc", NULL); //And then cargs_load_args(......);
@@ -15,7 +16,8 @@ extern inline bool cargs_check_bool(const uint32_t __arg_index);
 
 
 /*
-    Checks the existence of the data argument
+    Returns a boolean value checking the existence of the data argument option in the argument input 
+    using it's data argument index.
 
     If you set:
     cargs_set_args(NULL, "abc"); //And then cargs_load_args(...whatever);
@@ -50,7 +52,7 @@ extern inline char** cargs_get_data(const uint32_t arg_index);
 extern inline uint32_t cargs_get_anonymous_arg_count();
 
 /*
-    Returns a dual char pointer that countains all the pointed 
+    Returns a dual char pointer that contains all the pointed 
     argument strings cached by cargs after the last argument loads
 */
 extern inline char** cargs_get_anonymous_args();

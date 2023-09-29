@@ -5,7 +5,7 @@
 
 
 /*
-    Sets the identificator character for arguments. If this function is 
+    Sets the identificator character for argument options. If this function is 
     not called, by default is '-' like in unix-like systems.
 */
 void cargs_set_identificator(const char new_identificator);
@@ -33,18 +33,18 @@ void cargs_set_identificator(const char new_identificator);
 void cargs_set_args(const char* boolean_arguments, const char* data_arguments);
 
 /*
-    Cleans up all the cargs metadata, buffers and whatever is allocated.
+    Cleans up all the cargs metadata, buffers and whatever data is passed to cargs.
 
     After this function call, cargs can be reused with whatever purpose 
     with any kind of arguments.
 
-    Will return false is there is nothing to clean.
+    Will return false if there is nothing to clean.
 
     WARNING:
-    This function does NOT reset the state of:
-    - Treating repeated arguments as errors
-    - Treating anonymous arguments as errors
-    - Including the argument zero when call cargs_load_args
+    This function DOES NOT CHANGE the state of:
+    - Treating repeated arguments as errors: cargs_treat_repeated_args_as_errors
+    - Treating anonymous arguments as errors: cargs_treat_anonymous_args_as_errors
+    - Including the argument zero when call cargs_load_args: cargs_include_argument_zero
 */
 bool cargs_clean();
 
@@ -69,8 +69,8 @@ void cargs_associate_extended(const char* arg_characters, ...);
 /*
     Makes the characters given as parameter mandatory to use
 
-    This makes cargs to throw an error code while trying to execute 
-    cargs_load_args function and the specified arguments are not found
+    This configures cargs-error-system to write an error code in cargs_error_code while trying to execute 
+    cargs_load_args function and the specified arguments are not found in the program input while the argument load.
 
     If a char argument does not exist, cargs will just ignore it
 
@@ -169,8 +169,8 @@ void cargs_load_args(const int argc, const char** argv);
 void cargs_cancel_argument_loads();
 
 /*
-    Gets the pointer to a a loaded error string
+    Gets the pointer to the error string generated after the current last argument load.
 
-    If the pointer is NULL, there are no errors
+    If the pointer is NULL, there are no errors, so cargs_error_code == CARGS_NO_ERROR
 */
 const char* cargs_get_error();

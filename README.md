@@ -194,4 +194,280 @@ This library is capable to clone the same behaviour with a few functions:
     }
 ```
 
-This has been a short and incomplete example about what cargs is able to do, but you may get the idea.
+This has been a short and not really complete example about what cargs is able to do, but you may get the idea.
+
+## The cargs complete functions user manual
+
+### cargs_set_identificator(const char new_identificator)
+
+Sets the identificator character for argument options. If this function is not called, by default is '-' like in unix-like systems. For example:
+
+```c
+    //Will allow argument options like: /a /b /c /f /h ...
+    cargs_set_identificator('/');
+```
+
+
+### cargs_set_args(const char* boolean_arguments, const char* data_arguments)
+
+The first argument is the boolean argument string.
+The second one is the data argument string.
+
+For example the call:
+```c
+    cargs_set_args("abcd", "efgh");
+```
+
+Will set the command line arguments:
+- **Boolean options** (existent or not):      {-a , -b , -c , -d}
+- **Data options** (require data to work):    {-e , -f , -g , -h}
+
+**WARNING:**
+
+Data arguments are allowed to be empty in the program input, to allways 
+require data when the program starts is recommended to call 
+cargs_set_minimum_data() after this function.
+
+Each time this function is called, it calls cargs_clean() so every data 
+or argument buffer declared previously will be deleted for security 
+and argument consistency reasons.
+
+
+### cargs_associate_extended(const char* arg_characters, ...)
+
+Associates an extended version of an argument letter to make the argument 
+parsing more verbose.
+
+An example of use:
+```c
+    cargs_associate_extended("acf", "abort", "copy", "file")
+```
+- -a = --abort
+- -c = --copy
+- -f = --file
+
+**WARNING:**
+
+This function is more efficient for the library to receive the arg_characters string ordered as given  
+in cargs_set_args function. Otherwise the loop will be much longer.
+
+In this function call, if any argument char does not exist, cargs will simply ignore it.
+
+
+### cargs_make_mandatory(const char* arg_characters)
+
+Makes the characters given as parameter mandatory to use
+
+This configures cargs-error-system to write an error code in cargs_error_code while trying to execute 
+cargs_load_args function and the specified arguments are not found in the program input while the argument load.
+
+```c
+    cargs_make_mandatory("abc"); // Mandatory: { -a, -b, -c }
+```
+
+If a char argument does not exist, cargs will just ignore it
+
+**WARNING:**
+
+This function is more efficient for the library to receive the arg_characters string ordered as given  
+in cargs_set_args function. Otherwise the loop will be much longer.
+
+
+###  cargs_set_minimum_data(const char* data_arg_string, ...)
+
+
+Sets the given argument characters to require a minimum number of arguments.
+For example:
+```c
+    cargs_set_minimum_data("abc", 1, 2, 3);
+```
+- -a will require at least one argument
+- -b will require at least two arguments
+- and so on...
+
+**WARNING:**
+
+This function is more efficient for the library to receive the arg_characters string ordered as given  
+in cargs_set_args function. Otherwise the loop will be much longer.
+
+The arguments that are not found will just be ignored, no errors will be added to cargs_error_code
+
+
+### cargs_set_maximum_data(const char* data_arg_string, ...)
+
+Sets the given argument characters to allow a maximum number of arguments.
+For example:
+```c
+    cargs_set_maximum_data("abc", 3, 2, 4)
+```
+- -a will allow a maximum of three arguments
+- -b will alloc a maximum of two arguments
+- And so on...
+
+**WARNING:**
+
+This function is more efficient for the library to receive the arg_characters string ordered as given  
+in cargs_set_args function. Otherwise the loop will be much longer.
+
+The arguments that are not found will just be ignored, no errors will be added to cargs_error_code
+
+
+### cargs_treat_anonymous_args_as_errors(const bool value)
+
+This function will treat the arguments that are not linked to any argument option (previously declared with cargs_set_args), 
+as errors.
+
+By defautl, this value is set to false.
+
+EXAMPLE:
+If the program my_program has:
+- -f argument that allows just 1 data piece string
+- -a argument that allows just 2 data piece strings
+
+The call to the program:
+```bash
+    my_program some-data-here -a 1 2 potatoe -f file.txt foo
+```
+
+Will treat as errors: "some-data-here", "potatoe", and "foo"
+
+
+### cargs_treat_repeated_args_as_errors(const bool value)
+
+After the call of this function to true, the repetition of any argument option 
+in the program input will be treated as an error and loaded to cargs_error_code.
+
+by default this value is set to false.
+
+EXAMPLE:
+```bash
+    program_name -f file.txt -f another_file.txt
+```
+Will write an error in the _cargs-error-system_ and stop the current argument load
+
+
+### cargs_include_argument_zero(const bool value)
+
+Includes the absolute first argument (like the program name in case of argv).
+
+By default, this value is set to false.
+
+This function is oriented to be used when there is more than one argument load. It is possible to **change the state machine** between different 
+argument loads to accumulate argument data.
+
+
+### cargs_load_args(const int argc, const char** argv)
+
+Loads the program arguments, checks them and sets the data pointers ready to use.
+After correctly using this function, you can use gettter functions to obtain your data.
+
+If any argument error is given, it will stop and store the error code in 
+*cargs_error_code*, to extract the error string, you can do it so by *cargs_get_error()* 
+
+Argument loads are accumulative, so two argument loads will store all the 
+needed information per argument. cargs is so flexible that allows you to change the *cargs-state-machine* 
+between different argument loads.
+
+**WARNING:**
+
+This function must be called when the argument setters are called and so cargs is configured, otherwise
+will have no effect (but of course you can leave boolean or data arguments empty, just don't leave both empty)
+
+
+### cargs_cancel_argument_loads()
+
+Cancels all argument loads previously made and so frees all
+argument caching structures and buffers, **BUT NOT** the 
+previous constraints that the user of this library has set (with configuration functions).
+
+This will let the cargs internal argument caching structures cleaned up to make another 
+cargs_load_args like nothing has happened.
+
+
+### cargs_clean()
+
+Cleans up all the cargs metadata, buffers and whatever data is passed to cargs.
+
+After this function call, cargs can be reused with whatever purpose 
+with any kind of arguments.
+
+Will return false if there is nothing to clean.
+
+**WARNING**, this function **DOES NOT CHANGE** the state of:
+- Treating repeated arguments as errors: cargs_treat_repeated_args_as_errors
+- Treating anonymous arguments as errors: cargs_treat_anonymous_args_as_errors
+- Including the argument zero when call cargs_load_args: cargs_include_argument_zero
+
+
+### cargs_get_error()
+
+Gets the pointer to the error string generated after the current last argument load.
+
+If the pointer is NULL, there are no errors, so cargs_error_code == CARGS_NO_ERROR
+
+
+### cargs_check_bool(const uint32_t __arg_index)
+
+Returns a boolean value checking the existence of the bool argument option in the argument input 
+using it's boolean argument index.
+
+If you set:
+```c
+    cargs_set_args("abc", NULL); //And then cargs_load_args(......);
+    cargs_load_args(argc, argv);
+```
+*Don't forget to load the args*
+
+The existence of 'b' option is checked with:
+```c
+    // 0 -> -a     1 -> -b     2 -> -c
+    cargs_check_bool_arg(1);
+```
+
+
+### cargs_check_data(const uint32_t __arg_index)
+
+Returns a boolean value checking the existence of the data argument option in the argument input 
+using it's data argument index.
+
+If you set:
+```c
+    cargs_set_args(NULL, "abc"); //And then cargs_load_args(...whatever);
+    cargs_load_args(argc, argv);
+```
+
+The existence of 'c' option is checked with:
+```c
+    cargs_check_data_arg(2); //0 -> -a       1 -> -b      2 -> -c
+```
+
+
+### cargs_get_data_count(const uint32_t arg_index)
+
+Returns the number of elements associated to the given data argument 
+index
+
+
+### cargs_get_data(const uint32_t arg_index)
+
+Returns a char pointer vector with all the strings that the 
+argument option has cached after the argument load.
+
+**WARNING:**
+
+If there has been no associated data to an option in the argument 
+load (the_returned_ptr == NULL) does not mean that the option has not 
+been checked, the only ways to check options existence are the 
+cargs_check_... functions
+
+
+### cargs_get_anonymous_arg_count()
+
+Returns the number of anonymous arguments cached by cargs after the 
+last argument load (or loads).
+
+
+### cargs_get_anonymous_args()
+
+Returns a dual char pointer that contains all the pointed 
+argument strings cached by cargs after the last argument loads.
