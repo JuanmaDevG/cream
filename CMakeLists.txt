@@ -1,17 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
-project(cargs)
+project(cargs VERSION 1.1)
 
-set( SOURCES
-    shared_data.c
-    utils.c
-    error_str.c
-    anon_arg_list.c
-    bit_vec_ops.c
-    init_funcs.c
-    main_funcs.c
-)
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED True)
 
-add_library(cargs_shared SHARED SOURCES)
-
-
-add_library(cargs_static STATIC SOURCES)
+include_directories(include/internal)
+add_subdirectory(src)
