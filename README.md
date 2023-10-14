@@ -196,7 +196,7 @@ This library is capable to clone the same behaviour with a few functions:
 
 This has been a short and not really complete example about what cargs is able to do, but you may get the idea.
 
-## The cargs complete functions user manual
+## The cargs complete functions user manual 
 
 ### cargs_set_identificator(const char new_identificator)
 
