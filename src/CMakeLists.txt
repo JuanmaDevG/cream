@@ -11,8 +11,11 @@ set(LIB_SRC
 )
 
 add_compile_options(-Wall -Wextra -Werror -Wno-undefined-inline -O3)
+include_directories(${PROJECT_SOURCE_DIR}/include/internal)
 
+#########################################################################
+#TODO: name both libraries equally and put them in different directories#
+#########################################################################
 
-#TODO: name both libraries as cargs
 add_library(cargs_static STATIC ${LIB_SRC})
-add_library(cargs_dynamic SHARED ${LIB_SRC})
+add_library(cargs_dynamic SHARED ${LIB_SRC} )
