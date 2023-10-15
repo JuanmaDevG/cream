@@ -1,4 +1,4 @@
-#I hate cmake because of making multiple files but I need to learn how to use it
+#I barely hate cmake
 
 set(LIB_SRC
     shared_data.c
@@ -12,7 +12,7 @@ set(LIB_SRC
 
 add_compile_options(-Wall -Wextra -Werror -Wno-undefined-inline -O3)
 
-add_library(cargs_static STATIC ${LIB_SRC})
-target_include_directories(cargs_static PUBLIC ${PROJECT_SOURCE_DIR}/include/internal)
 
+#TODO: name both libraries as cargs
+add_library(cargs_static STATIC ${LIB_SRC})
 add_library(cargs_dynamic SHARED ${LIB_SRC})

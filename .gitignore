@@ -58,6 +58,5 @@ dkms.conf
 #Developer notes
 *.devnotes
 
-#Ninja logfile
-.ninja_log
-.ninja_deps
+#Build directory
+build/*
