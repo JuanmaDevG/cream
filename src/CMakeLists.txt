@@ -10,5 +10,9 @@ set(LIB_SRC
     main_funcs.c
 )
 
+add_compile_options(-Wall -Wextra -Werror -Wno-undefined-inline -O3)
+
 add_library(cargs_static STATIC ${LIB_SRC})
+target_include_directories(cargs_static PUBLIC ${PROJECT_SOURCE_DIR}/include/internal)
+
 add_library(cargs_dynamic SHARED ${LIB_SRC})

@@ -4,5 +4,4 @@ project(cargs VERSION 1.1)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
 
-include_directories(include/internal)
 add_subdirectory(src)
