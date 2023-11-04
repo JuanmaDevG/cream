@@ -27,11 +27,19 @@ This will be a link to the release page... just let me some time to write the us
 
 ### Wanna build yourself? Here the tools that you need
 
+Tools that are strictly necessary to build the project. **DONT FORGET** to check the option *add cmake to the PATH* 
+if you want to use cmake for windows with the command line.
+
+ - **CMake** build system: https://cmake.org/download/
+
+Tools I **highly** recommend to install for windows compilation (and so If you do not want to use Visual Studio)
+
 - **clang** compiler: https://github.com/llvm/llvm-project/releases
 - **Ninja** build system: https://github.com/ninja-build/ninja/releases
+- **Windows SDK**: https://developer.microsoft.com/es-es/windows/downloads/windows-sdk/
 
 > In linux distributions you can simply do this (yes, is that simple):
-> $ sudo apt install clang llvm ninja
+> $ sudo apt install cmake clang llvm ninja
 
 **DO NOT EXACTLY COPY THE FOLLOWING BUILD INSTRUCTIONS, you'll understand why while reading...**
 
