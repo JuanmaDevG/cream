@@ -1,7 +1,7 @@
 #include "init_funcs.h"
 
 
-void cargs_set_identificator(const char new_id) { _arg_id = new_id; }
+extern inline void cargs_set_identificator(const char new_id) { _arg_id = new_id; }
 
 void cargs_set_args(const char* bool_args, const char* data_args)
 {
@@ -185,11 +185,11 @@ void cargs_set_maximum_data(const char* data_arg_string, ...)
     _reset_finders();
 }
 
-inline void cargs_treat_anonymous_args_as_errors(const bool _value) { _cargs_treat_anonymous_args_as_errors = _value; }
+void cargs_treat_anonymous_args_as_errors(const bool _value) { _cargs_treat_anonymous_args_as_errors = _value; }
 
-inline void cargs_treat_repeated_args_as_errors(const bool _value) { _cargs_treat_repeated_args_as_errors = _value; }
+void cargs_treat_repeated_args_as_errors(const bool _value) { _cargs_treat_repeated_args_as_errors = _value; }
 
-inline void cargs_include_argument_zero(const bool _value) { _cargs_include_argument_zero = _value; }
+void cargs_include_argument_zero(const bool _value) { _cargs_include_argument_zero = _value; }
 
 void cargs_load_args(const int argc, const char** argv)
 {

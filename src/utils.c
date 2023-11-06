@@ -25,13 +25,13 @@ void _cargs_push_extended_argument(
     ------------------------------
 */
 
-inline void _obtain_read_point()
+extern inline void _obtain_read_point()
 {
     _read_point = _cargs_bool_args;
     if(_read_point == NULL) _read_point = _cargs_data_args;
 }
 
-inline void _swap_read_point()
+extern inline void _swap_read_point()
 {
     if(_cargs_bool_args == NULL) _read_point = _cargs_data_args;
     else if(_cargs_data_args == NULL) _read_point = _cargs_bool_args;
@@ -43,15 +43,15 @@ inline void _swap_read_point()
     }
 }
 
-inline char* _get_actual_read_point() { return _read_point; }
+extern inline char* _get_actual_read_point() { return _read_point; }
 
-inline uint32_t _get_actual_checkpoint() { return _checkpoint; }
+extern inline uint32_t _get_actual_checkpoint() { return _checkpoint; }
 
-inline uint32_t _get_actual_ext_checkpoint() { return _extended_checkpoint; }
+extern inline uint32_t _get_actual_ext_checkpoint() { return _extended_checkpoint; }
 
-inline void _reset_finders() { _checkpoint = 0; _read_point = NULL; }
+extern inline void _reset_finders() { _checkpoint = 0; _read_point = NULL; }
 
-inline void _reset_ext_finders() { _extended_checkpoint = 0; }
+extern inline void _reset_ext_finders() { _extended_checkpoint = 0; }
 
 /*
     -----------------------
@@ -59,7 +59,7 @@ inline void _reset_ext_finders() { _extended_checkpoint = 0; }
     -----------------------
 */
 
-inline void _cargs_declare_error(const char* error_arg, const uint8_t is_extended, const uint32_t error_code)
+extern inline void _cargs_declare_error(const char* error_arg, const uint8_t is_extended, const uint32_t error_code)
 {
     _cargs_error_argument = (char*)error_arg;
     _cargs_is_error_extended = is_extended;
@@ -280,7 +280,7 @@ bool _read_non_extended_argument(const int argc, const char* argv[], uint32_t* i
     return true;
 }
 
-inline void _cargs_set_data_limit(const char* data_arg_string, va_list arg_limits, uint8_t* write_point)
+extern inline void _cargs_set_data_limit(const char* data_arg_string, va_list arg_limits, uint8_t* write_point)
 {
     if(!write_point) return;
     for(uint32_t i=0; data_arg_string[i] != '\0'; i++)
@@ -323,14 +323,14 @@ bool _cargs_check_mandatory_arguments()
     return true;
 }
 
-inline uint32_t _cargs_search_equals_operator(const char* argument_pointer)
+extern inline uint32_t _cargs_search_equals_operator(const char* argument_pointer)
 {
     for(uint32_t i=0; argument_pointer[i] != '\0'; i++)
         if(argument_pointer[i] == '=') return i+1;
     return 0;
 }
 
-inline bool _cargs_store_equals_operator_data(const char* data_pointer, const uint32_t associated_option)
+extern inline bool _cargs_store_equals_operator_data(const char* data_pointer, const uint32_t associated_option)
 {
     if(_cargs_bank_stack_pointer == _cargs_data_args_count) return false; //The pointer bank is full
 
@@ -341,7 +341,7 @@ inline bool _cargs_store_equals_operator_data(const char* data_pointer, const ui
     return true;
 }
 
-inline bool _cargs_configure_and_store_equals_operator_data(const char* arg_option, const uint32_t associated_option)
+extern inline bool _cargs_configure_and_store_equals_operator_data(const char* arg_option, const uint32_t associated_option)
 {
     const uint32_t cur_data_location = _cargs_search_equals_operator(arg_option);
     if(cur_data_location != 0)
@@ -354,7 +354,7 @@ inline bool _cargs_configure_and_store_equals_operator_data(const char* arg_opti
     return false;
 }
 
-inline void _cargs_remove_redundant_args_linked_lists()
+extern inline void _cargs_remove_redundant_args_linked_lists()
 {
     for(uint32_t i=0; i < _cargs_data_args_count; i++)
     {
@@ -365,7 +365,7 @@ inline void _cargs_remove_redundant_args_linked_lists()
     }
 }
 
-inline void _cargs_reset_ext_arg_buffers()
+extern inline void _cargs_reset_ext_arg_buffers()
 {
     if(_extended_args.args) 
     {
@@ -375,7 +375,7 @@ inline void _cargs_reset_ext_arg_buffers()
     }
 }
 
-inline void _cargs_reset_mandatory_arg_buffers()
+extern inline void _cargs_reset_mandatory_arg_buffers()
 {
     if(_cargs_mandatory_args) 
     { 
@@ -385,7 +385,7 @@ inline void _cargs_reset_mandatory_arg_buffers()
     }
 }
 
-inline void _cargs_reset_error_buffers()
+extern inline void _cargs_reset_error_buffers()
 {
     if(_cargs_error_argument)
     {
@@ -395,7 +395,7 @@ inline void _cargs_reset_error_buffers()
     }
 }
 
-inline void _cargs_remove_anonymous_arguments()
+extern inline void _cargs_remove_anonymous_arguments()
 {
     if(_cargs_anonymous_relocated_args) 
     {

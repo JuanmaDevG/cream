@@ -12,7 +12,7 @@
     The existence of 'b' is checked with:
     cargs_check_bool_arg(1);
 */
-extern inline bool cargs_check_bool(const uint32_t __arg_index);
+bool cargs_check_bool(const uint32_t __arg_index);
 
 
 /*
@@ -25,13 +25,13 @@ extern inline bool cargs_check_bool(const uint32_t __arg_index);
     The existence of 'c' is checked with:
     cargs_check_data_arg(2);
 */
-extern inline bool cargs_check_data(const uint32_t __arg_index);
+bool cargs_check_data(const uint32_t __arg_index);
 
 /*
     Returns the number of elements associated to the given data argument 
     index
 */
-extern inline uint32_t cargs_get_data_count(const uint32_t arg_index);
+uint32_t cargs_get_data_count(const uint32_t arg_index);
 
 /*
     Returns a char pointer vector with all the strings that the 
@@ -43,16 +43,16 @@ extern inline uint32_t cargs_get_data_count(const uint32_t arg_index);
     been checked, the only ways to check options existence are the 
     cargs_check_... functions
 */
-extern inline char** cargs_get_data(const uint32_t arg_index);
+char** cargs_get_data(const uint32_t arg_index);
 
 /*
     Returns the number of anonymous arguments cached by cargs after the 
     last argument loads
 */
-extern inline uint32_t cargs_get_anonymous_arg_count();
+uint32_t cargs_get_anonymous_arg_count();
 
 /*
     Returns a dual char pointer that contains all the pointed 
     argument strings cached by cargs after the last argument loads
 */
-extern inline char** cargs_get_anonymous_args();
+char** cargs_get_anonymous_args();

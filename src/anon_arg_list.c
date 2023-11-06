@@ -12,7 +12,7 @@ static inline _cargs_anonymous_node* fill_node(
     return target;
 }
 
-inline void _cargs_push_list_node(
+extern inline void _cargs_push_list_node(
     _cargs_anonymous_node** first, _cargs_anonymous_node** last, const char** data_pointer, const uint32_t count
 ) {
     //Is a new list
@@ -27,7 +27,7 @@ inline void _cargs_push_list_node(
     (*last) = (*last)->next;
 }
 
-inline bool _cargs_delete_list_head(_cargs_anonymous_node** node, _cargs_anonymous_node** last)
+extern inline bool _cargs_delete_list_head(_cargs_anonymous_node** node, _cargs_anonymous_node** last)
 {
     if(!(node && last)) return false;
     _cargs_anonymous_node* next = (*node)->next;
@@ -39,7 +39,7 @@ inline bool _cargs_delete_list_head(_cargs_anonymous_node** node, _cargs_anonymo
     return true;
 }
 
-inline const ArgPackage* _cargs_get_list_package(_cargs_anonymous_node* first_node, uint32_t position)
+extern inline const ArgPackage* _cargs_get_list_package(_cargs_anonymous_node* first_node, uint32_t position)
 {
     if(!first_node) return NULL;
     _cargs_anonymous_node* iterator =  first_node;
@@ -54,7 +54,7 @@ inline const ArgPackage* _cargs_get_list_package(_cargs_anonymous_node* first_no
     return (const ArgPackage*) &(iterator->package);
 }
 
-inline bool _cargs_free_data_list(_cargs_data_storage_list* list)
+extern inline bool _cargs_free_data_list(_cargs_data_storage_list* list)
 {
     if(!list) return false;
     if(!list->first_node) return false;

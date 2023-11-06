@@ -36,34 +36,34 @@ void _cargs_push_extended_argument(
 
     If one argument type is not initialized, obtains the remaining type
 */
-extern inline void _obtain_read_point();
+void _obtain_read_point();
 
 /*
     Swaps the buffer _read_point to the next argument type read point 
     (boolean args -> data args... and viceversa)
 */
-extern inline void _swap_read_point();
+void _swap_read_point();
 
 /*
     Gets the actual state of the read_point
 */
-extern inline char* _get_actual_read_point();
+char* _get_actual_read_point();
 
 /*
     Gets the actual state of the checkpoint
 */
-extern inline uint32_t _get_actual_checkpoint();
+uint32_t _get_actual_checkpoint();
 
 /*
     Gets the actual state of the extended argument searcher 
     checkpoint
 */
-extern inline uint32_t _get_actual_ext_checkpoint();
+uint32_t _get_actual_ext_checkpoint();
 
 /*
     Resets the finder checkpoint and read_point
 */
-extern inline void _reset_finders();
+void _reset_finders();
 
 /*
     Resets the extended argument buffer finders
@@ -72,7 +72,7 @@ extern inline void _reset_finders();
     For the moment just one, there probably will be more in 
     later versions
 */
-extern inline void _reset_ext_finders();
+void _reset_ext_finders();
 
 
 /*
@@ -86,7 +86,7 @@ extern inline void _reset_ext_finders();
 
     The error_core must be a cargs_error enum type to work
 */
-extern inline void _cargs_declare_error(const char* error_arg, const uint8_t is_extended, const uint32_t error_code);
+void _cargs_declare_error(const char* error_arg, const uint8_t is_extended, const uint32_t error_code);
 
 
 /*
@@ -171,7 +171,7 @@ bool _read_non_extended_argument(const int argc, const char** argv, uint32_t* in
     The limits are position dependent, so the numbers will be placed the same position as 
     the argument buffer.
 */
-extern inline void _cargs_set_data_limit(const char* data_arg_string, va_list arg_limits, uint8_t* write_point);
+void _cargs_set_data_limit(const char* data_arg_string, va_list arg_limits, uint8_t* write_point);
 
 /*
     Stores an anonymous argument package on the anonymous arguments linked list.
@@ -201,7 +201,7 @@ bool _cargs_check_mandatory_arguments();
 
     If the opeartor is not found returns zero
 */
-extern inline uint32_t _cargs_search_equals_operator(const char* argument_pointer);
+uint32_t _cargs_search_equals_operator(const char* argument_pointer);
 
 /*
     Stores the equals operator data with it's associated option.
@@ -213,13 +213,13 @@ extern inline uint32_t _cargs_search_equals_operator(const char* argument_pointe
     It is recommended to use the argument with equals just once per defined argument:
     > program_name -f=file.txt -I=include_dir\ (DON't) -f=another_different_file.txt
 */
-extern inline bool _cargs_store_equals_operator_data(const char* data_pointer, const uint32_t associated_option);
+bool _cargs_store_equals_operator_data(const char* data_pointer, const uint32_t associated_option);
 
 /*
     Searches the equals operator in the argument given and if found, stores the data into the argument 
     package vector using the pointer bank as nexus to directly point to the argument data.
 */
-extern inline bool _cargs_configure_and_store_equals_operator_data(const char* arg_option, const uint32_t associated_option);
+bool _cargs_configure_and_store_equals_operator_data(const char* arg_option, const uint32_t associated_option);
 
 /*
     Free the memory blocks that have been relocated during getters 
@@ -228,28 +228,28 @@ extern inline bool _cargs_configure_and_store_equals_operator_data(const char* a
     WARNING:
     Does not set any pointer to NULL
 */
-extern inline void _cargs_remove_redundant_args_linked_lists();
+void _cargs_remove_redundant_args_linked_lists();
 
 /*
     Frees the extended argument buffers and sets the pointers 
     NULL to let them be reused
 */
-extern inline void _cargs_reset_ext_arg_buffers();
+void _cargs_reset_ext_arg_buffers();
 
 /*
     Frees the mandatory argument buffers and sets the pointers 
     to NULL to let them be reused
 */
-extern inline void _cargs_reset_mandatory_arg_buffers();
+void _cargs_reset_mandatory_arg_buffers();
 
 /*
     Frees the error argument buffers and sets the pointers 
     to NULL to let them be reused
 */
-extern inline void _cargs_reset_error_buffers();
+void _cargs_reset_error_buffers();
 
 /*
     Removes all the anonymous argument buffers cached after 
     any argument load
 */
-extern inline void _cargs_remove_anonymous_arguments();
+void _cargs_remove_anonymous_arguments();

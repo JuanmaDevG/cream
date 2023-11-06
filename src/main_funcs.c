@@ -45,36 +45,36 @@ void _cargs_update_data_buffer(const uint32_t _arg_index)
 
 //-------------------------------------------------------------
 
-inline bool cargs_check_bool(const uint32_t __arg_index)
+extern inline bool cargs_check_bool(const uint32_t __arg_index)
 {
     return _cargs_get_bit(_cargs_bool_bit_vec, __arg_index);
 }
 
-inline bool cargs_check_data(const uint32_t __arg_index)
+extern inline bool cargs_check_data(const uint32_t __arg_index)
 {
     return _cargs_get_bit(_cargs_data_bit_vec, __arg_index);
 }
 
-inline uint32_t cargs_get_data_count(const uint32_t __arg_index)
+extern inline uint32_t cargs_get_data_count(const uint32_t __arg_index)
 {
     if(_cargs_data_unready(__arg_index)) return 0;
     _cargs_update_data_buffer(__arg_index);
     return _cargs_data_packs[__arg_index].count;
 }
 
-inline char** cargs_get_data(const uint32_t __arg_index)
+extern inline char** cargs_get_data(const uint32_t __arg_index)
 {
     if(_cargs_data_unready(__arg_index)) { return NULL; }
     _cargs_update_data_buffer(__arg_index);
     return _cargs_data_packs[__arg_index].values;
 }
 
-inline uint32_t cargs_get_anonymous_arg_count()
+extern inline uint32_t cargs_get_anonymous_arg_count()
 {
     return _cargs_anon_arg_count;
 }
 
-inline char** cargs_get_anonymous_args()
+extern inline char** cargs_get_anonymous_args()
 {
     //Dev note: 
     //  _cargs_anon_arg_count can only be zero in clean functions to always return the correct number of loaded arguments
