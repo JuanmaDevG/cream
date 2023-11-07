@@ -1,13 +1,7 @@
-#pragma once
-
-#include <stdlib.h>
-
-#include "shared_data.h"
-
 /*
-    --------------------------------
-    Anonymous data argument managing
-    --------------------------------
+    ----------------------------------
+    Anonymous data argument management
+    ----------------------------------
 
     Anonymous data arguments are arguments that are not linked to any argument option, 
     for example:
@@ -17,6 +11,10 @@
     because it is linked to the argument option 'f'
 */
 
+#pragma once
+
+#include <stdlib.h>
+#include "shared_data.h"
 
 void _cargs_push_list_node(
     _cargs_anonymous_node** first, _cargs_anonymous_node** last, const char** data_pointer, const uint32_t count

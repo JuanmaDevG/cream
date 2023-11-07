@@ -4,6 +4,7 @@
 #include <stdarg.h>
 
 #include "shared_data.h"
+#include "error_system.h"
 #include "anon_arg_list.h"
 #include "bit_vec_ops.h"
 
@@ -73,20 +74,6 @@ void _reset_finders();
     later versions
 */
 void _reset_ext_finders();
-
-
-/*
-    -----------------------
-    Error control utilities
-    -----------------------
-*/
-
-/*
-    Sets the error configuration that will stop cargs from working
-
-    The error_core must be a cargs_error enum type to work
-*/
-void _cargs_declare_error(const char* error_arg, const uint8_t is_extended, const uint32_t error_code);
 
 
 /*

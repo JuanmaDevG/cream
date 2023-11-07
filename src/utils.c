@@ -53,19 +53,6 @@ extern inline void _reset_finders() { _checkpoint = 0; _read_point = NULL; }
 
 extern inline void _reset_ext_finders() { _extended_checkpoint = 0; }
 
-/*
-    -----------------------
-    Error control utilities
-    -----------------------
-*/
-
-extern inline void _cargs_declare_error(const char* error_arg, const uint8_t is_extended, const uint32_t error_code)
-{
-    _cargs_error_argument = (char*)error_arg;
-    _cargs_is_error_extended = is_extended;
-    cargs_error_code = error_code;
-}
-
 
 /*
     -------------------------
