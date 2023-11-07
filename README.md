@@ -5,8 +5,14 @@ any programming language that can load DLLs (Dynamic Link Libraries)
 
 ## What is cargs?
 
-cargs is essentially an entire library that offers a very lightweigh runtime that can be used for any argument parsing purpose.
-It provides a set of functions that let you manage every little detail about the argument parsing in your program **THE EASIEST WAY POSSIBLE**.
+cargs is essentially an entire library that offers a very lightweigh runtime that can be used for any argument parsing purpose. 
+Yes, it is sintactically the best command line argument parser for the C and C++ languages.
+It provides a set of functions that let you manage every little detail about the argument parsing in your program **THE EASIEST WAY POSSIBLE** 
+and with no effort.
+
+The motivation to create this library comes from the need of a library that makes all the work of parsing the command line arguments, and to finally 
+develop command line programs where the input arguments are completely organized and the syntax is not a cumbersome 
+(like the whole rest of the libraries).
 
 It is **NOT JUST command line arguments**, it supports multiple argument loads, integrated _argument rule creation_, has a little **error system** 
 that will be updated with time, and integrated automatic self memory management default set of functions (no need to free or manage pointer ownership).
@@ -17,17 +23,17 @@ you can check out the code (I'll make a proper extended documentation if I have 
 ## How do I get cargs to work?
 
 cargs is intended to have the easiest syntax as possible for the user (including begginers) so for experienced programmers some steps will seem obvious 
-for a project with this lack of user-side complexity, I decided to make it available for everyone because when I was just a newbie, I would wanted to have 
+for a project with this lack of user-side complexity, but I decided to make it available for everyone because when I was just a newbie, I would wanted to have 
 some GitHub project that I can easily access to. It took some months to understand about linking, libraries, build systems, package managers (and the lack 
-of them) for dependencies, naming conventions, and so on...
+of them by default like windows...) for dependencies, naming conventions, and so on...
 
 ### The easy way, download binaries
 
-This will be a link to the release page... just let me some time to write the user manual...
+Literally https://github.com/JuanmaDevG/cargs/releases and download the x86_64 linux or windows version
 
-### Wanna build yourself? Here the tools that you need
+### Wanna build yourself?
 
-Tools that are strictly necessary to build the project. **DONT FORGET** to check the option *add cmake to the PATH* 
+CMake is strictly necessary to build the project. **DONT FORGET** to check the option *add cmake to the PATH* 
 if you want to use cmake for windows with the command line.
 
  - **CMake** build system: https://cmake.org/download/
@@ -39,34 +45,25 @@ Tools I **highly** recommend to install for windows compilation (and so If you d
 - **Windows SDK**: https://developer.microsoft.com/es-es/windows/downloads/windows-sdk/
 
 > In linux distributions you can simply do this (yes, is that simple):
-> $ sudo apt install cmake clang llvm ninja
+> $ sudo apt install cmake llvm clang ninja
 
-**DO NOT EXACTLY COPY THE FOLLOWING BUILD INSTRUCTIONS, you'll understand why while reading...**
+For building yourself the library, it is recommended to have some knowledge of cmake to configure the build to your taste, but in case you just want to try and 
+build it yourself without more configurations, you'll minimally need a **Linux distribution + any c compiler + any build system(Ninja, GNU make, ...)** or the 
+**Windows SDK + Ninja + clang** or the default c++ **Visual Studio installation** to let cmake generate the build files.
 
-First (Windows cmd or Linux bash is valid) clone the repo:
+The commands to build it like I would are:
+
 ```bash
-    git clone https://github.com/JuanmaDevG/cargs
-    cd cargs
+    cmake -D CMAKE_C_COMPILER=clang -G Ninja build
+    cd build
+    ninja #Or: make
 ```
 
-Windows build instructions:
-```cmd
-    build
-    cd build\result\
-    move cargs.lib \wherever\you\wanna\place\the\library\
-    move cargs.dll \wherever\you\wanna\place\the\library\
-    cd ..\..\include\
-    move cargs.h \wherever\you\wanna\place\the\header_file/
-```
+Or the default cmake build command to set everything default:
 
-Linux build instructions:
 ```bash
-    ./build.sh
-    cd build/result/
-    mv libcargs.a /wherever/you/want/to/place/the/library/
-    mv libcargs.so /wherever/you/want/to/place/the/library/
-    cd ../../include
-    mv cargs.h /wherever/you/wanna/place/the/header_file/
+    cmake your/whatever/build/dir
+    cmake --build your/whatever/build/directory
 ```
 
 ## How to LINK cargs to your programs? (for newbies like I was)
