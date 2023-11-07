@@ -19,7 +19,7 @@ if(${USE_O3_OPTIMIZATION})
 endif()
 
 include_directories(BEFORE ${CMAKE_SOURCE_DIR}/include/internal)    # For preprocessed files
-aux_source_directory(                                               #Getting source filenames (with path)
+aux_source_directory(                                               #Getting all source filenames
     ${CMAKE_SOURCE_DIR}/src 
     src_files
 )
