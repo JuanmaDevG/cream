@@ -73,7 +73,7 @@ void _push_block(_expandable_stack* _exp_stack, const void* _mem_src, size_t _bl
 }
 
 void _copy_cache(void* _mem_dst, const _expandable_stack* _exp_stack, const size_t _offset, const size_t _size_limit)
-{
+{ 
     if(_offset > 0)
     {
         if(_offset >= _exp_stack->byte_count) return; //Offset out of bounds -> nothing to copy
