@@ -25,10 +25,11 @@ void _cargs_push_extended_argument(
     ------------------------------
 */
 
-extern inline void _obtain_read_point()
+extern inline bool _obtain_read_point()
 {
     _read_point = _cargs_bool_args;
     if(_read_point == NULL) _read_point = _cargs_data_args;
+    return (bool)_read_point;
 }
 
 extern inline void _swap_read_point()
@@ -100,33 +101,27 @@ void _remove_redundancies(const uint32_t mode)
 
 uint32_t _find_argument_char(const char argument_char)
 {
-    if(!_read_point)
-    {
-        _obtain_read_point();
-        if(_read_point == NULL) return 0; //Cannot fins read point
-    }
+    if(!_obtain_read_point()) return 0;
+    //To not to loop again over repeated argument options
+    if(_checkpoint > 0 && _read_point[_checkpoint -1] == argument_char) return _checkpoint;
 
     uint32_t j = _checkpoint;
-    char* checkpoint_read_point = _read_point;
-    while(1)
+    const char* checkpoint_read_point = _read_point;
+    while(_read_point[j] != argument_char)
     {
+        j++;
+
         //Swap read_point beacause finished actual
         if(_read_point[j] == '\0')
         {
             j = 0;
             _swap_read_point();
         }
-
-        if(_read_point[j] == argument_char) //Finally found
-        {
-            _checkpoint = j+1;
-            checkpoint_read_point = _read_point;
-            return _checkpoint;
-        }
         
-        //Not found, and if looked everywhere, return
         if(
-            (j == _checkpoint -1 && checkpoint_read_point == _read_point) ||                            //Checkpoint is not zero
+            //j has reached the checkpoint
+            (j == _checkpoint -1 && checkpoint_read_point == _read_point) ||
+            //it was an initial checkpoint (0) and j is at the end of the buffer
             (
                 _checkpoint == 0 && _read_point[j+1] == '\0' && 
                 (
@@ -137,11 +132,12 @@ uint32_t _find_argument_char(const char argument_char)
             )
         ) {
             _reset_finders();
-            return _checkpoint;
+            return 0;
         }
-        
-        j++;
     }
+
+    _checkpoint = j+1;
+    return _checkpoint;
 }
 
 uint8_t _find_extended_argument(const char* ext_arg)

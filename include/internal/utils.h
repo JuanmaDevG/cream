@@ -37,7 +37,7 @@ void _cargs_push_extended_argument(
 
     If one argument type is not initialized, obtains the remaining type
 */
-void _obtain_read_point();
+bool _obtain_read_point();
 
 /*
     Swaps the buffer _read_point to the next argument type read point 

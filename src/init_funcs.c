@@ -93,9 +93,8 @@ bool cargs_clean()
 }
 
 void cargs_associate_extended(const char* arg_characters, ...) {
-    if(!arg_characters) return;
-    _obtain_read_point();
-    if(_get_actual_read_point() == NULL) return;
+    if(!(arg_characters && _obtain_read_point())) return;
+
     const size_t length = strlen(arg_characters); 
     if(!length) return;
     va_list arg_l;
