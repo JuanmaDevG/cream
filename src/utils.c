@@ -34,13 +34,12 @@ extern inline void _obtain_read_point()
 extern inline void _swap_read_point()
 {
     if(_cargs_bool_args == NULL) _read_point = _cargs_data_args;
-    else if(_cargs_data_args == NULL) _read_point = _cargs_bool_args;
-    else    //Both not null
-    {
-        if(_read_point == _cargs_bool_args) _read_point = _cargs_data_args;
-        else //is _cargs_data_args
-            _read_point = _cargs_bool_args;
-    }
+    if(_cargs_data_args == NULL) _read_point = _cargs_bool_args;
+    
+    //Both not null
+    if(_read_point == _cargs_bool_args) 
+        _read_point = _cargs_data_args;
+    else _read_point = _cargs_bool_args;
 }
 
 extern inline char* _get_actual_read_point() { return _read_point; }
