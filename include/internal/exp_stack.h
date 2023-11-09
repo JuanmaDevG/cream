@@ -45,7 +45,7 @@ void _push_block(_expandable_stack* dst, const void* src, size_t size);
     Copies the data to a contiguous memory block.
     If the block size limit is zero, copies all the data.
 */
-void _copy_cache(void* dst, const _expandable_stack* src, const size_t offset, const size_t block_size_limit);
+void _copy_cache(void* dst, const _expandable_stack* src, const size_t offset, size_t block_size_limit);
 
 /*
     Frees all the extra memory blocks and restarts the stack pointer and the byte count
