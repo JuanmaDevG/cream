@@ -89,7 +89,6 @@ void _push_block(_expandable_stack* _exp_stack, const void* _mem_src, size_t _bl
     if(_exp_stack->block_bytes_left == 0) _exp_stack->p_stack_top = NULL; //No bytes left
 }
 
-//TODO: The function does not work for the moment, need to add some control in precopy from inblock position and so forth...
 void _copy_cache(void* _mem_dst, const _expandable_stack* _exp_stack, const size_t _offset, size_t _size_limit)
 {
     if( //Are bytes unreachable?
@@ -131,7 +130,7 @@ void _copy_cache(void* _mem_dst, const _expandable_stack* _exp_stack, const size
                 block_to_read = MEM_BLOCK_SIZE - (confirmed_bytes + MEM_BLOCK_SIZE - _exp_stack->byte_count);
             else block_to_read = MEM_BLOCK_SIZE;
         }
-        else if(confirmed_bytes + _size_limit > _exp_stack->byte_count) //Not enough written memory
+        else if(confirmed_bytes + _size_limit > _exp_stack->byte_count) //Not enough writable memory
         {
             block_to_read = _exp_stack->byte_count - confirmed_bytes;
             enough_mem_to_read = false;
@@ -144,5 +143,15 @@ void _copy_cache(void* _mem_dst, const _expandable_stack* _exp_stack, const size
 
 void _free_stack(_expandable_stack* _exp_stack)
 {
-
+    _exp_stack->byte_count = 0; 
+    _exp_stack->block_bytes_left = MEM_BLOCK_SIZE;
+    _exp_stack->p_stack_top = _exp_stack->main_block;
+    for(_linked_mem_block* block = _exp_stack->first; block; block = block->next)
+    {
+        _exp_stack->first = block->next;
+        free(block);
+        block = _exp_stack->first;
+    }
+    _exp_stack->first = NULL;
+    _exp_stack->last = NULL;
 }
