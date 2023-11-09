@@ -50,4 +50,4 @@ void _copy_cache(void* dst, const _expandable_stack* src, const size_t offset, s
 /*
     Frees all the extra memory blocks and restarts the stack pointer and the byte count
 */
-void _stack_free(_expandable_stack*);
+void _free_stack(_expandable_stack*);

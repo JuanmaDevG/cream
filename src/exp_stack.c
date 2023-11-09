@@ -4,7 +4,7 @@
 /*
     Adds a new node and locates the pointer to the stack top and the remaining block bytes
 */
-static void add_node(_expandable_stack* _exp_stack)
+void add_node(_expandable_stack* _exp_stack)
 {
     _linked_mem_block* block = (_linked_mem_block*)malloc(sizeof(_linked_mem_block));
     //Linking
@@ -23,6 +23,27 @@ static void add_node(_expandable_stack* _exp_stack)
     //Reloading buffer
     _exp_stack->p_stack_top = _exp_stack->last->block;
     _exp_stack->block_bytes_left = MEM_BLOCK_SIZE;
+}
+
+/*
+    Gets the memory bloc location based on the offset.
+    If returns NULL, the offset is located in the first block (the main block).
+
+    WARNING:
+    Make sure that the offset is in byte count bounds, otherwise will also return NULL;
+*/
+inline _linked_mem_block* get_block(const _expandable_stack* _exp_stack, const size_t _offset)
+{
+    if(_offset >= _exp_stack->byte_count) return NULL;
+
+    _linked_mem_block* block = NULL;
+    if(_offset > MEM_BLOCK_SIZE)
+    {
+        block = _exp_stack->first;
+        for(uint32_t block_id = (uint32_t)(_offset / MEM_BLOCK_SIZE); block_id > 1; block_id--)
+            block = block->next;
+    }
+    return block;
 }
 
 
@@ -71,60 +92,57 @@ void _push_block(_expandable_stack* _exp_stack, const void* _mem_src, size_t _bl
 //TODO: The function does not work for the moment, need to add some control in precopy from inblock position and so forth...
 void _copy_cache(void* _mem_dst, const _expandable_stack* _exp_stack, const size_t _offset, size_t _size_limit)
 {
-    _linked_mem_block* actual_block = _exp_stack->first;
-    size_t confirmed_bytes = 0;
-    bool start_from_first_block = true, read_whole_mem = (!_size_limit);
+    if( //Are bytes unreachable?
+        _offset >= _exp_stack->byte_count ||
+        _offset + _size_limit > _exp_stack->byte_count
+    ) return;
 
-    if(_offset + _size_limit > _exp_stack->byte_count) return;
-    if(_offset > 0)
+    _linked_mem_block* actual_block = get_block(_exp_stack, _offset);
+    size_t 
+        inblock_position = (_offset % MEM_BLOCK_SIZE), 
+        confirmed_bytes;
+    bool read_whole_mem = (!_size_limit);
+
+    //First copy is made based on the first block to start reading and inblock_position
+    confirmed_bytes = (read_whole_mem || _size_limit > MEM_BLOCK_SIZE - inblock_position ? MEM_BLOCK_SIZE - inblock_position : _size_limit);
+    memcpy(
+        _mem_dst, (actual_block ? actual_block->block : _exp_stack->main_block) + inblock_position, confirmed_bytes 
+    );
+    //If we're not reading the whole memory and no more memory to read, done
+    if(!read_whole_mem)
     {
-        if(_offset >= _exp_stack->byte_count) return; //Offset out of bounds -> nothing to copy
-        size_t inblock_position = (_offset % MEM_BLOCK_SIZE) -1; //Actual linked block is second block
-        
-        //Offset too big -> find the block where to start
-        if(_offset >= MEM_BLOCK_SIZE);
-        {
-            start_from_first_block = false;
-            for(uint32_t block_id = _offset / MEM_BLOCK_SIZE; block_id > 0 && actual_block; block_id--)
-                actual_block = actual_block->next;
-            if(!actual_block) return;
-
-            //Pre-copy from inblock position if not zero (we're not copying from first block)
-            if(inblock_position > 0)
-            {
-                confirmed_bytes = MEM_BLOCK_SIZE - inblock_position;
-                memcpy(_mem_dst, actual_block->block + inblock_position, confirmed_bytes);
-                actual_block = actual_block->next;
-                if(!read_whole_mem) _size_limit -= confirmed_bytes;
-            }
-        }
-    }
-
-    if(start_from_first_block)
-    {
-        //Remaining data very big. Copy the rest of the block and so forth
-        if(_size_limit > MEM_BLOCK_SIZE || read_whole_mem)
-            confirmed_bytes = MEM_BLOCK_SIZE;
-        //Remaining data does fit into the block. Read the block;
-        else confirmed_bytes = _size_limit;
-
-        memcpy(_mem_dst, _exp_stack->main_block, confirmed_bytes);
         _size_limit -= confirmed_bytes;
+        if(_size_limit == 0) return;
     }
+    
+    //Locate the following memory block
+    if(actual_block) actual_block = actual_block->next;
+    else actual_block = _exp_stack->first;
 
-    while((_size_limit > 0 || read_whole_mem) && actual_block && confirmed_bytes < _exp_stack->byte_count)
+    bool enough_mem_to_read = true;
+    size_t block_to_read = 0;
+    while((_size_limit > 0 || confirmed_bytes < _exp_stack->byte_count) && enough_mem_to_read)
     {
-        if(_size_limit > MEM_BLOCK_SIZE)
+        if(_size_limit > MEM_BLOCK_SIZE)  //Size limit is defined
+            block_to_read = MEM_BLOCK_SIZE;
+        else if(read_whole_mem) //No size limit, so look to byte count
         {
-            memcpy((uint8_t*)_mem_dst + confirmed_bytes, actual_block->block, MEM_BLOCK_SIZE);
-            _size_limit -= MEM_BLOCK_SIZE;
-            confirmed_bytes += MEM_BLOCK_SIZE;
-            actual_block = actual_block->next;
+            if(confirmed_bytes + MEM_BLOCK_SIZE > _exp_stack->byte_count)
+                block_to_read = MEM_BLOCK_SIZE - (confirmed_bytes + MEM_BLOCK_SIZE - _exp_stack->byte_count);
+            else block_to_read = MEM_BLOCK_SIZE;
         }
-        else    //Last memory block to copy and we're done
+        else if(confirmed_bytes + _size_limit > _exp_stack->byte_count) //Not enough written memory
         {
-            memcpy((uint8_t*)_mem_dst + confirmed_bytes, actual_block->block, _size_limit);
-            return;
+            block_to_read = _exp_stack->byte_count - confirmed_bytes;
+            enough_mem_to_read = false;
         }
+        else block_to_read = _size_limit;
+        memcpy((uint8_t)_mem_dst + confirmed_bytes, actual_block->block, block_to_read);
+        _size_limit -= block_to_read;
     }
+}
+
+void _free_stack(_expandable_stack* _exp_stack)
+{
+
 }
