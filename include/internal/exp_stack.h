@@ -13,7 +13,7 @@
 #include <stdbool.h>
 #include <memory.h>
 
-#define MEM_BLOCK_SIZE 256
+#define MEM_BLOCK_SIZE 128
 
 typedef struct _linked_mem_block {
     uint8_t block[MEM_BLOCK_SIZE];

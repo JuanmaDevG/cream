@@ -11,14 +11,15 @@ typedef struct _cargs_data_package {
 } _cargs_data_package;
 
 typedef struct _cargs_argument_data {
-    uint32_t package_count;             //Counts the number of packages inside the buffer
-    _cargs_data_package data;           //Obtains the data copying from the buffer
-    _expandable_stack buffer;           //Contains all the argument data packages in it's blocks
+    uint8_t maximum_data;               //Maximum data pieces supported
+    uint8_t minimum_data;               //Minimum data pieces supported
+    uint32_t actual_data;               //Actual data pieces that the argument contains (could be many more for argument options with no declared limits)
+    _expandable_stack data;             //Contains the _cargs_data_packages and can be extracted with the expandable stack functions
 } _cargs_argument_data;
 
 typedef struct _cargs_argument {
-    bool is_it_mandatory;                   //If true, the error system will offer the possibility to catch as error
-    bool is_it_redundant;                   //If true, the error system will offer the possibility to catch as error
+    bool is_it_mandatory;                   //If true, the error system will offer the possibility to interpret as error
+    bool is_it_redundant;                   //If true, the error system will offer the possibility to interpret as error
     _cargs_argument_data* data_container;   //Won't be null if the argument is a data argument
 } _cargs_argument;
 
@@ -37,21 +38,16 @@ typedef struct {
 
 extern char _arg_id;
 
-/*
-    A table of as pointers as the ASCII table whose mem address is NULL if not existent arguments or 
-    the memory address of the argument properties
-*/
-#define ASCII_TABLE_SIZE (256 - 33)
-extern _cargs_argument* _cargs_argument_options[ASCII_TABLE_SIZE]; //Without non keyboard characters
-extern _cargs_argument* _cargs_available_arguments;
-extern _cargs_argument_data* _cargs_available_args_data;
+#define INVALID_CHARS 33
+#define ASCII_TABLE_SIZE (256 - INVALID_CHARS)
+#define BIT_ASCII_TABLE_SIZE ((ASCII_TABLE_SIZE / 8) +1)
 
-/*
-    Bit vectors that confirm the existence of the arguments into the user input
-*/
+extern _cargs_argument* _cargs_available_arguments;                     //The memory block that contains the available argument options information
+extern _cargs_argument_data* _cargs_available_args_data;                //The memory block that contains the input data from the available data argument options
+extern _cargs_argument* _cargs_argument_options[ASCII_TABLE_SIZE];      //A list of pointers to the memory block that contains the information from available arguments
 
-extern uint8_t* _cargs_bool_bit_vec;
-extern uint8_t* _cargs_data_bit_vec;
+extern uint8_t _cargs_arg_confirmation_bits[BIT_ASCII_TABLE_SIZE];      //Confirms the existence of an argument option into the user input
+extern uint8_t _cargs_is_arg_relocated_bits[BIT_ASCII_TABLE_SIZE];      //Confirms if the argument (that must exist in the input) has been relocated to extract it's data
 
 extern uint32_t _cargs_bank_stack_pointer;
 extern char** _cargs_equals_operator_pointer_bank;
@@ -68,41 +64,6 @@ extern _expandable_stack _cargs_general_buffer;
     --------------------------------------------------
 */
 
-extern uint32_t _cargs_anon_arg_count;
-extern _cargs_anonymous_node* _cargs_anon_args;
-extern _cargs_anonymous_node* _cargs_anon_last;
-extern uint32_t _cargs_anonymous_relocated_buf_size;
-extern char** _cargs_anonymous_relocated_args;
-
-extern uint8_t* _cargs_minimum_data;
-extern uint8_t* _cargs_maximum_data;
-
-
-/*
-    ----------------
-    Utility pointers
-    ----------------
-*/
-
-extern char* _read_point;               //Pointer where to start to read an option char buffer
-extern uint32_t _checkpoint;            //Position of the character next to the one that was found
-extern uint32_t _extended_checkpoint;   //Checkpoint just made for extended arguments
-
-
-/*
-    ------------------------------------------
-    Redundant data argument storage structures
-    ------------------------------------------
-*/
-
-
-/*
-    Contains as many places as as the _cargs_data_packs vector size.
-    
-    If any data argument option is repeated, and the redundant argument 
-    options are not recognized as errors (_cargs_treat_redundant_arguments_as_errors = false)
-    the data package of the redunant option is full, so will be allocated here.
-*/
-extern _cargs_data_storage_list* _cargs_redundant_opt_data;
-
-extern uint8_t* _cargs_is_data_relocated_bit_vec;
+extern uint32_t _cargs_anon_arg_count;                  //Counts all the available anonymous arguments
+extern _expandable_stack _cargs_anonymous_args;         //Contains _cargs_package objects that point to anonymous arguments groups
+extern char** _cargs_anonymous_relocated_args;          //Extracts the buffer information to generate
