@@ -34,18 +34,18 @@ typedef struct _expandable_stack {
 /*
     Allocates an expandable stack object with the correct default values
 */
-_expandable_stack* _create_expandable_stack();
+_expandable_stack* _stack_create_expandable();
 
 /*
     Pushes an entire block of memory. Expands if the primary block has not enough memory.
 */
-void _push_block(_expandable_stack* dst, const void* src, size_t size);
+void _stack_push_block(_expandable_stack* dst, const void* src, size_t size);
 
 /*
     Copies the data to a contiguous memory block.
     If the block size limit is zero, copies all the data.
 */
-void _copy_cache(void* dst, const _expandable_stack* src, const size_t offset, size_t block_size_limit);
+void _stack_copy_cache(void* dst, const _expandable_stack* src, const size_t offset, size_t block_size_limit);
 
 /*
     Frees all the extra memory blocks and restarts the stack pointer and the byte count
@@ -53,4 +53,4 @@ void _copy_cache(void* dst, const _expandable_stack* src, const size_t offset, s
     WARNING
     Does not free the stack object itself, just it's internal structure
 */
-void _free_stack(_expandable_stack*);
+void _stack_free_expandable(_expandable_stack*);

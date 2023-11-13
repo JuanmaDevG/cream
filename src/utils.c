@@ -1,23 +1,5 @@
 #include "utils.h"
-#include <stdio.h> //MOD
 
-/*
-    ---------------------------
-    Extended argument utilities
-    ---------------------------
-*/
-
-void _cargs_push_extended_argument(
-    const char* argument, const uint32_t associated_opt, const char* read_point, 
-    const uint32_t vec_pos
-) {
-    _extended_args.args[vec_pos].associated_opt = associated_opt;
-    _extended_args.args[vec_pos].read_point = (char*)read_point;
-
-    size_t length = strlen(argument) +1;
-    _extended_args.args[vec_pos].name = (char*)malloc(length);
-    memcpy(_extended_args.args[vec_pos].name, argument, length);
-}
 
 /*
     ------------------------------
@@ -142,25 +124,36 @@ uint32_t _find_argument_char(const char argument_char)
 
 uint8_t _find_extended_argument(const char* ext_arg)
 {
-    if(_extended_args.size == 0 || ext_arg == NULL) return 0;
+    if(_cargs_ext_arg_count == 0 || ext_arg == NULL) return 0;
 
     uint32_t j = _extended_checkpoint;
     while(1)
     {
-        if(j == _extended_args.size) j = 0; //When j surpasses the vector limit
+        if(j == _cargs_ext_arg_count) j = 0; //When j surpasses the vector limit
 
-        uint32_t max_arg_length = _cargs_search_equals_operator(ext_arg);
-        if(max_arg_length == 0) max_arg_length = UINT32_MAX;
-        if(_extended_args.args[j].name != NULL && strncmp(_extended_args.args[j].name, ext_arg, max_arg_length) == 0) 
+        if(_cargs_ext_args)
         {
-            _extended_checkpoint = j+1;
-            return 1;
+            bool found = false;
+            uint32_t k=0;
+            while(_cargs_ext_args[j].name[k] == ext_arg[k])
+            {
+                if( //next is null character or next ext_arg char is equals operator
+                    (_cargs_ext_args[j].name + k + 1)[0] == '\0' ||
+                    (ext_arg + k + 1)[0] == '='
+                ) {
+                    _extended_checkpoint = j+1;
+                    found = true;
+                    break;
+                }
+                k++;
+            }
+            return found;
         }
         
         //Not found, and if we're done with all the vector, reset and return
         if(
             j == _extended_checkpoint -1 ||
-            (_extended_checkpoint == 0 && j == _extended_args.size -1)
+            (_extended_checkpoint == 0 && j == _cargs_ext_arg_count -1)
         ) {
             _reset_ext_finders();
             return 0;
@@ -174,7 +167,7 @@ bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, con
 {
     bool is_extended = (ext_arg_position == NULL ? false : true);
     uint32_t associated_option = 
-        (!is_extended ? _get_actual_checkpoint() -1 : _extended_args.args[*ext_arg_position].associated_opt);
+        (!is_extended ? _get_actual_checkpoint() -1 : _cargs_ext_args[*ext_arg_position].associated_opt);
     if(_cargs_configure_and_store_equals_operator_data(argv[*index], associated_option)) return true;
 
     const uint32_t pointer_offset = (*index) +1;
@@ -349,11 +342,10 @@ extern inline void _cargs_remove_redundant_args_linked_lists()
 
 extern inline void _cargs_reset_ext_arg_buffers()
 {
-    if(_extended_args.args) 
+    if(_cargs_ext_args)
     {
-        for(size_t i=0; i < _extended_args.size; i++)
-            free(_extended_args.args[i].name);
-        free(_extended_args.args); _extended_args.args = NULL; _extended_args.size = 0;
+        free(_cargs_ext_args);
+        _cargs_ext_args = NULL;
     }
 }
 

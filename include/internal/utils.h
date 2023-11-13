@@ -11,18 +11,6 @@
 enum _reduncancy_remove_mode { REMOVE_BOOL_REDUNDANCIES, REMOVE_DATA_REDUNDANCIES, REMOVE_REDUNDANCIES_COUNT};
 
 /*
-    ---------------------------
-    Extended argument utilities
-    ---------------------------
-*/
-
-//Pushes an argument string to the shared extended argument vector
-void _cargs_push_extended_argument(
-    const char* argument, const uint32_t associated_opt, const char* read_point, 
-    const uint32_t vec_pos
-);
-
-/*
     ------------------------------
     Readpoint/writepoint utilities
     ------------------------------
@@ -112,7 +100,7 @@ uint32_t _find_argument_char(const char argument_char);
     Works with the library integrated checkpoint, so it is possible to check 
     it's value with _get_actual_checkpoint function.
 
-    Returns 0 if not found and 1 if found
+    Returns true if found, otherwise false
 */
 uint8_t _find_extended_argument(const char* ext_arg);
 

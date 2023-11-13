@@ -58,7 +58,7 @@ void cargs_set_args(const char* bool_args, const char* data_args)
 
 bool cargs_clean()
 {
-    if(!(_cargs_bool_args || _cargs_data_args || _extended_args.args || _cargs_mandatory_args)) 
+    if(!(_cargs_bool_args || _cargs_data_args || _cargs_ext_args || _cargs_mandatory_args)) 
         return false; //No buffers
     _cargs_remove_redundant_args_linked_lists();
     _cargs_remove_anonymous_arguments();
@@ -89,50 +89,49 @@ bool cargs_clean()
     _cargs_reset_ext_arg_buffers();
     _cargs_reset_mandatory_arg_buffers();
     _cargs_reset_error_buffers();
-    _free_stack(&_cargs_general_buffer);
+    _stack_free_expandable(&_cargs_general_buffer);
 
     return true;
 }
 
 void cargs_associate_extended(const char* arg_characters, ...) {
     if(!(arg_characters && _obtain_read_point())) return;
-
-    /*
-        TODO: erase length measures from (almost) all the lib
-        TODO: change the whole extended args structure
-    */
-    const size_t length = strlen(arg_characters);
-    if(!length) return;
-
-
     va_list arg_l;
     va_start(arg_l, arg_characters);
 
-    if(_extended_args.args)
-    {
-        for(size_t i=0; i < _extended_args.size; i++) free(_extended_args.args[i].name);
-        memset(_extended_args.args, 0, _extended_args.size * sizeof(ExtArg));
-    }
-
-    if(length != _extended_args.size) //If need ext_arg reallocation
-    {
-        free(_extended_args.args);
-        _extended_args.args = (ExtArg*)calloc(length, sizeof(ExtArg));
-    }
-    _extended_args.size = length;
-
-    //Loops over the argument buffers finding the argument characters to associate
-    for(uint32_t i=0; i < length; i++)
+    uint64_t count = 0;
+    ExtArg actual_arg;
+    for(uint64_t i=0; arg_characters[i] != '\0'; i++)
     {
         if(_find_argument_char(arg_characters[i]))
-            _cargs_push_extended_argument(
-                va_arg(arg_l, const char*), /*argument string*/
-                _get_actual_checkpoint() -1 /*associated option*/, 
-                _get_actual_read_point(), i
-            );
+        {
+            count++;
+            actual_arg.name = va_arg(arg_l, const char*);
+            actual_arg.read_point = _get_actual_read_point();
+            actual_arg.associated_opt = _get_actual_checkpoint() -1;
+            _stack_push_block(&_cargs_general_buffer, &actual_arg, sizeof(ExtArg));
+        }
     }
     _reset_finders();
 
+    //If there is mem allocated and not enough, realloc
+    if(_cargs_ext_args)
+    {
+        if(count > _cargs_ext_arg_count) 
+            _cargs_ext_args = (ExtArg*)realloc(_cargs_ext_args, count * sizeof(ExtArg));
+    }
+    else
+    {
+        _cargs_ext_args = (ExtArg*)malloc(count * sizeof(ExtArg));
+    }
+
+    /*
+        The order of the extended arg vector is not relevant because each exttended arg is bound to the main char option
+        and so the raw memory can be copied literally
+    */
+    _cargs_ext_arg_count = count;
+    _stack_copy_cache(_cargs_ext_args, &_cargs_general_buffer, 0, 0);
+    _stack_free_expandable(&_cargs_general_buffer);
     va_end(arg_l);
 }
 
@@ -141,7 +140,8 @@ void cargs_make_mandatory(const char* arg_characters)
     const size_t length = (arg_characters ? strlen(arg_characters) : 0);
     if(length == 0)
     {
-        free(_cargs_mandatory_args); _cargs_mandatory_args = NULL;
+        free(_cargs_mandatory_args);
+        _cargs_mandatory_args = NULL;
         _cargs_mandatory_arg_count = 0;
         return;
     }
@@ -157,6 +157,7 @@ void cargs_make_mandatory(const char* arg_characters)
         _cargs_mandatory_args = (_cargs_buffer_position*)calloc(length, sizeof(_cargs_buffer_position));
     _cargs_mandatory_arg_count = (uint32_t)length;
 
+    //The fail offset avoids void gaps locating the index correctly when an argument char is not found
     size_t fail_offset = 0;
     for(size_t i=0; i < length; i++)
     {
@@ -222,7 +223,7 @@ void cargs_load_args(const int argc, const char** argv)
             }
 
             const uint32_t pos = _get_actual_ext_checkpoint() -1;
-            if(_extended_args.args[pos].read_point == _cargs_data_args) //Is data arg option
+            if(_cargs_ext_args[pos].read_point == _cargs_data_args) //Is data arg option
             {
                 if(!_add_argument_data(argc, argv, &i, &pos)) return;
             }
@@ -230,12 +231,12 @@ void cargs_load_args(const int argc, const char** argv)
             {
                 if(
                     _cargs_treat_repeated_args_as_errors
-                    && _cargs_get_bit(_cargs_bool_bit_vec, _extended_args.args[pos].associated_opt)
+                    && _cargs_get_bit(_cargs_bool_bit_vec, _cargs_ext_args[pos].associated_opt)
                 ) {
-                    _cargs_declare_error(_extended_args.args[pos].name, true, CARGS_REDUNDANT_ARGUMENT);
+                    _cargs_declare_error(_cargs_ext_args[pos].name, true, CARGS_REDUNDANT_ARGUMENT);
                     return;
                 }
-                _cargs_set_bit(_cargs_bool_bit_vec, _extended_args.args[pos].associated_opt, true);
+                _cargs_set_bit(_cargs_bool_bit_vec, _cargs_ext_args[pos].associated_opt, true);
             }
         }
         else if(!_read_non_extended_argument(argc, argv, &i)) return;

@@ -41,7 +41,9 @@ char** _cargs_equals_operator_pointer_bank = NULL;
     ----------------------------------------
 */
 
-ExtArgVec _extended_args = {0, NULL};
+const size_t _cargs_ext_arg_count = 0;
+const ExtArg* _cargs_ext_args = NULL;
+
 
 /*
     -------------------

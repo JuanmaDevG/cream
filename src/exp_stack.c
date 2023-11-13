@@ -49,7 +49,7 @@ inline _linked_mem_block* get_block(const _expandable_stack* _exp_stack, const s
 
 // ---------------------------------------------------------------------------------------------------
 
-_expandable_stack* _create_expandable_stack()
+_expandable_stack* _stack_create_expandable()
 {
     _expandable_stack* target = (_expandable_stack*)malloc(sizeof(_expandable_stack));
     target->p_stack_top = target->main_block;
@@ -58,7 +58,7 @@ _expandable_stack* _create_expandable_stack()
     target->block_bytes_left = MEM_BLOCK_SIZE;
 }
 
-void _push_block(_expandable_stack* _exp_stack, const void* _mem_src, size_t _block_size)
+void _stack_push_block(_expandable_stack* _exp_stack, const void* _mem_src, size_t _block_size)
 {
     uint32_t mem_src_offset = 0;
     while(_block_size > 0)
@@ -89,9 +89,10 @@ void _push_block(_expandable_stack* _exp_stack, const void* _mem_src, size_t _bl
     if(_exp_stack->block_bytes_left == 0) _exp_stack->p_stack_top = NULL; //No bytes left
 }
 
-void _copy_cache(void* _mem_dst, const _expandable_stack* _exp_stack, const size_t _offset, size_t _size_limit)
+void _stack_copy_cache(void* _mem_dst, const _expandable_stack* _exp_stack, const size_t _offset, size_t _size_limit)
 {
     if( //Are bytes unreachable?
+        _exp_stack->byte_count == 0 || 
         _offset >= _exp_stack->byte_count ||
         _offset + _size_limit > _exp_stack->byte_count
     ) return;
@@ -141,7 +142,7 @@ void _copy_cache(void* _mem_dst, const _expandable_stack* _exp_stack, const size
     }
 }
 
-void _free_stack(_expandable_stack* _exp_stack)
+void _stack_free_expandable(_expandable_stack* _exp_stack)
 {
     _exp_stack->byte_count = 0; 
     _exp_stack->block_bytes_left = MEM_BLOCK_SIZE;
