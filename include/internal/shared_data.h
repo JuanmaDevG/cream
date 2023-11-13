@@ -42,7 +42,7 @@ extern char _arg_id;
 #define ASCII_TABLE_SIZE (256 - INVALID_CHARS)
 #define BIT_ASCII_TABLE_SIZE ((ASCII_TABLE_SIZE / 8) +1)
 
-extern _cargs_argument* _cargs_available_arguments;                     //The memory block that contains the available argument options information
+extern _cargs_argument* _cargs_available_args;                          //The memory block that contains the available argument options information
 extern _cargs_argument_data* _cargs_available_args_data;                //The memory block that contains the input data from the available data argument options
 extern _cargs_argument* _cargs_argument_options[ASCII_TABLE_SIZE];      //A list of pointers to the memory block that contains the information from available arguments
 
@@ -55,7 +55,7 @@ extern char** _cargs_equals_operator_pointer_bank;
 extern size_t _cargs_ext_arg_count;                     //Stores the extended argument count
 extern _cargs_extended_argument* _cargs_ext_args;       //Stores the pointer references to the actual character arguments (NOT BUFFER ALLOCATED, READ ONLY)
 
-extern _expandable_stack _cargs_general_buffer;
+extern _expandable_stack _cargs_general_buffer;         //A buffer for general usage data
 
 
 /*
