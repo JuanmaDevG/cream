@@ -1,7 +1,6 @@
 #pragma once
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "exp_stack.h"
 #include <string.h>
 
 
@@ -17,12 +16,6 @@ typedef struct {
     uint32_t associated_opt; //Option symbol position (to look into bit vectors and ArgPackage vectors)
     char* name;
 } ExtArg;
-
-//Extended Argument Vector that contains multiple extended arguments
-typedef struct {
-    size_t size;
-    ExtArg* args;
-} ExtArgVec;
 
 
 typedef struct {
@@ -57,11 +50,15 @@ extern uint8_t* _cargs_bool_bit_vec;
 extern size_t _cargs_data_args_count;
 extern char* _cargs_data_args;
 extern uint8_t* _cargs_data_bit_vec;
+
 extern ArgPackage* _cargs_data_packs;
 extern uint32_t _cargs_bank_stack_pointer;
 extern char** _cargs_equals_operator_pointer_bank;
 
-extern ExtArgVec _extended_args;
+extern size_t _cargs_ext_arg_count;                     //Stores the extended argument count
+extern ExtArg* _cargs_ext_args;                         //Stores the pointer references to the actual character arguments (NOT BUFFER ALLOCATED, READ ONLY)
+
+extern _expandable_stack _cargs_general_buffer;
 
 
 /*

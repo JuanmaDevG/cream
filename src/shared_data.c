@@ -3,6 +3,14 @@
 char _arg_id = '-';
 
 /*
+    ----------------------
+    General purpose buffer
+    ----------------------
+*/
+
+_expandable_stack _cargs_general_buffer = {{0}, NULL, 0, 0, NULL, NULL};
+
+/*
     ---------------------------
     Boolean argument structures
     ---------------------------

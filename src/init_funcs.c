@@ -81,13 +81,15 @@ bool cargs_clean()
         //Anonymous arguments were reset by the specific function...
         _cargs_maximum_data = NULL; _cargs_minimum_data = NULL;
         
-        _reset_finders(); _reset_ext_finders();
+        _reset_ext_finders();
         _cargs_redundant_opt_data = NULL;
         _cargs_is_data_relocated_bit_vec = NULL;
     }
+    _reset_finders();
     _cargs_reset_ext_arg_buffers();
     _cargs_reset_mandatory_arg_buffers();
     _cargs_reset_error_buffers();
+    _free_stack(&_cargs_general_buffer);
 
     return true;
 }
@@ -95,8 +97,14 @@ bool cargs_clean()
 void cargs_associate_extended(const char* arg_characters, ...) {
     if(!(arg_characters && _obtain_read_point())) return;
 
+    /*
+        TODO: erase length measures from (almost) all the lib
+        TODO: change the whole extended args structure
+    */
     const size_t length = strlen(arg_characters);
     if(!length) return;
+
+
     va_list arg_l;
     va_start(arg_l, arg_characters);
 
@@ -105,7 +113,7 @@ void cargs_associate_extended(const char* arg_characters, ...) {
         for(size_t i=0; i < _extended_args.size; i++) free(_extended_args.args[i].name);
         memset(_extended_args.args, 0, _extended_args.size * sizeof(ExtArg));
     }
-    
+
     if(length != _extended_args.size) //If need ext_arg reallocation
     {
         free(_extended_args.args);
