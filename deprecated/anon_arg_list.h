@@ -13,8 +13,19 @@
 
 #pragma once
 
-#include <stdlib.h>
 #include "shared_data.h"
+#include <stdlib.h>
+
+typedef struct _cargs_anonymous_node {
+    ArgPackage package;
+    struct _cargs_anonymous_node* next;
+    struct _cargs_anonymous_node* previous;
+} _cargs_anonymous_node;
+
+typedef struct _cargs_data_storage_list {
+    _cargs_anonymous_node* first_node;
+    _cargs_anonymous_node* last_node;
+} _cargs_data_storage_list;
 
 void _cargs_push_list_node(
     _cargs_anonymous_node** first, _cargs_anonymous_node** last, const char** data_pointer, const uint32_t count

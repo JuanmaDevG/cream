@@ -5,34 +5,28 @@
 
 
 //Argument package associated to a single option
-typedef struct ArgPackage {
+typedef struct _cargs_data_package {
     uint32_t count;
-    char** values;          //Pointer to first value position in argv
-} ArgPackage;
+    char** values;          //Pointer to first data value position in argv
+} _cargs_data_package;
 
-//Extended argument name associated to the corresponding char argument argument
+typedef struct _cargs_argument_data {
+    uint32_t package_count;             //Counts the number of packages inside the buffer
+    _cargs_data_package data;           //Obtains the data copying from the buffer
+    _expandable_stack buffer;           //Contains all the argument data packages in it's blocks
+} _cargs_argument_data;
+
+typedef struct _cargs_argument {
+    bool is_it_mandatory;                   //If true, the error system will offer the possibility to catch as error
+    bool is_it_redundant;                   //If true, the error system will offer the possibility to catch as error
+    _cargs_argument_data* data_container;   //Won't be null if the argument is a data argument
+} _cargs_argument;
+
+//Extended argument name associated to the corresponding argument properties
 typedef struct {
-    char* read_point;
-    uint32_t associated_opt; //Option symbol position (to look into bit vectors and ArgPackage vectors)
+    _cargs_argument* associated_argument;
     char* name;
-} ExtArg;
-
-
-typedef struct {
-    uint8_t* read_point;        //Pointer to the corresponding bit vector
-    uint32_t position;
-} _cargs_buffer_position;
-
-typedef struct _cargs_anonymous_node {
-    ArgPackage package;
-    struct _cargs_anonymous_node* next;
-    struct _cargs_anonymous_node* previous;
-} _cargs_anonymous_node;
-
-typedef struct _cargs_data_storage_list {
-    _cargs_anonymous_node* first_node;
-    _cargs_anonymous_node* last_node;
-} _cargs_data_storage_list;
+} _cargs_extended_argument;
 
 
 /*
@@ -43,32 +37,29 @@ typedef struct _cargs_data_storage_list {
 
 extern char _arg_id;
 
-extern size_t _cargs_bool_args_count;
-extern char* _cargs_bool_args;
-extern uint8_t* _cargs_bool_bit_vec;
+/*
+    A table of as pointers as the ASCII table whose mem address is NULL if not existent arguments or 
+    the memory address of the argument properties
+*/
+#define ASCII_TABLE_SIZE (256 - 33)
+extern _cargs_argument* _cargs_argument_options[ASCII_TABLE_SIZE]; //Without non keyboard characters
+extern _cargs_argument* _cargs_available_arguments;
+extern _cargs_argument_data* _cargs_available_args_data;
 
-extern size_t _cargs_data_args_count;
-extern char* _cargs_data_args;
+/*
+    Bit vectors that confirm the existence of the arguments into the user input
+*/
+
+extern uint8_t* _cargs_bool_bit_vec;
 extern uint8_t* _cargs_data_bit_vec;
 
-extern ArgPackage* _cargs_data_packs;
 extern uint32_t _cargs_bank_stack_pointer;
 extern char** _cargs_equals_operator_pointer_bank;
 
 extern size_t _cargs_ext_arg_count;                     //Stores the extended argument count
-extern ExtArg* _cargs_ext_args;                         //Stores the pointer references to the actual character arguments (NOT BUFFER ALLOCATED, READ ONLY)
+extern _cargs_extended_argument* _cargs_ext_args;       //Stores the pointer references to the actual character arguments (NOT BUFFER ALLOCATED, READ ONLY)
 
 extern _expandable_stack _cargs_general_buffer;
-
-
-/*
-    ------------------------------------------
-    Mandatory application arguments management
-    ------------------------------------------
-*/
-
-extern _cargs_buffer_position* _cargs_mandatory_args;
-extern uint32_t _cargs_mandatory_arg_count;
 
 
 /*
