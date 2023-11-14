@@ -2,131 +2,43 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 #include "shared_data.h"
 #include "error_system.h"
-#include "anon_arg_list.h"
 #include "bit_vec_ops.h"
 
-enum _reduncancy_remove_mode { REMOVE_BOOL_REDUNDANCIES, REMOVE_DATA_REDUNDANCIES, REMOVE_REDUNDANCIES_COUNT};
 
 /*
-    ------------------------------
-    Readpoint/writepoint utilities
-    ------------------------------
+    Simply returns true if the argument character has been declared on the available arguments 
+    pointer vector (the arg has been configured and is part of the application).
 */
-
-/*
-    Obtains a value for the _read_point from where to start to read/write information.
-
-    It's priority order is:
-    1. Boolean arguments
-    2. Data need arguments
-
-    If one argument type is not initialized, obtains the remaining type
-*/
-bool _obtain_read_point();
-
-/*
-    Swaps the buffer _read_point to the next argument type read point 
-    (boolean args -> data args... and viceversa)
-*/
-void _swap_read_point();
-
-/*
-    Gets the actual state of the read_point
-*/
-char* _get_actual_read_point();
-
-/*
-    Gets the actual state of the checkpoint
-*/
-uint32_t _get_actual_checkpoint();
-
-/*
-    Gets the actual state of the extended argument searcher 
-    checkpoint
-*/
-uint32_t _get_actual_ext_checkpoint();
-
-/*
-    Resets the finder checkpoint and read_point
-*/
-void _reset_finders();
-
-/*
-    Resets the extended argument buffer finders
-
-    Note:
-    For the moment just one, there probably will be more in 
-    later versions
-*/
-void _reset_ext_finders();
-
-
-/*
-    -------------------------
-    General purpose utilities
-    -------------------------
-*/
-
-/*
-    Removes redundant option characters
-
-    The mode must be a _redunancy_remove_mode enum type
-*/
-void _remove_redundancies(const uint32_t mode);
-
-/*
-    Finds the given argument char looking into the argument buffers
-
-    Returns zero if the argument has not been found, otherwise returns the 
-    checkpoint (the next character position to the character found).
-
-    This function works more efficient when the char array is written following 
-    the argument order given.
-
-    The found position would be -> checkpoint - 1
-*/
-uint32_t _find_argument_char(const char argument_char);
+_cargs_argument* _find_argument_option(const char option_char);
 
 /*
     Finds the extended argument.
     The char pointer location must be the argument pointer plus the double 
     argument identificator offset, like:
     
-    --some-extended-arg -> some-extended-arg (resulting argument without double id)
+    --some-extended-arg -> (pass this) some-extended-arg (resulting argument without double id)
 
-    Works with the library integrated checkpoint, so it is possible to check 
-    it's value with _get_actual_checkpoint function.
+    It is highly recommended for performance that the string first character is equal (first char not case sensitive) 
+    to the extended arg's first character, otherwise the finder will have to look into the entire extended arguments 
+    buffer.
 
     Returns true if found, otherwise false
 */
-uint8_t _find_extended_argument(const char* ext_arg);
+_cargs_argument* _find_extended_argument(const char* ext_arg);
 
 /*
-    Configures the argument data pointer to store the data position, 
-    count, the number of data strings of the data argument and if there are 
-    not enough data strings (data inputs) throws an error leaving the pointers 
-    to NULL and does nothing more.
+    Adds a data package to the selected argument data package buffer starting from the argv starting read point.
 
-    The extended_argument position pointer can be set to NULL if the data argument 
-    found is not an extended arg, this way, the function will use the checkpoint 
-    to determine the argument data location, respecting the argument buffers order.
-
-    Also advances the argv index position to one before the next argument.
-    It is one before the next because of iteration causes.
+    Returns the number of data pieces found.
 
     WARNING:
-    To use this function with non extended arguments, first must execute
-    _find_argument_char function to store the read_point and and checkpoint.
-
-    If the argument count is not enough to accomplish the minimum number of 
-    arguments required or the argument option is redundant and cargs is 
-    configured to treat redundant options as errors, this function will stop 
-    working and declare the appropiate error in cargs_error_code
+    This function stores errors into the error system buffers if the cargs state machine is configured to do it.
 */
-bool _add_argument_data(const int argc, const char** argv, uint32_t* actual_position, const uint32_t* extended_argument_position);
+uint32_t _add_argument_data(const int argc, const char** updated_argv, _cargs_argument* dst_arg);
 
 /*
     Scans a non-extended argument string

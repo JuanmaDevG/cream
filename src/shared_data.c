@@ -20,7 +20,7 @@ _expandable_stack _cargs_general_buffer = {{0}, NULL, 0, 0, NULL, NULL};
 size_t _cargs_option_count = 0;
 _cargs_argument* _cargs_declared_arg_options = NULL;
 _cargs_argument_data* _cargs_declared_options_data = NULL;
-_cargs_argument* _cargs_valid_arg_options[ASCII_TABLE_SIZE] = {0};
+_cargs_argument* _cargs_valid_arg_options[ASCII_TABLE_SIZE] = {NULL};
 
 
 /*
@@ -49,7 +49,7 @@ char** _cargs_equals_operator_pointer_bank = NULL;
 */
 
 size_t _cargs_ext_arg_count = 0;
-_cargs_extended_argument* _cargs_ext_args = NULL;
+char** _cargs_ext_args = NULL;
 
 
 /*

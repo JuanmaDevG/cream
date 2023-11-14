@@ -8,6 +8,13 @@ void cargs_set_args(const char* bool_args, const char* data_args)
     cargs_clean();
     if(!(bool_args || data_args)) return;
 
+    /*
+        Redundancies in the argument checking are treated as errors
+        Argument loads won't work if there is any error registered
+    */
+    //Get the argument legths and assign pointers to the _cargs_valid_arg_options and allocate main buffer
+    //Possible idea: add number of argument chars to control what argument chars are set
+
     //Measures
     if(bool_args) _cargs_bool_args_count = strlen(bool_args);
     if(data_args) _cargs_data_args_count = strlen(data_args);

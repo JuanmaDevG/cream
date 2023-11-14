@@ -4,6 +4,7 @@
     Buffers
 */
 
+uint32_t _cargs_error_count = 0;
 _expandable_stack _cargs_error_buffer = {{0}, NULL, 0, 0, NULL, NULL};
 
 char** _cargs_out_error_msg = NULL;
@@ -17,8 +18,8 @@ const char* _cargs_error_strings[] = {
     "is repeated and it is not allowed to repeat argument options."
 };
 
+char* _cargs_repeated_args_that_are_errors = NULL;
 bool _cargs_treat_anonymous_args_as_errors = false;
-bool _cargs_treat_repeated_args_as_errors = false;
 bool _cargs_include_argument_zero = false;
 
 

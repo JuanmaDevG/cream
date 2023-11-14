@@ -22,12 +22,8 @@ typedef struct _cargs_argument {
     bool is_it_mandatory;                   //If true, the error system will offer the possibility to interpret as error
     bool is_it_redundant;                   //If true, the error system will offer the possibility to interpret as error
     _cargs_argument_data* data_container;   //Won't be null if the argument is a data argument
+    char* extended_version;                 //Pointer to extended version: {-f -> --force} (without '-', that's only the id, sintactically double for extended)
 } _cargs_argument;
-
-typedef struct {
-    _cargs_argument* associated_argument;
-    char* name;
-} _cargs_extended_argument;
 
 
 /*
@@ -55,7 +51,7 @@ extern uint32_t _cargs_bank_stack_pointer;                              //Top po
 extern char** _cargs_equals_operator_pointer_bank;                      //Contains char pointers where to store the equals operator pointer option (one per argument option)
 
 extern size_t _cargs_ext_arg_count;                                     //Stores the extended argument count
-extern _cargs_extended_argument* _cargs_ext_args;                       //Stores the pointer references to the actual character arguments (NOT BUFFER ALLOCATED, READ ONLY)
+extern char** _cargs_ext_args;                                          //Stores all the extended argument strings
 
 extern uint32_t _cargs_anon_arg_count;                                  //Counts all the available anonymous arguments
 extern _expandable_stack _cargs_anonymous_args;                         //Contains _cargs_package objects that point to anonymous arguments groups

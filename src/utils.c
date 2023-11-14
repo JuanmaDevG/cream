@@ -1,170 +1,70 @@
 #include "utils.h"
 
 
-/*
-    ------------------------------
-    Readpoint/writepoint utilities
-    ------------------------------
-*/
-
-extern inline bool _obtain_read_point()
+inline bool _cargs_streq(const char* _str1, const char* _str2)
 {
-    _read_point = _cargs_bool_args;
-    if(_read_point == NULL) _read_point = _cargs_data_args;
-    return (bool)_read_point;
-}
+    if(!(_str1 && _str2)) return false;
 
-extern inline void _swap_read_point()
-{
-    if(_cargs_bool_args == NULL) _read_point = _cargs_data_args;
-    if(_cargs_data_args == NULL) _read_point = _cargs_bool_args;
-    
-    //Both not null
-    if(_read_point == _cargs_bool_args) 
-        _read_point = _cargs_data_args;
-    else _read_point = _cargs_bool_args;
-}
-
-extern inline char* _get_actual_read_point() { return _read_point; }
-
-extern inline uint32_t _get_actual_checkpoint() { return _checkpoint; }
-
-extern inline uint32_t _get_actual_ext_checkpoint() { return _extended_checkpoint; }
-
-extern inline void _reset_finders() { _checkpoint = 0; _read_point = NULL; }
-
-extern inline void _reset_ext_finders() { _extended_checkpoint = 0; }
-
-
-/*
-    -------------------------
-    General purpose utilities
-    -------------------------
-*/
-
-void _remove_redundancies(const uint32_t mode)
-{
-    if(_cargs_bool_args == NULL || _cargs_data_args == NULL) return;
-    char const* read_point = NULL;
-    size_t* read_length = NULL;
-    char* write_point = NULL;
-    size_t* write_length = NULL;
-
-    if(mode == REMOVE_BOOL_REDUNDANCIES)
+    uint32_t i=0;
+    while(_str1[i] == _str2[i])
     {
-        read_point = _cargs_data_args;
-        read_length = &(_cargs_data_args_count);
-        write_point = _cargs_bool_args;
-        write_length = &_cargs_bool_args_count;
-    }
-    else    //REMOVE_DATA_REDUNDANCIES
-    {
-        read_point = _cargs_bool_args;
-        read_length = &_cargs_bool_args_count;
-        write_point = _cargs_data_args;
-        write_length = &(_cargs_data_args_count);
-    }
-
-    //Look for redundancies and remove them
-    for(uint64_t i=0; i < *read_length; i++)
-    {
-        for(uint64_t j=0; j < *write_length; j++)
-            if(read_point[i] == write_point[j])
-            {
-                memcpy(write_point +j, write_point +j +1, (*write_length) - j);
-                (*write_length)--;
-                j--;
-            }
-    }
-
-    //Does not reallocate because the null terminating character is copied and can be a waste of time
-    //It is expected so, that the user does not write a lot of redundancies
-}
-
-uint32_t _find_argument_char(const char argument_char)
-{
-    if(!_obtain_read_point()) return 0;
-    //To not to loop again over repeated argument options
-    if(_checkpoint > 0 && _read_point[_checkpoint -1] == argument_char) return _checkpoint;
-
-    uint32_t j = _checkpoint;
-    const char* checkpoint_read_point = _read_point;
-    while(_read_point[j] != argument_char)
-    {
-        j++;
-
-        //Swap read_point beacause finished actual
-        if(_read_point[j] == '\0')
-        {
-            j = 0;
-            _swap_read_point();
-        }
-        
         if(
-            //j has reached the checkpoint
-            (j == _checkpoint -1 && checkpoint_read_point == _read_point) ||
-            //it was an initial checkpoint (0) and j is at the end of the buffer
-            (
-                _checkpoint == 0 && _read_point[j+1] == '\0' && 
-                (
-                    (_read_point != checkpoint_read_point) || 
-                    (_get_actual_read_point() == _cargs_data_args && !_cargs_bool_args) ||
-                    (_get_actual_read_point() == _cargs_bool_args && !_cargs_data_args)
-                )
-            )
+            _str1[i+1] == '\0' && 
+            _str2[i+1] == '\0'
         ) {
-            _reset_finders();
-            return 0;
+            return true;
         }
+        i++;
     }
-
-    _checkpoint = j+1;
-    return _checkpoint;
+    return false;
 }
 
-uint8_t _find_extended_argument(const char* ext_arg)
+
+//-----------------------------------------------------------------------------------------------------------
+
+extern inline _cargs_argument* _find_argument_option(const char _character)
+{
+    if(_character < INVALID_CHARS) return NULL;
+    return _cargs_valid_arg_options[_character - INVALID_CHARS];
+}
+
+_cargs_argument* _find_extended_argument(const char* ext_arg)
 {
     if(_cargs_ext_arg_count == 0 || ext_arg == NULL) return 0;
 
-    uint32_t j = _extended_checkpoint;
-    while(1)
+    _cargs_argument* arg_ptr = _find_argument_option(ext_arg[0]);
+    if(arg_ptr)
     {
-        if(j == _cargs_ext_arg_count) j = 0; //When j surpasses the vector limit
-
-        if(_cargs_ext_args)
-        {
-            bool found = false;
-            uint32_t k=0;
-            while(_cargs_ext_args[j].name[k] == ext_arg[k])
-            {
-                if( //next is null character or next ext_arg char is equals operator
-                    (_cargs_ext_args[j].name + k + 1)[0] == '\0' ||
-                    (ext_arg + k + 1)[0] == '='
-                ) {
-                    _extended_checkpoint = j+1;
-                    found = true;
-                    break;
-                }
-                k++;
-            }
-            return found;
-        }
-        
-        //Not found, and if we're done with all the vector, reset and return
+        char first_character = tolower(ext_arg[0]);
         if(
-            j == _extended_checkpoint -1 ||
-            (_extended_checkpoint == 0 && j == _cargs_ext_arg_count -1)
-        ) {
-            _reset_ext_finders();
-            return 0;
-        }
-
-        j++;
+            first_character == arg_ptr->extended_version[0] &&
+            (
+               _cargs_promise_first_ext_arg_char_is_ext_arg  || 
+               _cargs_streq(arg_ptr->extended_version +1, ext_arg +1) 
+            )
+        ) 
+            return arg_ptr;
     }
+
+    //Not constant time found, so iterate thorough the whole buffer
+    for(char i=0; i < ASCII_TABLE_SIZE; i++)
+    {
+        arg_ptr = _find_argument_option(i);
+        if(arg_ptr && _cargs_streq(ext_arg, arg_ptr->extended_version))
+        {
+            return arg_ptr;
+        }
+    }
+
+    return NULL;
 }
 
-bool _add_argument_data(const int argc, const char* argv[], uint32_t* index, const uint32_t* ext_arg_position)
+bool _add_argument_data(const int argc, const char** _updated_argv, _cargs_argument* _actual_arg)
 {
+    //TODO: Remember
+    //1. If data pieces exceed the maximum or do not reach the minimum, keep them added but push the error
+    //Always return the data piece offset count
+
     bool is_extended = (ext_arg_position == NULL ? false : true);
     uint32_t associated_option = 
         (!is_extended ? _get_actual_checkpoint() -1 : _cargs_ext_args[*ext_arg_position].associated_opt);
