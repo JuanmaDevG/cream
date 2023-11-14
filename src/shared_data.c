@@ -10,81 +10,54 @@ char _arg_id = '-';
 
 _expandable_stack _cargs_general_buffer = {{0}, NULL, 0, 0, NULL, NULL};
 
-/*
-    ---------------------------
-    Boolean argument structures
-    ---------------------------
-*/
-
-size_t _cargs_bool_args_count = 0;
-char* _cargs_bool_args = NULL;
-uint8_t* _cargs_bool_bit_vec = NULL;
-
 
 /*
-    ------------------------
-    Data argument structures
-    ------------------------
+    ----------------------------
+    Argument options information
+    ----------------------------
 */
 
-size_t _cargs_data_args_count = 0;
-char* _cargs_data_args = NULL;
-uint8_t* _cargs_data_bit_vec = NULL;
-ArgPackage* _cargs_data_packs = NULL;
+size_t _cargs_option_count = 0;
+_cargs_argument* _cargs_declared_arg_options = NULL;
+_cargs_argument_data* _cargs_declared_options_data = NULL;
+_cargs_argument* _cargs_valid_arg_options[ASCII_TABLE_SIZE] = {0};
+
+
+/*
+    ------------------------------------
+    Argument existence confirmation bits
+    ------------------------------------
+*/
+
+uint8_t _cargs_arg_confirmation_bits[BIT_ASCII_TABLE_SIZE] = {0};
+
+
+/*
+    ---------------------------------
+    Equals operator data pointer bank
+    ---------------------------------
+*/
+
 uint32_t _cargs_bank_stack_pointer = 0;
 char** _cargs_equals_operator_pointer_bank = NULL;
 
 
 /*
-    ----------------------------------------
-    Extended arguments management structures
-    ----------------------------------------
+    ----------------------------------
+    Extended arguments storage buffers
+    ----------------------------------
 */
 
-const size_t _cargs_ext_arg_count = 0;
-const ExtArg* _cargs_ext_args = NULL;
+size_t _cargs_ext_arg_count = 0;
+_cargs_extended_argument* _cargs_ext_args = NULL;
 
 
 /*
-    -------------------
-    Mandatory arguments
-    -------------------
+    ----------------------------------
+    Anonymous argument storage buffers
+    ----------------------------------
 */
 
-_cargs_buffer_position* _cargs_mandatory_args = NULL;
-uint32_t _cargs_mandatory_arg_count = 0;
-
-/*
-    ---------------------------------------------------------------
-    Anonymous args and data limits on argument control declarations
-    ---------------------------------------------------------------
-*/
-
-uint32_t _cargs_anon_arg_count = 0;
-_cargs_anonymous_node* _cargs_anon_args = NULL;
-_cargs_anonymous_node* _cargs_anon_last = NULL;
-uint32_t _cargs_anonymous_relocated_buf_size = 0;
+size_t _cargs_anon_arg_count = 0;
+_expandable_stack _cargs_anonymous_args = {{0}, NULL, 0, 0, NULL, NULL};
 char** _cargs_anonymous_relocated_args = NULL;
-
-uint8_t* _cargs_maximum_data = NULL;
-uint8_t* _cargs_minimum_data = NULL;
-
-/*
-    ----------------
-    Utility pointers
-    ----------------
-*/
-
-char* _read_point = NULL;
-uint32_t _checkpoint = 0;
-uint32_t _extended_checkpoint = 0;
-
-/*
-    ------------------------------------------
-    Redundant data argument storage structures
-    ------------------------------------------
-*/
-
-_cargs_data_storage_list* _cargs_redundant_opt_data = NULL;
-
-uint8_t* _cargs_is_data_relocated_bit_vec = NULL;

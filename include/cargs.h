@@ -10,7 +10,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 
-enum cargs_error { 
+enum cargs_error_type { 
     CARGS_NO_ERROR, 
     CARGS_NON_EXISTENT, 
     CARGS_MANDATORY,
