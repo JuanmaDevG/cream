@@ -38,7 +38,7 @@ _cargs_argument* _find_extended_argument(const char* ext_arg);
     WARNING:
     This function stores errors into the error system buffers if the cargs state machine is configured to do it.
 */
-uint32_t _add_argument_data(const int argc, const char** updated_argv, _cargs_argument* dst_arg);
+uint32_t _add_argument_data(const int remaining_argc, const char** updated_argv, _cargs_argument* dst_arg);
 
 /*
     Scans a non-extended argument string

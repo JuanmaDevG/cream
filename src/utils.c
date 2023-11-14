@@ -59,11 +59,13 @@ _cargs_argument* _find_extended_argument(const char* ext_arg)
     return NULL;
 }
 
-bool _add_argument_data(const int argc, const char** _updated_argv, _cargs_argument* _actual_arg)
+uint32_t _add_argument_data(const int _remaining_argc, const char** _updated_argv, _cargs_argument* _actual_arg)
 {
     //TODO: Remember
     //1. If data pieces exceed the maximum or do not reach the minimum, keep them added but push the error
     //Always return the data piece offset count
+
+    //Loop over the data will find argument or interrupt if expose limits
 
     bool is_extended = (ext_arg_position == NULL ? false : true);
     uint32_t associated_option = 
