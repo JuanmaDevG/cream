@@ -13,7 +13,7 @@
     Simply returns true if the argument character has been declared on the available arguments 
     pointer vector (the arg has been configured and is part of the application).
 */
-_cargs_argument* _find_argument_option(const char option_char);
+_cargs_argument* _cargs_find_argument_option(const char option_char);
 
 /*
     Finds the extended argument.
@@ -28,28 +28,28 @@ _cargs_argument* _find_argument_option(const char option_char);
 
     Returns true if found, otherwise false
 */
-_cargs_argument* _find_extended_argument(const char* ext_arg);
+_cargs_argument* _cargs_find_extended_argument(const char* ext_arg);
 
 /*
-    Adds a data package to the selected argument data package buffer starting from the argv starting read point.
+    Adds a data package to the selected argument data package buffer starting from the point where the argument option was found
 
     Returns the number of data pieces found.
 
     WARNING:
     This function stores errors into the error system buffers if the cargs state machine is configured to do it.
 */
-uint32_t _add_argument_data(const int remaining_argc, const char** updated_argv, _cargs_argument* dst_arg);
+uint32_t _cargs_add_argument_data(const int remaining_argc, const char** updated_argv, _cargs_argument* dst_arg, const bool is_it_extended);
 
 /*
-    Scans a non-extended argument string
+    Scans a string looking for an argument option.
+    If this option is a data option (non boolean) adds the data.
 
-    Supports multiple boolean argument values like -abcdf but if there is any data argument
-    into the multi-boolean argument string, it will notify and throw a cargs_error
+    This function will register the errors that it registers if there's any and the state machine is correctly configured 
+    to recognise them.
 
-    Data arguments must come alone. If an example data argument option is a, the correct usage is:
-    > program_name -a data1 data2 ...
+    Returns the number of argument values registered respect the updated_argv pointer (as an offset), minimum one
 */
-bool _read_non_extended_argument(const int argc, const char** argv, uint32_t* index);
+uint32_t _cargs_read_argument(const int updated_argc, const char** updated_argv);
 
 /*
     Writes the argument limits (maximum or minimum depending on the write_point) into the 

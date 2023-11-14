@@ -22,17 +22,17 @@ inline bool _cargs_streq(const char* _str1, const char* _str2)
 
 //-----------------------------------------------------------------------------------------------------------
 
-extern inline _cargs_argument* _find_argument_option(const char _character)
+extern inline _cargs_argument* _cargs_find_argument_option(const char _character)
 {
     if(_character < INVALID_CHARS) return NULL;
     return _cargs_valid_arg_options[_character - INVALID_CHARS];
 }
 
-_cargs_argument* _find_extended_argument(const char* ext_arg)
+_cargs_argument* _cargs_find_extended_argument(const char* ext_arg)
 {
     if(_cargs_ext_arg_count == 0 || ext_arg == NULL) return 0;
 
-    _cargs_argument* arg_ptr = _find_argument_option(ext_arg[0]);
+    _cargs_argument* arg_ptr = _cargs_find_argument_option(ext_arg[0]);
     if(arg_ptr)
     {
         char first_character = tolower(ext_arg[0]);
@@ -49,7 +49,7 @@ _cargs_argument* _find_extended_argument(const char* ext_arg)
     //Not constant time found, so iterate thorough the whole buffer
     for(char i=0; i < ASCII_TABLE_SIZE; i++)
     {
-        arg_ptr = _find_argument_option(i);
+        arg_ptr = _cargs_find_argument_option(i);
         if(arg_ptr && _cargs_streq(ext_arg, arg_ptr->extended_version))
         {
             return arg_ptr;
@@ -59,63 +59,51 @@ _cargs_argument* _find_extended_argument(const char* ext_arg)
     return NULL;
 }
 
-uint32_t _add_argument_data(const int _remaining_argc, const char** _updated_argv, _cargs_argument* _actual_arg)
+uint32_t _cargs_add_argument_data(const int _remaining_argc, const char** _updated_argv, _cargs_argument* _actual_arg, const bool _is_it_extended)
 {
-    //TODO: Remember
-    //1. If data pieces exceed the maximum or do not reach the minimum, keep them added but push the error
-    //Always return the data piece offset count
-
-    //Loop over the data will find argument or interrupt if expose limits
-
-    bool is_extended = (ext_arg_position == NULL ? false : true);
-    uint32_t associated_option = 
-        (!is_extended ? _get_actual_checkpoint() -1 : _cargs_ext_args[*ext_arg_position].associated_opt);
-    if(_cargs_configure_and_store_equals_operator_data(argv[*index], associated_option)) return true;
-
-    const uint32_t pointer_offset = (*index) +1;
-    const char** data_pointer = argv + pointer_offset;
-    uint32_t count = 0;
-    while(count + pointer_offset < (uint32_t)argc && data_pointer[count][0] != _arg_id) 
+    uint32_t data_count = 0;
+    while(data_count < _remaining_argc && _updated_argv[data_count +1/*option not data*/][0] != _arg_id)
     {
-        if(count == (uint32_t)_cargs_maximum_data[associated_option] && _cargs_maximum_data[associated_option] > 0) break;
-        count++;
+        data_count++;
+        if(data_count == _actual_arg->data_container->maximum_data_count) break;
     }
 
-    //Check that the data count reaches the minimum data required
-    if(count < (uint32_t)_cargs_minimum_data[associated_option])
-    {
-        _cargs_declare_error(argv[(*index)] + (is_extended ? 2 : 1), is_extended, CARGS_NOT_ENOUGH_DATA);
-        return false;
-    }
+    _cargs_data_package pack = {data_count, _updated_argv +1};
+    _actual_arg->data_container->actual_data_count += data_count;
+    _stack_push_block(&(_actual_arg->data_container->data), &pack, 0, sizeof(_cargs_data_package));
 
-    if(_cargs_get_bit(_cargs_data_bit_vec, associated_option))
-    {
-        if(_cargs_treat_repeated_args_as_errors)
-        {
-            _cargs_declare_error(argv[*index], is_extended, CARGS_REDUNDANT_ARGUMENT);
-            return false;
-        }
-        else if(count > 0)
-            _cargs_push_list_node(
-                &(_cargs_redundant_opt_data[associated_option].first_node),
-                &(_cargs_redundant_opt_data[associated_option].last_node), 
-                data_pointer, count
-            );
-    }
-    else    //No redundant and new arg so add data
-    {
-        _cargs_data_packs[associated_option].count = count;
-        _cargs_data_packs[associated_option].values = (count == 0 ? NULL : (char**)data_pointer);
-        _cargs_set_bit(_cargs_data_bit_vec, associated_option, true);
-    }
-
-    //Set offset to argument iterator
-    (*index) += count;
-    return true;
+    if(data_count < _actual_arg->data_container->minimum_data_count)
+        _cargs_declare_error(CARGS_NOT_ENOUGH_DATA, _updated_argv[0] + (_is_it_extended ? 2 : 1), _is_it_extended, NULL);
+    
+    return data_count +1; /*plus the arg option offset*/
 }
 
-bool _read_non_extended_argument(const int argc, const char* argv[], uint32_t* index)
+uint32_t _cargs_read_argument(const int _updated_argc, const char** _updated_argv)
 {
+    _cargs_argument* arg_ptr = NULL;
+    uint32_t arg_offset = 1;
+    uint8_t state = 0; //zero -> non extended, one -> extended, two -> anonymous
+    if(_updated_argv[0][0] == _arg_id) //Is arg option
+    {
+        if(_updated_argv[0][1] == _arg_id) //It is extended
+        {
+            state = 1;
+            arg_ptr = _cargs_find_extended_argument(_updated_argv[0] +2);
+        }
+        else if(_updated_argv[0][1] == '\0') //It is anonymous because is just the symbol alone
+        {
+            //TODO: just calculate the anonymous args and return the offset
+        }
+        else    //It is a normal argument
+        {
+            //TODO: probably remove this
+        }
+    }
+    else //Is anonymous arg
+    {
+
+    }
+
     for(uint32_t j=1; argv[(*index)][j] != '\0'; j++)
     {
         if(_find_argument_char(argv[(*index)][j]))

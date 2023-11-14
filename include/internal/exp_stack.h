@@ -54,3 +54,23 @@ void _stack_copy_cache(void* dst, const _expandable_stack* src, const size_t off
     Does not free the stack object itself, just it's internal structure
 */
 void _stack_free_expandable(_expandable_stack*);
+
+/*
+    Will return the pointer to the memory block requested (first block starts by zero).
+    If The block is not available returns NULL
+
+    The size of the block is MEM_BLOCK_SIZE
+*/
+void* _stack_get_block_ptr(const _expandable_stack* exp_stack, uint32_t block_id);
+
+/*
+    TODO:
+    Returns the boolean value that determines if the memory block is equal to the expandable stack
+*/
+bool _stack_memcmp(const void* block, const _expandable_stack* exp_stack);
+
+/*
+    TODO:
+    Returns the boolean value that determines if both expandable stacks are equal
+*/
+bool _stack_memcmp_stack(const _expandable_stack* exp_stack1, const _expandable_stack* exp_stack2);

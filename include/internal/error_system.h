@@ -29,6 +29,7 @@ extern char* _cargs_repeated_args_that_are_errors;      //Contains the argument 
 extern bool _cargs_treat_anonymous_args_as_errors;      //True if anonymous arguments must be treated as errors
 extern bool _cargs_include_argument_zero;               //True if the argument zero (in case of program input, the program name) should be included in the following argument load
 extern bool _cargs_promise_first_ext_arg_char_is_ext_arg;//Promises to the cargs error system that the first extended argument char is the argument and no need to compare strings
+extern bool _cargs_enable_multiple_args_per_data_piece; //Enables multiple options per arg string (like: -abcd) and disables in-option data values (like: -L/mylib/dir/)
 
 /*
     Pushes a new cargs_error to the error buffer
