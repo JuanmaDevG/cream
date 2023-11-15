@@ -19,6 +19,22 @@ inline bool _cargs_streq(const char* _str1, const char* _str2)
     return false;
 }
 
+inline bool _cargs_check_option(_cargs_argument* _option_ptr, const char* _option_location, const bool _is_option_extended)
+{
+    if(!_option_ptr)
+    {
+        _cargs_declare_error(CARGS_NON_EXISTENT, (char*)_updated_argv[0], is_option_extended, NULL);
+        return false;
+    }
+    if(_option_ptr->has_been_used_already && !(_option_ptr->has_permission_to_be_repeated))
+    {
+        _cargs_declare_error(CARGS_REDUNDANT_ARGUMENT, _option_location, _is_option_extended, NULL);
+        return false;
+    }
+    _option_ptr->has_been_used_already = true;
+    return true;
+}
+
 
 //-----------------------------------------------------------------------------------------------------------
 
@@ -62,13 +78,16 @@ _cargs_argument* _cargs_find_extended_argument(const char* ext_arg)
 uint32_t _cargs_add_argument_data(const int _remaining_argc, const char** _updated_argv, _cargs_argument* _actual_arg, const bool _is_it_extended)
 {
     uint32_t data_count = 0;
+
+    //TODO: look for inline data or equals opeartor data and add it
+
     while(data_count < _remaining_argc && _updated_argv[data_count +1/*option not data*/][0] != _arg_id)
     {
         data_count++;
         if(data_count == _actual_arg->data_container->maximum_data_count) break;
     }
 
-    _cargs_data_package pack = {data_count, _updated_argv +1};
+    _cargs_data_package pack = {data_count, (char**)_updated_argv +1, 0};
     _actual_arg->data_container->actual_data_count += data_count;
     _stack_push_block(&(_actual_arg->data_container->data), &pack, 0, sizeof(_cargs_data_package));
 
@@ -81,68 +100,50 @@ uint32_t _cargs_add_argument_data(const int _remaining_argc, const char** _updat
 uint32_t _cargs_read_argument(const int _updated_argc, const char** _updated_argv)
 {
     _cargs_argument* arg_ptr = NULL;
-    uint32_t arg_offset = 1;
-    uint8_t state = 0; //zero -> non extended, one -> extended, two -> anonymous
-    if(_updated_argv[0][0] == _arg_id) //Is arg option
+    bool is_option_extended = false;
+    if(_updated_argv[0][0] == _arg_id) //Argument should be an option
     {
         if(_updated_argv[0][1] == _arg_id) //It is extended
         {
-            state = 1;
+            is_option_extended = true; 
             arg_ptr = _cargs_find_extended_argument(_updated_argv[0] +2);
         }
-        else if(_updated_argv[0][1] == '\0') //It is anonymous because is just the symbol alone
-        {
-            //TODO: just calculate the anonymous args and return the offset
-        }
-        else    //It is a normal argument
-        {
-            //TODO: probably remove this
-        }
+        else arg_ptr = _cargs_find_argument_option(_updated_argv[0][1]);
     }
-    else //Is anonymous arg
+    else    //Argument is anonymous
     {
+        uint32_t arg_offset = 1;
+        while(arg_offset < _updated_argc && _updated_argv[arg_offset][0] != _arg_id)
+            arg_offset++;
+        if(_cargs_treat_anonymous_args_as_errors) return arg_offset;
 
+        _cargs_anon_arg_count += arg_offset;
+        _cargs_data_package pack = {arg_offset, (char**)_updated_argv};
+        _stack_push_block(&_cargs_anonymous_args, &pack, sizeof(_cargs_data_package));
+        return 1;
     }
 
-    for(uint32_t j=1; argv[(*index)][j] != '\0'; j++)
+    if( //Is argument invalid?
+        !_cargs_check_option(arg_ptr, _updated_argv[0] + (is_option_extended ? 2 : 1), is_option_extended) && 
+        is_option_extended
+    ) {
+        return 1;
+    }
+
+    //Can we loop without having in count the equals operator or inline data?
+    if(_cargs_enable_multiple_data_opts && !is_option_extended && _updated_argv[0][2] != '\0')
     {
-        if(_find_argument_char(argv[(*index)][j]))
+        for(uint32_t i=2; _updated_argv[0][i] != '\0'; i++)
         {
-            if( //It is repeated and is treated as an error
-                _cargs_treat_repeated_args_as_errors
-                && _cargs_get_bit(
-                    (_get_actual_read_point() == _cargs_bool_args ? _cargs_bool_bit_vec : _cargs_data_bit_vec),
-                    _get_actual_checkpoint() -1
-                )
-            ) {
-                _cargs_declare_error(argv[*index] +j, false, CARGS_REDUNDANT_ARGUMENT);
-                return false;
-            }
-
-            //Check if data argument and write data
-            if(_get_actual_read_point() == _cargs_data_args)
-            {
-                if(j == 1 && (argv[*index][2] == '=' || argv[*index][2] == '\0'))
-                {
-                    if(!_add_argument_data(argc, argv, index, NULL)) return false;
-                    else
-                    {
-                        _cargs_set_bit(_cargs_data_bit_vec, _get_actual_checkpoint() -1, true);
-                        return true;
-                    }
-                }
-                _cargs_set_bit(_cargs_data_bit_vec, _get_actual_checkpoint() -1, true);
-            }
-            else _cargs_set_bit(_cargs_bool_bit_vec, _get_actual_checkpoint() -1, true);
+            arg_ptr = _cargs_find_argument_option(_updated_argv[0][i]);
+            _cargs_check_option(arg_ptr, _updated_argv[0] +i, false);
         }
-        else
-        {
-            _cargs_declare_error(argv[(*index)] +j, 0, CARGS_NON_EXISTENT);
-            return false;
-        }
+        return 1;
     }
 
-    return true;
+    if(arg_ptr && arg_ptr->data_container) 
+        return _cargs_add_argument_data(_updated_argc, _updated_argv, arg_ptr, is_option_extended);
+    return 1;
 }
 
 extern inline void _cargs_set_data_limit(const char* data_arg_string, va_list arg_limits, uint8_t* write_point)

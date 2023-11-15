@@ -33,16 +33,6 @@ uint8_t _cargs_arg_confirmation_bits[BIT_ASCII_TABLE_SIZE] = {0};
 
 
 /*
-    ---------------------------------
-    Equals operator data pointer bank
-    ---------------------------------
-*/
-
-uint32_t _cargs_bank_stack_pointer = 0;
-char** _cargs_equals_operator_pointer_bank = NULL;
-
-
-/*
     ----------------------------------
     Extended arguments storage buffers
     ----------------------------------

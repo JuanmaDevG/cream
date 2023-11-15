@@ -18,11 +18,10 @@ const char* _cargs_error_strings[] = {
     "is repeated and it is not allowed to repeat argument options."
 };
 
-char* _cargs_repeated_args_that_are_errors = NULL;
 bool _cargs_treat_anonymous_args_as_errors = false;
 bool _cargs_include_argument_zero = false;
 bool _cargs_promise_first_ext_arg_char_is_ext_arg = false;
-bool _cargs_enable_multiple_args_per_data_piece = false;
+bool _cargs_enable_multiple_data_opts = false;
 
 
 /*
