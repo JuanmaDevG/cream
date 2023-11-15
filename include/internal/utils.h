@@ -52,35 +52,16 @@ uint32_t _cargs_add_argument_data(const int remaining_argc, const char** updated
 uint32_t _cargs_read_argument(const int updated_argc, const char** updated_argv);
 
 /*
-    Writes the argument limits (maximum or minimum depending on the write_point) into the 
-    _cargs_maximum_data or _cargs_minimum_data, or any custom buffer.
-
-    The limits are position dependent, so the numbers will be placed the same position as 
-    the argument buffer.
+    
 */
 void _cargs_set_data_limit(const char* data_arg_string, va_list arg_limits, uint8_t* write_point);
 
 /*
-    Stores an anonymous argument package on the anonymous arguments linked list.
-    If The anonymous arguments are separated by another argument (boolean or data arg with limits)
-    cargs will store a new node in the anonymous argument linked list.
-
-    EXAMPLE:
-    Let's assume that "program-name" has an option -f that only allows one argument
-
-    > program-name some-anonymous some-other -f file.txt boo foo bar
-    The anonymous linked list will store:
-    (some-anonymous, some-other)->(boo, foo, bar)
-*/
-void _cargs_store_anonymous_arguments(const int argc, const char** argv, uint32_t* arg_index);
-
-/*
     Checks that mandatory arguments have been written within the program input.
 
-    If any mandatory argument has not been checked, this function will return false and 
-    declare a cargs_error in the cargs_error_code and it's parameters
+    If any mandatory option is not present, pushes the error to the error system.
 */
-bool _cargs_check_mandatory_arguments();
+void _cargs_check_mandatory_arguments();
 
 /*
     Returns the position of the data after the equals operator found in an argument 

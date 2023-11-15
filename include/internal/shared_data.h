@@ -20,7 +20,7 @@ typedef struct _cargs_argument_data {
 } _cargs_argument_data;
 
 typedef struct _cargs_argument {
-    bool is_it_mandatory;                   //If true, the error system will offer the possibility to interpret as error
+    bool is_mandatory;                      //If true, the error system will offer the possibility to interpret as error
     bool has_permission_to_be_repeated;     //If false and has been used, the error system will interpret the argument repetition as an error
     bool has_been_used_already;             //If true, the error system will offer the possibility to interpret it as an error
     _cargs_argument_data* data_container;   //Won't be null if the argument is a data argument
@@ -42,7 +42,8 @@ extern char _arg_id;
 
 extern _expandable_stack _cargs_general_buffer;                         //A buffer for general usage data
 
-extern size_t _cargs_option_count;                                      //Counts the number of argument options 
+extern char* _cargs_declared_options_array;                             //Points to the declared options (first bool options, then data options)
+extern uint32_t _cargs_option_count;                                    //Counts the number of argument options
 extern _cargs_argument* _cargs_declared_arg_options;                    //The memory block that contains the available argument options information
 extern _cargs_argument_data* _cargs_declared_options_data;              //The memory block that contains the input data from the available data argument options
 extern _cargs_argument* _cargs_valid_arg_options[ASCII_TABLE_SIZE];     //A list of pointers to the memory block that contains the information from available arguments

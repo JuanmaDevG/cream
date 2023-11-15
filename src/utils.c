@@ -23,12 +23,12 @@ inline bool _cargs_check_option(_cargs_argument* _option_ptr, const char* _optio
 {
     if(!_option_ptr)
     {
-        _cargs_declare_error(CARGS_NON_EXISTENT, (char*)_updated_argv[0], is_option_extended, NULL);
+        _cargs_declare_error(CARGS_NON_EXISTENT, (char*)_option_location, _is_option_extended, NULL);
         return false;
     }
     if(_option_ptr->has_been_used_already && !(_option_ptr->has_permission_to_be_repeated))
     {
-        _cargs_declare_error(CARGS_REDUNDANT_ARGUMENT, _option_location, _is_option_extended, NULL);
+        _cargs_declare_error(CARGS_REDUNDANT_ARGUMENT, (char*)_option_location, _is_option_extended, NULL);
         return false;
     }
     _option_ptr->has_been_used_already = true;
@@ -79,9 +79,33 @@ uint32_t _cargs_add_argument_data(const int _remaining_argc, const char** _updat
 {
     uint32_t data_count = 0;
 
-    //TODO: look for inline data or equals opeartor data and add it
+    //Looking for inline data or equals opeartor data and add it
+    if(!_cargs_enable_multiple_opts_per_arg)
+    {
+        if(_actual_arg->data_container->minimum_data_count > 1) //Invalid?
+        {
+            _cargs_declare_error(CARGS_NOT_ENOUGH_DATA, _updated_argv[0], _is_it_extended, NULL);
+            return 1;
+        }
 
-    while(data_count < _remaining_argc && _updated_argv[data_count +1/*option not data*/][0] != _arg_id)
+        if(!_is_it_extended && _updated_argv[0][2] != '\0' && _updated_argv[0][2] != '=') //Inline data?
+        {
+            _cargs_data_package pack = {1, (char**)_updated_argv, 2};
+            _stack_push_block(&(_actual_arg->data_container->data), &pack, sizeof(_cargs_data_package));
+        }
+
+        for(uint8_t i=2; _updated_argv[0][i] != '\0'; i++) //Equals Operator?
+        {
+            if(_updated_argv[0][i] == '=' && _updated_argv[0][i+1] != '\0')
+            {
+                _cargs_data_package pack = {1, (char**)_updated_argv, i+1};
+                _stack_push_block(&(_actual_arg->data_container->data), &pack, sizeof(_cargs_data_package));
+                _actual_arg->data_container->actual_data_count += 1;
+            }
+        }
+    }
+
+    while(data_count < _remaining_argc && _updated_argv[data_count +1/*opt is not arg*/][0] != _arg_id)
     {
         data_count++;
         if(data_count == _actual_arg->data_container->maximum_data_count) break;
@@ -92,7 +116,7 @@ uint32_t _cargs_add_argument_data(const int _remaining_argc, const char** _updat
     _stack_push_block(&(_actual_arg->data_container->data), &pack, 0, sizeof(_cargs_data_package));
 
     if(data_count < _actual_arg->data_container->minimum_data_count)
-        _cargs_declare_error(CARGS_NOT_ENOUGH_DATA, _updated_argv[0] + (_is_it_extended ? 2 : 1), _is_it_extended, NULL);
+        _cargs_declare_error(CARGS_NOT_ENOUGH_DATA, _updated_argv[0], _is_it_extended, NULL);
     
     return data_count +1; /*plus the arg option offset*/
 }
@@ -124,14 +148,15 @@ uint32_t _cargs_read_argument(const int _updated_argc, const char** _updated_arg
     }
 
     if( //Is argument invalid?
-        !_cargs_check_option(arg_ptr, _updated_argv[0] + (is_option_extended ? 2 : 1), is_option_extended) && 
-        is_option_extended
+        (   !_cargs_check_option(arg_ptr, _updated_argv[0], is_option_extended) && 
+            is_option_extended
+        ) || _updated_argv[0][1] == '\0' //Just a lonely arg id
     ) {
         return 1;
     }
 
     //Can we loop without having in count the equals operator or inline data?
-    if(_cargs_enable_multiple_data_opts && !is_option_extended && _updated_argv[0][2] != '\0')
+    if(_cargs_enable_multiple_opts_per_arg && !is_option_extended)
     {
         for(uint32_t i=2; _updated_argv[0][i] != '\0'; i++)
         {
@@ -148,6 +173,7 @@ uint32_t _cargs_read_argument(const int _updated_argc, const char** _updated_arg
 
 extern inline void _cargs_set_data_limit(const char* data_arg_string, va_list arg_limits, uint8_t* write_point)
 {
+    //TODO: Change this function to make it work
     if(!write_point) return;
     for(uint32_t i=0; data_arg_string[i] != '\0'; i++)
     {
@@ -156,37 +182,17 @@ extern inline void _cargs_set_data_limit(const char* data_arg_string, va_list ar
     }
 }
 
-void _cargs_store_anonymous_arguments(const int argc, const char* argv[], uint32_t* arg_index)
+void _cargs_check_mandatory_arguments()
 {
-    uint32_t count = 1;                         //We know this position contains anonymous arg
-    const uint32_t anon_arg_pack_position = (*arg_index);  //Store the first position for the anonymous list node
-    (*arg_index)++;
-    while((*arg_index) < (uint32_t)argc && argv[(*arg_index)][0] != _arg_id) //Count anonymous arguments
+    for(uint32_t i=0; i < _cargs_option_count; i++)
     {
-        count++;
-        (*arg_index)++;
-    }
-    (*arg_index)--;     //Next iteration, the index variable will increment
-    _cargs_anon_arg_count += count;
-    _cargs_push_list_node(&_cargs_anon_args, &_cargs_anon_last, argv + anon_arg_pack_position, count);
-}
-
-bool _cargs_check_mandatory_arguments()
-{
-    for(uint32_t i=0; i < _cargs_mandatory_arg_count; i++)
-    {
-        if(!_cargs_mandatory_args[i].read_point) break; //NULL read point means no more mandatory args
-        if(!_cargs_get_bit(_cargs_mandatory_args[i].read_point, _cargs_mandatory_args[i].position))
-        {
-            _cargs_declare_error(
-                (_cargs_mandatory_args[i].read_point == _cargs_bool_bit_vec ? _cargs_bool_args : _cargs_data_args) + _cargs_mandatory_args[i].position,
-                0, CARGS_MANDATORY
-            );
-            return false;
+        if(
+            _cargs_declared_arg_options[i].is_mandatory &&
+            !_cargs_declared_arg_options[i].has_been_used_already
+        ) {
+            _cargs_declare_error(CARGS_MANDATORY, _cargs_declared_arg_options +i, false, NULL);
         }
     }
-
-    return true;
 }
 
 extern inline uint32_t _cargs_search_equals_operator(const char* argument_pointer)
