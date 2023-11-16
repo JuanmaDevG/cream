@@ -1,6 +1,5 @@
 #include "utils.h"
 
-
 inline bool _cargs_streq(const char* _str1, const char* _str2)
 {
     if(!(_str1 && _str2)) return false;
@@ -141,7 +140,6 @@ uint32_t _cargs_read_argument(const int _updated_argc, const char** _updated_arg
             arg_offset++;
         if(_cargs_treat_anonymous_args_as_errors) return arg_offset;
 
-        _cargs_anon_arg_count += arg_offset;
         _cargs_data_package pack = {arg_offset, (char**)_updated_argv};
         _stack_push_block(&_cargs_anonymous_args, &pack, sizeof(_cargs_data_package));
         return 1;
@@ -171,14 +169,20 @@ uint32_t _cargs_read_argument(const int _updated_argc, const char** _updated_arg
     return 1;
 }
 
-extern inline void _cargs_set_data_limit(const char* data_arg_string, va_list arg_limits, uint8_t* write_point)
+extern inline void _cargs_set_data_limit(const char* _options_array, va_list _arg_limits, uint8_t _config_type)
 {
     //TODO: Change this function to make it work
-    if(!write_point) return;
-    for(uint32_t i=0; data_arg_string[i] != '\0'; i++)
+    _cargs_argument* current_opt;
+    for(uint32_t i=0; _options_array[i] != '\0'; i++)
     {
-        if(_find_argument_char(data_arg_string[i]))
-            write_point[_get_actual_checkpoint() -1] = (uint8_t)va_arg(arg_limits, int);
+        current_opt = _cargs_find_argument_option(_options_array[i]);
+        if(current_opt && current_opt->data_container)
+        {
+            if(_config_type == CARGS_DATA_LIMIT_MAX) 
+                current_opt->data_container->maximum_data_count = (uint8_t)va_arg(_arg_limits, int);
+            else 
+                current_opt->data_container->minimum_data_count = (uint8_t)va_arg(_arg_limits, int);
+        }
     }
 }
 
@@ -193,88 +197,4 @@ void _cargs_check_mandatory_arguments()
             _cargs_declare_error(CARGS_MANDATORY, _cargs_declared_arg_options +i, false, NULL);
         }
     }
-}
-
-extern inline uint32_t _cargs_search_equals_operator(const char* argument_pointer)
-{
-    for(uint32_t i=0; argument_pointer[i] != '\0'; i++)
-        if(argument_pointer[i] == '=') return i+1;
-    return 0;
-}
-
-extern inline bool _cargs_store_equals_operator_data(const char* data_pointer, const uint32_t associated_option)
-{
-    if(_cargs_bank_stack_pointer == _cargs_data_args_count) return false; //The pointer bank is full
-
-    _cargs_data_packs[associated_option].count = 1;
-    _cargs_equals_operator_pointer_bank[_cargs_bank_stack_pointer] = (char*)data_pointer;
-    _cargs_data_packs[associated_option].values = _cargs_equals_operator_pointer_bank + _cargs_bank_stack_pointer;
-    _cargs_bank_stack_pointer++;
-    return true;
-}
-
-extern inline bool _cargs_configure_and_store_equals_operator_data(const char* arg_option, const uint32_t associated_option)
-{
-    const uint32_t cur_data_location = _cargs_search_equals_operator(arg_option);
-    if(cur_data_location != 0)
-    {
-        _cargs_set_bit(_cargs_data_bit_vec, associated_option, true);
-        _cargs_store_equals_operator_data(arg_option + cur_data_location, associated_option);
-        return true;
-    }
-
-    return false;
-}
-
-extern inline void _cargs_remove_redundant_args_linked_lists()
-{
-    for(uint32_t i=0; i < _cargs_data_args_count; i++)
-    {
-        if(_cargs_get_bit(_cargs_is_data_relocated_bit_vec, i))
-            free(_cargs_data_packs[i].values);
-        else //data getter was never used so deallocate linked list
-            _cargs_free_data_list(_cargs_redundant_opt_data + i);
-    }
-}
-
-extern inline void _cargs_reset_ext_arg_buffers()
-{
-    if(_cargs_ext_args)
-    {
-        free(_cargs_ext_args);
-        _cargs_ext_args = NULL;
-    }
-}
-
-extern inline void _cargs_reset_mandatory_arg_buffers()
-{
-    if(_cargs_mandatory_args) 
-    { 
-        free(_cargs_mandatory_args); 
-        _cargs_mandatory_args = NULL; 
-        _cargs_mandatory_arg_count = 0; 
-    }
-}
-
-extern inline void _cargs_reset_error_buffers()
-{
-    if(_cargs_error_argument)
-    {
-        _cargs_error_argument = NULL;
-        free(_cargs_error_buffer_str); _cargs_error_buffer_str = NULL;
-        cargs_error_code = CARGS_NO_ERROR;
-    }
-}
-
-extern inline void _cargs_remove_anonymous_arguments()
-{
-    if(_cargs_anonymous_relocated_args) 
-    {
-        free(_cargs_anonymous_relocated_args); 
-        _cargs_anonymous_relocated_args = NULL; 
-        _cargs_anonymous_relocated_buf_size = 0;
-    }
-
-    while(_cargs_anon_args) _cargs_delete_list_head(&_cargs_anon_args, &_cargs_anon_last);
-    _cargs_anon_arg_count = 0;
 }

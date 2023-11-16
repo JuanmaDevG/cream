@@ -56,21 +56,14 @@ void _stack_copy_cache(void* dst, const _expandable_stack* src, const size_t off
 void _stack_free_expandable(_expandable_stack*);
 
 /*
-    Will return the pointer to the memory block requested (first block starts by zero).
-    If The block is not available returns NULL
-
-    The size of the block is MEM_BLOCK_SIZE
+    Compares the memory block and the expandable stack with the selected size and offset.
+    
+    If the defined block to compare is equal to the block
 */
-void* _stack_get_block_ptr(const _expandable_stack* exp_stack, uint32_t block_id);
+bool _stack_memcmp(const void* block, const _expandable_stack* exp_stack, const size_t stack_offset, size_t block_size);
 
 /*
     TODO:
-    Returns the boolean value that determines if the memory block is equal to the expandable stack
-*/
-bool _stack_memcmp(const void* block, const _expandable_stack* exp_stack);
-
-/*
-    TODO:
-    Returns the boolean value that determines if both expandable stacks are equal
+    Returns the boolean value that determines if both expandable stacks are equal in terms of cached memory
 */
 bool _stack_memcmp_stack(const _expandable_stack* exp_stack1, const _expandable_stack* exp_stack2);

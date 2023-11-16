@@ -8,6 +8,8 @@
 #include "error_system.h"
 #include "bit_vec_ops.h"
 
+enum _cargs_data_limit_config { CARGS_DATA_LIMIT_MAX, CARGS_DATA_LIMIT_MIN };
+
 
 /*
     Simply returns true if the argument character has been declared on the available arguments 
@@ -52,72 +54,16 @@ uint32_t _cargs_add_argument_data(const int remaining_argc, const char** updated
 uint32_t _cargs_read_argument(const int updated_argc, const char** updated_argv);
 
 /*
-    
+    Sets the data limit to the given options in the char array.
+
+    Uses a _cargs_data_limit_config to select maximum or minimum.
+    If an option does not exist, cargs will ignore it.
 */
-void _cargs_set_data_limit(const char* data_arg_string, va_list arg_limits, uint8_t* write_point);
+void _cargs_set_data_limit(const char* options_array, va_list arg_limits, uint8_t config_type);
 
 /*
     Checks that mandatory arguments have been written within the program input.
 
-    If any mandatory option is not present, pushes the error to the error system.
+    If any mandatory option is not present, it declares the error to the error system.
 */
 void _cargs_check_mandatory_arguments();
-
-/*
-    Returns the position of the data after the equals operator found in an argument 
-    option.
-
-    If the opeartor is not found returns zero
-*/
-uint32_t _cargs_search_equals_operator(const char* argument_pointer);
-
-/*
-    Stores the equals operator data with it's associated option.
-
-    WARNING:
-    This is made overloading the _cargs_equals_operator_pointer_bank so when the 
-    bank is full the function will return FALSE and no data will be added.
-
-    It is recommended to use the argument with equals just once per defined argument:
-    > program_name -f=file.txt -I=include_dir\ (DON't) -f=another_different_file.txt
-*/
-bool _cargs_store_equals_operator_data(const char* data_pointer, const uint32_t associated_option);
-
-/*
-    Searches the equals operator in the argument given and if found, stores the data into the argument 
-    package vector using the pointer bank as nexus to directly point to the argument data.
-*/
-bool _cargs_configure_and_store_equals_operator_data(const char* arg_option, const uint32_t associated_option);
-
-/*
-    Free the memory blocks that have been relocated during getters 
-    or free redundant arg data linked lists.
-
-    WARNING:
-    Does not set any pointer to NULL
-*/
-void _cargs_remove_redundant_args_linked_lists();
-
-/*
-    Frees the extended argument buffers and sets the pointers 
-    NULL to let them be reused
-*/
-void _cargs_reset_ext_arg_buffers();
-
-/*
-    Frees the mandatory argument buffers and sets the pointers 
-    to NULL to let them be reused
-*/
-void _cargs_reset_mandatory_arg_buffers();
-
-/*
-    Frees the error argument buffers and sets the pointers 
-    to NULL to let them be reused
-*/
-void _cargs_reset_error_buffers();
-
-/*
-    Removes all the anonymous argument buffers cached after 
-    any argument load
-*/
-void _cargs_remove_anonymous_arguments();

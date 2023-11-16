@@ -42,7 +42,7 @@ extern char _arg_id;
 
 extern _expandable_stack _cargs_general_buffer;                         //A buffer for general usage data
 
-extern char* _cargs_declared_options_array;                             //Points to the declared options (first bool options, then data options)
+extern char* _cargs_declared_option_chars;                              //Points to the declared options (first bool options, then data options)
 extern uint32_t _cargs_option_count;                                    //Counts the number of argument options
 extern _cargs_argument* _cargs_declared_arg_options;                    //The memory block that contains the available argument options information
 extern _cargs_argument_data* _cargs_declared_options_data;              //The memory block that contains the input data from the available data argument options
@@ -53,6 +53,5 @@ extern uint8_t _cargs_arg_confirmation_bits[BIT_ASCII_TABLE_SIZE];      //Confir
 extern size_t _cargs_ext_arg_count;                                     //Stores the extended argument count
 extern char** _cargs_ext_args;                                          //Stores all the extended argument strings
 
-extern uint32_t _cargs_anon_arg_count;                                  //Counts all the available anonymous arguments
 extern _expandable_stack _cargs_anonymous_args;                         //Contains _cargs_data_package objects that point to anonymous arguments groups
 extern char** _cargs_anonymous_relocated_args;                          //Extracts the buffer information to generate

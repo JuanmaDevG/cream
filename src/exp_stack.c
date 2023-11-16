@@ -46,6 +46,18 @@ inline _linked_mem_block* get_block(const _expandable_stack* _exp_stack, const s
     return block;
 }
 
+inline bool are_bytes_unreachable(const _expandable_stack* _exp_stack, const size_t _offset, const size_t _block_size)
+{
+    if(
+        _exp_stack->byte_count == 0 || 
+        _offset >= _exp_stack->byte_count ||
+        _offset + _block_size > _exp_stack->byte_count
+    ) {
+        return true;
+    }
+    return false;
+}
+
 
 // ---------------------------------------------------------------------------------------------------
 
@@ -91,11 +103,7 @@ void _stack_push_block(_expandable_stack* _exp_stack, const void* _mem_src, size
 
 void _stack_copy_cache(void* _mem_dst, const _expandable_stack* _exp_stack, const size_t _offset, size_t _size_limit)
 {
-    if( //Are bytes unreachable?
-        _exp_stack->byte_count == 0 || 
-        _offset >= _exp_stack->byte_count ||
-        _offset + _size_limit > _exp_stack->byte_count
-    ) return;
+    if(are_bytes_unreachable(_exp_stack, _offset, _size_limit)) return;
 
     _linked_mem_block* actual_block = get_block(_exp_stack, _offset);
     size_t 
@@ -155,4 +163,22 @@ void _stack_free_expandable(_expandable_stack* _exp_stack)
     }
     _exp_stack->first = NULL;
     _exp_stack->last = NULL;
+}
+
+bool _stack_memcmp(const void* _block, const _expandable_stack* _exp_stack, const size_t _offset, size_t _block_size)
+{
+    if(are_bytes_unreachable(_exp_stack, _offset, _block_size) || _block_size == 0) return false;
+
+    _linked_mem_block* block = get_block(_exp_stack, _offset);
+    if(
+        memcmp(
+            (!block ? _exp_stack->main_block + _offset : block->block + (_offset % MEM_BLOCK_SIZE)),
+            _block, 
+            
+        )
+    ) {
+        return false;
+    }
+
+    return true;
 }

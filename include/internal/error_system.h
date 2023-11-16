@@ -36,6 +36,14 @@ extern bool _cargs_enable_multiple_opts_per_arg;        //Enables multiple data 
 void _cargs_declare_error(const uint32_t error_type, const char* error_arg, const bool is_extended, const char* optional_plot_twist);
 
 /*
+    Removes all the cached errors BUT DOES NOT CHANGE the error caching flags state.
+
+    For example:
+    If _cargs_treat_aonymous_args_as_errors is set to true, it will keep true
+*/
+void _cargs_reset_error_system();
+
+/*
     Returns an array of errors
 */
-cargs_error* _cargs_get_errors();
+cargs_error* _cargs_get_error_str();
