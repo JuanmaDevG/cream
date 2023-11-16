@@ -39,7 +39,7 @@ inline bool _cargs_check_option(_cargs_argument* _option_ptr, const char* _optio
 
 extern inline _cargs_argument* _cargs_find_argument_option(const char _character)
 {
-    if(_character < INVALID_CHARS) return NULL;
+    if(_character < INVALID_CHARS || _character >= INVALID_CHARS + ASCII_TABLE_SIZE) return NULL;
     return _cargs_valid_arg_options[_character - INVALID_CHARS];
 }
 

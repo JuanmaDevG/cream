@@ -1,6 +1,6 @@
 #include "exp_stack.h"
 
-enum _stack_process_block_mode {PROCESS_MODE_COPY, PROCESS_MODE_COMPARE, PROCESS_MODE_REPLACE};
+enum _stack_process_block_mode {PROCESS_MODE_COPY, PROCESS_MODE_COMPARE, PROCESS_MODE_REPLACE, PROCESS_MODE_POP};
 
 typedef struct {
     uint8_t confirmed_bytes;
@@ -207,7 +207,7 @@ void _stack_free_expandable(_expandable_stack* _exp_stack)
 
 bool _stack_memcmp(const void* _block, const _expandable_stack* _exp_stack, const size_t _offset, size_t _block_size)
 {
-    if(are_bytes_unreachable(_exp_stack, _offset, _block_size) || _block_size == 0) return false;
+    _stack_block_info info = process_first_block(_block, _exp_stack, _offset, _block_size, PROCESS_MODE_COMPARE);
 
     //TODO: make this work
 

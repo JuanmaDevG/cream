@@ -37,7 +37,8 @@ typedef struct _cargs_argument {
 extern char _arg_id;
 
 #define INVALID_CHARS 33
-#define ASCII_TABLE_SIZE (256 - INVALID_CHARS)
+#define INVALID_CHARS_FRONT 127
+#define ASCII_TABLE_SIZE (256 - INVALID_CHARS - INVALID_CHARS_FRONT)
 #define BIT_ASCII_TABLE_SIZE ((ASCII_TABLE_SIZE / 8) +1)
 
 extern _expandable_stack _cargs_general_buffer;                         //A buffer for general usage data
