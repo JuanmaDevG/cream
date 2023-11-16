@@ -170,15 +170,21 @@ bool _stack_memcmp(const void* _block, const _expandable_stack* _exp_stack, cons
     if(are_bytes_unreachable(_exp_stack, _offset, _block_size) || _block_size == 0) return false;
 
     _linked_mem_block* block = get_block(_exp_stack, _offset);
+    size_t
+        inblock_position = (_offset % MEM_BLOCK_SIZE), 
+        confirmed_actual_byte_block = (_block_size > MEM_BLOCK_SIZE - inblock_position ? MEM_BLOCK_SIZE - inblock_position : _block_size);
+
     if(
         memcmp(
-            (!block ? _exp_stack->main_block + _offset : block->block + (_offset % MEM_BLOCK_SIZE)),
+            (!block ? _exp_stack->main_block + _offset : block->block + inblock_position),
             _block, 
-            
+            confirmed_actual_byte_block
         )
     ) {
         return false;
     }
+
+    //TODO Make this func work
 
     return true;
 }
