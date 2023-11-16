@@ -137,7 +137,7 @@ void cargs_associate_extended(const char* arg_characters, ...) {
         and so the raw memory can be copied literally
     */
     _cargs_ext_arg_count = count;
-    _stack_copy_cache(_cargs_ext_args, &_cargs_general_buffer, 0, 0);
+    _stack_copy_cached_block(_cargs_ext_args, &_cargs_general_buffer, 0, 0);
     _stack_free_expandable(&_cargs_general_buffer);
     va_end(arg_l);
 }

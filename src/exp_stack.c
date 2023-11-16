@@ -1,5 +1,12 @@
 #include "exp_stack.h"
 
+enum _stack_process_block_mode {PROCESS_MODE_COPY, PROCESS_MODE_COMPARE, PROCESS_MODE_REPLACE};
+
+typedef struct {
+    uint8_t confirmed_bytes;
+    _linked_mem_block* next_block;
+} _stack_block_info;
+
 
 /*
     Adds a new node and locates the pointer to the stack top and the remaining block bytes
@@ -27,10 +34,10 @@ void add_node(_expandable_stack* _exp_stack)
 
 /*
     Gets the memory bloc location based on the offset.
-    If returns NULL, the offset is located in the first block (the main block).
+    It returns NULL, the offset is located in the first block (the main block).
 
     WARNING:
-    Make sure that the offset is in byte count bounds, otherwise will also return NULL;
+    Make sure that the offset is in byte count bounds, use are_bytes_unreachable() function
 */
 inline _linked_mem_block* get_block(const _expandable_stack* _exp_stack, const size_t _offset)
 {
@@ -56,6 +63,61 @@ inline bool are_bytes_unreachable(const _expandable_stack* _exp_stack, const siz
         return true;
     }
     return false;
+}
+
+/*
+    Returns the second block to process after processing the first block, 
+    or returns NULL if there is no more memory to read or memory is unreachable 
+    because of the offset + the block size.
+*/
+inline _stack_block_info process_first_block(void* _client_block, _expandable_stack* _exp_stack, size_t _stack_offset, size_t _client_block_size, const uint8_t process_mode)
+{
+    if(are_bytes_unreachable(_exp_stack, _stack_offset, _client_block_size)) 
+    {
+        _stack_block_info err_info = {0, NULL};
+        return err_info;
+    }
+
+    _linked_mem_block* block = get_block(_exp_stack, _stack_offset);
+    uint8_t* stack_mem_read_point = (block ? block->block : _exp_stack->main_block);
+    if(block)
+    {
+        stack_mem_read_point = block->block;
+        block = block->next;
+    }
+    else
+    {
+        stack_mem_read_point = _exp_stack->main_block;
+        block = _exp_stack->first;
+    }
+    bool finished = false;
+
+    //Inblock offset
+    _stack_offset = (_stack_offset % MEM_BLOCK_SIZE);
+    //Block size to read (assumes bytes are always reachable)
+    if(_client_block_size > MEM_BLOCK_SIZE - _stack_offset)
+        _client_block_size = MEM_BLOCK_SIZE - _stack_offset;
+    else finished = true;
+
+    switch(process_mode)
+    {
+    case PROCESS_MODE_COPY:
+        memcpy(_client_block, stack_mem_read_point + _stack_offset, _client_block_size);
+        break;
+    case PROCESS_MODE_COMPARE:
+        memcmp(_client_block, stack_mem_read_point + _stack_offset, _client_block_size);
+        break;
+    case PROCESS_MODE_REPLACE:
+        //TODO when function is defined
+        finished = true;
+        break;
+    default:
+        finished = true;
+    }
+
+    if(finished) block = NULL;
+    _stack_block_info info = {(uint8_t)_client_block_size, block};
+    return info;
 }
 
 
@@ -101,57 +163,35 @@ void _stack_push_block(_expandable_stack* _exp_stack, const void* _mem_src, size
     if(_exp_stack->block_bytes_left == 0) _exp_stack->p_stack_top = NULL; //No bytes left
 }
 
-void _stack_copy_cache(void* _mem_dst, const _expandable_stack* _exp_stack, const size_t _offset, size_t _size_limit)
+void _stack_copy_cached_block(void* _mem_dst, const _expandable_stack* _exp_stack, const size_t _offset, size_t _size_limit)
 {
-    if(are_bytes_unreachable(_exp_stack, _offset, _size_limit)) return;
+    if(!_mem_dst) return;
+    if(!_size_limit) 
+        _size_limit = _exp_stack->byte_count;
 
-    _linked_mem_block* actual_block = get_block(_exp_stack, _offset);
-    size_t 
-        inblock_position = (_offset % MEM_BLOCK_SIZE), 
-        confirmed_bytes;
-    bool read_whole_mem = (!_size_limit);
-
-    //First copy is made based on the first block to start reading and inblock_position
-    confirmed_bytes = (read_whole_mem || _size_limit > MEM_BLOCK_SIZE - inblock_position ? MEM_BLOCK_SIZE - inblock_position : _size_limit);
-    memcpy(
-        _mem_dst, (actual_block ? actual_block->block : _exp_stack->main_block) + inblock_position, confirmed_bytes 
-    );
-    //If we're not reading the whole memory and no more memory to read, done
-    if(!read_whole_mem)
+    _linked_mem_block* actual_block; size_t confirmed_bytes;
     {
-        _size_limit -= confirmed_bytes;
-        if(_size_limit == 0) return;
+        _stack_block_info result = process_first_block(_mem_dst, _exp_stack, _offset, _size_limit, PROCESS_MODE_COPY);
+        actual_block = result.next_block;
+        confirmed_bytes = (size_t)result.confirmed_bytes;
     }
-    
-    //Locate the following memory block
-    if(actual_block) actual_block = actual_block->next;
-    else actual_block = _exp_stack->first;
+    if(!actual_block) return; //Finished
 
-    bool enough_mem_to_read = true;
+    _size_limit -= confirmed_bytes;
     size_t block_to_read = 0;
-    while((_size_limit > 0 || confirmed_bytes < _exp_stack->byte_count) && enough_mem_to_read)
+    while(_size_limit > 0)
     {
-        if(_size_limit > MEM_BLOCK_SIZE)  //Size limit is defined
+        if(_size_limit > MEM_BLOCK_SIZE)
             block_to_read = MEM_BLOCK_SIZE;
-        else if(read_whole_mem) //No size limit, so look to byte count
-        {
-            if(confirmed_bytes + MEM_BLOCK_SIZE > _exp_stack->byte_count)
-                block_to_read = MEM_BLOCK_SIZE - (confirmed_bytes + MEM_BLOCK_SIZE - _exp_stack->byte_count);
-            else block_to_read = MEM_BLOCK_SIZE;
-        }
-        else if(confirmed_bytes + _size_limit > _exp_stack->byte_count) //Not enough writable memory
-        {
-            block_to_read = _exp_stack->byte_count - confirmed_bytes;
-            enough_mem_to_read = false;
-        }
         else block_to_read = _size_limit;
-        memcpy((uint8_t)_mem_dst + confirmed_bytes, actual_block->block, block_to_read);
+        memcpy((uint8_t*)_mem_dst + confirmed_bytes, actual_block->block, block_to_read);
         _size_limit -= block_to_read;
     }
 }
 
 void _stack_free_expandable(_expandable_stack* _exp_stack)
 {
+    if(!_exp_stack) return;
     _exp_stack->byte_count = 0; 
     _exp_stack->block_bytes_left = MEM_BLOCK_SIZE;
     _exp_stack->p_stack_top = _exp_stack->main_block;
@@ -169,22 +209,7 @@ bool _stack_memcmp(const void* _block, const _expandable_stack* _exp_stack, cons
 {
     if(are_bytes_unreachable(_exp_stack, _offset, _block_size) || _block_size == 0) return false;
 
-    _linked_mem_block* block = get_block(_exp_stack, _offset);
-    size_t
-        inblock_position = (_offset % MEM_BLOCK_SIZE), 
-        confirmed_actual_byte_block = (_block_size > MEM_BLOCK_SIZE - inblock_position ? MEM_BLOCK_SIZE - inblock_position : _block_size);
-
-    if(
-        memcmp(
-            (!block ? _exp_stack->main_block + _offset : block->block + inblock_position),
-            _block, 
-            confirmed_actual_byte_block
-        )
-    ) {
-        return false;
-    }
-
-    //TODO Make this func work
+    //TODO: make this work
 
     return true;
 }

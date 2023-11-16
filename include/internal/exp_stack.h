@@ -13,7 +13,7 @@
 #include <stdbool.h>
 #include <memory.h>
 
-#define MEM_BLOCK_SIZE 128
+#define MEM_BLOCK_SIZE 64
 
 typedef struct _linked_mem_block {
     uint8_t block[MEM_BLOCK_SIZE];
@@ -44,8 +44,12 @@ void _stack_push_block(_expandable_stack* dst, const void* src, size_t size);
 /*
     Copies the data to a contiguous memory block.
     If the block size limit is zero, copies all the data.
+
+    WARNING:
+    If the block size to read + the offset to take are bigger than the byte count, nothing 
+    will be read.
 */
-void _stack_copy_cache(void* dst, const _expandable_stack* src, const size_t offset, size_t block_size_limit);
+void _stack_copy_cached_block(void* dst, const _expandable_stack* src, const size_t stack_offset, size_t block_size_limit);
 
 /*
     Frees all the extra memory blocks and restarts the stack pointer and the byte count
