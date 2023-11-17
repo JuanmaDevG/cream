@@ -94,11 +94,6 @@ static inline bool process_block(void* _client_block, uint8_t* _p_raw_block, con
     return true;
 }
 
-static inline uint8_t/*TODO: stack process finish state enum*/ process_blocks()
-{
-    //TODO
-}
-
 /*
     Returns the second block to process after processing the first block, 
     or returns NULL if there is no more memory to read.
@@ -145,6 +140,47 @@ static _stack_block_info process_first_block(void* _client_block, _expandable_st
     return info;
 }
 
+/*
+    Returns false if anything went wrong while block processing
+*/
+static inline bool process_all_blocks(void* _client_block, _expandable_stack* _exp_stack, const size_t _offset, const size_t _block_size, const uint8_t _process_block_mode)
+{
+    if(
+        !(_client_block && _block_size) ||
+        are_bytes_unreachable(_exp_stack, _offset, _block_size)
+    ) return false;
+
+    _linked_mem_block* block;
+    size_t confirmed_bytes;
+    {
+        _stack_block_info info = process_first_block(_client_block, _exp_stack, _offset, _block_size, _process_block_mode);
+        block = info.next_block;
+        confirmed_bytes = (size_t)info.confirmed_bytes;
+    }
+    if(!confirmed_bytes) return false;
+
+    while(block && confirmed_bytes < _block_size)
+    {
+        if(_block_size - confirmed_bytes > MEM_BLOCK_SIZE)
+        {
+            if(
+                !process_block((uint8_t*)_client_block + confirmed_bytes, block->block, MEM_BLOCK_SIZE, _process_block_mode)
+            ) return false;
+            confirmed_bytes += MEM_BLOCK_SIZE;
+        }
+        else
+        {
+            if(
+                !process_block((uint8_t*)_client_block + confirmed_bytes, block->block, _block_size - confirmed_bytes, _process_block_mode)
+            ) return false;
+            confirmed_bytes = _block_size; //Finished confirmed bytes
+        }
+        block = block->next;
+    }
+
+    return true;
+}
+
 // ---------------------------------------------------------------------------------------------------
 //                                  External linkage functions
 // ---------------------------------------------------------------------------------------------------
@@ -156,6 +192,22 @@ _expandable_stack* _stack_create_expandable()
     target->first = NULL; target->last = NULL;
     target->byte_count = 0;
     target->block_bytes_left = MEM_BLOCK_SIZE;
+}
+
+void _stack_free_expandable(_expandable_stack* _exp_stack)
+{
+    if(!_exp_stack) return;
+    _exp_stack->byte_count = 0; 
+    _exp_stack->block_bytes_left = MEM_BLOCK_SIZE;
+    _exp_stack->p_stack_top = _exp_stack->main_block;
+    for(_linked_mem_block* block = _exp_stack->first; block; block = block->next)
+    {
+        _exp_stack->first = block->next;
+        free(block);
+        block = _exp_stack->first;
+    }
+    _exp_stack->first = NULL;
+    _exp_stack->last = NULL;
 }
 
 void _stack_push_block(_expandable_stack* _exp_stack, const void* _mem_src, size_t _block_size)
@@ -189,100 +241,49 @@ void _stack_push_block(_expandable_stack* _exp_stack, const void* _mem_src, size
     if(_exp_stack->block_bytes_left == 0) _exp_stack->p_stack_top = NULL; //No bytes left
 }
 
-bool _stack_replace_block(void* _client_block, _expandable_stack* _exp_stack, const size_t _offset, const size_t _block_size)
+bool _stack_replace_block(void* _client_block, _expandable_stack* _exp_stack, const size_t _offset, size_t _block_size)
 {
-    if(are_bytes_unreachable(_exp_stack, _offset, _block_size)) return false;
-
-    //TODO: make the generic function process_blocks() and remove all redundant code
-
-    _linked_mem_block* block; size_t confirmed_bytes;
-    {
-        _stack_block_info info = process_first_block(_client_block, _exp_stack, _offset, _block_size, PROCESS_MODE_REPLACE);
-        block = info.next_block;
-        confirmed_bytes = info.confirmed_bytes;
-    }
-    if(!block) return true;
-
-    //Do not continue here for the moment
-
-    return true;
+    return process_all_blocks(_client_block, _exp_stack, _offset, _block_size, PROCESS_MODE_REPLACE);
 }
 
-void _stack_copy_cached_block(void* _mem_dst, const _expandable_stack* _exp_stack, const size_t _offset, size_t _size_limit)
+bool _stack_copy_cached_block(void* _client_block, const _expandable_stack* _exp_stack, const size_t _offset, size_t _client_block_size)
 {
-    if(!_mem_dst || are_bytes_unreachable(_exp_stack, _offset, _size_limit)) return;
-    if(!_size_limit) 
-        _size_limit = _exp_stack->byte_count;
-
-    _linked_mem_block* actual_block; size_t confirmed_bytes;
-    {
-        _stack_block_info result = process_first_block(_mem_dst, _exp_stack, _offset, _size_limit, PROCESS_MODE_COPY);
-        actual_block = result.next_block;
-        confirmed_bytes = (size_t)result.confirmed_bytes;
-    }
-    if(!actual_block) return; //Finished
-
-    _size_limit -= confirmed_bytes;
-    size_t block_to_read = 0;
-    while(_size_limit > 0)
-    {
-        if(_size_limit > MEM_BLOCK_SIZE)
-            block_to_read = MEM_BLOCK_SIZE;
-        else block_to_read = _size_limit;
-        memcpy((uint8_t*)_mem_dst + confirmed_bytes, actual_block->block, block_to_read);
-        _size_limit -= block_to_read;
-    }
-}
-
-void _stack_free_expandable(_expandable_stack* _exp_stack)
-{
-    if(!_exp_stack) return;
-    _exp_stack->byte_count = 0; 
-    _exp_stack->block_bytes_left = MEM_BLOCK_SIZE;
-    _exp_stack->p_stack_top = _exp_stack->main_block;
-    for(_linked_mem_block* block = _exp_stack->first; block; block = block->next)
-    {
-        _exp_stack->first = block->next;
-        free(block);
-        block = _exp_stack->first;
-    }
-    _exp_stack->first = NULL;
-    _exp_stack->last = NULL;
+    if(!_client_block_size) _client_block_size = _exp_stack->byte_count;
+    return process_all_blocks(_client_block, _exp_stack, _offset, _client_block_size, PROCESS_MODE_COPY);
 }
 
 bool _stack_memcmp(const void* _client_block, const _expandable_stack* _exp_stack, const size_t _offset, size_t _block_size)
 {
     if(_exp_stack->byte_count == 0 && _block_size == 0) return true;
-    if(are_bytes_unreachable(_exp_stack, _offset, _block_size)) return false;
+    return process_all_blocks(_client_block, _exp_stack, _offset, _block_size, PROCESS_MODE_COMPARE);
+}
 
-    _linked_mem_block* block;
-    size_t confirmed_bytes;
+bool _stack_memcmp_stack(_expandable_stack* _exp_stack1, _expandable_stack* _exp_stack2)
+{
+    if(_exp_stack1->byte_count != _exp_stack2->byte_count) return false;
+    size_t confirmed_bytes = (_exp_stack1->byte_count <= MEM_BLOCK_SIZE ? _exp_stack1->byte_count : MEM_BLOCK_SIZE);
+    
+    if(memcmp(_exp_stack1->main_block, _exp_stack2->main_block, confirmed_bytes)) 
+        return false;
+    _linked_mem_block 
+        *block1 = _exp_stack1->first, 
+        *block2 = _exp_stack2->first;
+
+    while(confirmed_bytes < _exp_stack1->byte_count)
     {
-        _stack_block_info info = process_first_block(_client_block, _exp_stack, _offset, _block_size, PROCESS_MODE_COMPARE);
-        block = info.next_block;
-        confirmed_bytes = (size_t)info.confirmed_bytes;
-    }
-    if(!confirmed_bytes) return false;
-
-
-    while(block && confirmed_bytes < _block_size)
-    {
-        if(_block_size - confirmed_bytes > MEM_BLOCK_SIZE)
+        if(confirmed_bytes + MEM_BLOCK_SIZE <= _exp_stack1->byte_count)
         {
-            if(
-                !process_block((uint8_t*)_client_block + confirmed_bytes, block->block, MEM_BLOCK_SIZE, PROCESS_MODE_COMPARE)
-            ) return false;
+            if(memcmp(block1->block, block2->block, MEM_BLOCK_SIZE)) 
+                return false;
             confirmed_bytes += MEM_BLOCK_SIZE;
         }
         else
         {
-            if(
-                !process_block((uint8_t*)_client_block + confirmed_bytes, block->block, _block_size - confirmed_bytes, PROCESS_MODE_COMPARE)
-            ) return false;
-            confirmed_bytes = _block_size; //Finished confirmed bytes
+            if(memcmp(block1->block, block2->block, _exp_stack1->byte_count - confirmed_bytes)) 
+                return false;
+            confirmed_bytes = _exp_stack1->byte_count;
         }
-        block = block->next;
+        block1 = block1->next;
     }
-
     return true;
 }
