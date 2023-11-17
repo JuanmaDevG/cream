@@ -37,9 +37,17 @@ typedef struct _expandable_stack {
 _expandable_stack* _stack_create_expandable();
 
 /*
-    Pushes an entire block of memory. Expands if the primary block has not enough memory.
+    Pushes an entire block of memory defined by 
 */
-void _stack_push_block(_expandable_stack* dst, const void* src, size_t size);
+void _stack_push_block(_expandable_stack* dst, const void* client_block, size_t client_block_size);
+
+/*
+    As descriptive as it is, replaces a stack mem block with the given client block.
+
+    Will do nothing and return false if the mem block to write + the stack offset is out of bounds.
+*/
+bool _stack_replace_block(void* client_block, _expandable_stack* exp_stack, const size_t in_stack_offset, const size_t client_block_size);
+
 
 /*
     Copies the data to a contiguous memory block.
@@ -49,7 +57,7 @@ void _stack_push_block(_expandable_stack* dst, const void* src, size_t size);
     If the block size to read + the offset to take are bigger than the byte count, nothing 
     will be read.
 */
-void _stack_copy_cached_block(void* dst, const _expandable_stack* src, const size_t stack_offset, size_t block_size_limit);
+void _stack_copy_cached_block(void* dst, const _expandable_stack* src, const size_t in_stack_offset, size_t block_size_limit);
 
 /*
     Frees all the extra memory blocks and restarts the stack pointer and the byte count
@@ -60,11 +68,11 @@ void _stack_copy_cached_block(void* dst, const _expandable_stack* src, const siz
 void _stack_free_expandable(_expandable_stack*);
 
 /*
-    Compares the memory block and the expandable stack with the selected size and offset.
-    
-    If the defined block to compare is equal to the block
+    Tells if the client block is equal to the expandable stack memory.
+
+    Client block does not need to allocate the same memory as available on the stack
 */
-bool _stack_memcmp(const void* block, const _expandable_stack* exp_stack, const size_t stack_offset, size_t block_size);
+bool _stack_memcmp(const void* block, const _expandable_stack* exp_stack, const size_t in_stack_offset, size_t block_size);
 
 /*
     TODO:
