@@ -15,11 +15,11 @@ void cargs_set_identificator(const char new_identificator);
     The second one is the data argument string
 
     For example the call:
-    cargs_set_args("abcd", "efgh");
+    cargs_set_args(4, "abcd", 3, "efgh");
 
     Will set the command line arguments:
     Boolean (existent or not):      {-a , -b , -c , -d}
-    Data (require data to work):    {-e , -f , -g , -h}
+    Data (require data to work):    {-e , -f , -g}
 
     WARNING:
     Data arguments are allowed to be empty in the program input, to allways 
@@ -30,7 +30,7 @@ void cargs_set_identificator(const char new_identificator);
     or argument buffer declared previously will be deleted for security 
     and argument consistency reasons.
 */
-void cargs_set_args(const char* boolean_arguments, const char* data_arguments);
+void cargs_set_args(const uint32_t bool_options_count, const char* bool_options, const uint32_t data_options_count, const char* data_options);
 
 /*
     Cleans up all the cargs metadata, buffers and whatever data is passed to cargs.

@@ -3,63 +3,36 @@
 
 extern inline void cargs_set_identificator(const char new_id) { _arg_id = new_id; }
 
-void cargs_set_args(const char* bool_args, const char* data_args)
+void cargs_set_args(const uint32_t bool_option_count, const char* bool_options, const uint32_t data_option_count, const char* data_options)
 {
     cargs_clean();
-    if(!(bool_args || data_args)) return;
+    if(!(bool_options || data_options) || !(bool_option_count || data_option_count)) return;
 
-    /*
-        Redundancies in the argument checking are treated as errors
-        Argument loads won't work if there is any error registered
-    */
-    //Get the argument legths and assign pointers to the _cargs_valid_arg_options and allocate main buffer
-    //Possible idea: add number of argument chars to control what argument chars are set
-
-    //Measures
-    if(bool_args) _cargs_bool_args_count = strlen(bool_args);
-    if(data_args) _cargs_data_args_count = strlen(data_args);
-
+    //TODO: Treat redundancies as errors
+    _cargs_option_count == bool_option_count + data_option_count;
     size_t buf_length = 
-        _cargs_bool_args_count                                          /*boolean argument characters*/
-        + _cargs_get_byte_size(_cargs_bool_args_count)                  /*boolean arg bit vector existence confirmator*/
-        + _cargs_data_args_count                                        /*data argument characters*/ 
-        + (bool_args && data_args ? 2 : 1)                              /*If both buffers (bool and data args), two null characters*/
-        + _cargs_get_byte_size(_cargs_data_args_count)                  /*data arg bit vector existence confirmator*/
-        + (_cargs_data_args_count * sizeof(char*))                      /*equals operator pointer bank*/
-        + (_cargs_data_args_count * sizeof(_cargs_data_storage_list))   /*redundant argument option data bank*/
-        + (_cargs_data_args_count * sizeof(ArgPackage))                 /*argument data packages for non redundant (no linked list)*/
-        + _cargs_data_args_count                                        /*for maximum data per argument limits*/
-        + _cargs_data_args_count                                        /*for minimum data per argument limits*/
-        + _cargs_get_byte_size(_cargs_data_args_count);                 /*for the is_data_relocated bit vector*/
+        _cargs_option_count +                               //Where the argument options are written to check them
+        (_cargs_option_count * sizeof(_cargs_argument)) +   //Where arguments options are stored and configured
+        (data_option_count * sizeof(_cargs_option_data));   //Where data argument options store their associated data
+    _cargs_declared_option_chars = calloc(1, buf_length);   //And the general buffer where everything is placed
 
-    //Cache friendly single buffer with multi-pointer support
-    _cargs_bool_args = (char*) malloc(buf_length);
-    memset(_cargs_bool_args, 0, buf_length);
-
-    if(bool_args)
+    if(!_cargs_declared_option_chars)
     {
-        memcpy(_cargs_bool_args, bool_args, _cargs_bool_args_count +1);
-        _cargs_bool_bit_vec = (uint8_t*)(_cargs_bool_args + _cargs_bool_args_count +1);
+        cargs_clean();
+        _cargs_declare_error(CARGS_NOT_ENOUGH_MEMORY, NULL, false, NULL);
+        return;
     }
-    if(data_args)
+
+    if(bool_option_count)
+        memcpy(_cargs_declared_option_chars, bool_options, bool_option_count);
+    if(data_option_count)
+        memcpy(_cargs_declared_option_chars + bool_option_count, data_options, data_option_count);
+
+    //Attach pointers
+    _cargs_argument* p_args = _cargs_declared_option_chars + _cargs_option_count;
+    for(uint32_t i=0; /*TODO*/)
     {
-        //Data arguments pointer offset
-        _cargs_data_args = 
-            (bool_args ? (char*)_cargs_bool_bit_vec + _cargs_get_byte_size(_cargs_bool_args_count) : _cargs_bool_args);
-        if(!bool_args) _cargs_bool_args = NULL;
-        memcpy(_cargs_data_args, data_args, _cargs_data_args_count + 1);
-        _remove_redundancies(REMOVE_DATA_REDUNDANCIES);
-        _cargs_data_bit_vec = (uint8_t*)(_cargs_data_args + _cargs_data_args_count +1);
-        //Equals operator pointer bank to point to the specific argument determined by equals sign
-        _cargs_equals_operator_pointer_bank = (char**)(_cargs_data_bit_vec + _cargs_get_byte_size(_cargs_data_args_count));
-        //Redundant argument options data pointers storage
-        _cargs_redundant_opt_data = (_cargs_data_storage_list*)(_cargs_equals_operator_pointer_bank + _cargs_data_args_count);
-        //Non redundant option data packages storage
-        _cargs_data_packs = (ArgPackage*)(_cargs_redundant_opt_data + _cargs_data_args_count);
-        //Allocation of maximum and minimum data required argument counts
-        _cargs_maximum_data = (uint8_t*)(_cargs_data_packs + _cargs_data_args_count);
-        _cargs_minimum_data = (uint8_t*)(_cargs_maximum_data + _cargs_data_args_count);
-        _cargs_is_data_relocated_bit_vec = _cargs_minimum_data + _cargs_data_args_count;
+        //TERMINAR
     }
 }
 

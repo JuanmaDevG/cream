@@ -15,7 +15,9 @@ const char* _cargs_error_strings[] = {
     "does not exist.",
     "is required.",
     "requires extra data and there is not enough.",
-    "is repeated and it is not allowed to repeat argument options."
+    "is repeated and it is not allowed to repeat argument options.", 
+    "is redundant.\nMake sure not to duplicate it when calling cargs_set_args function.", 
+    "There is not enough memory to initialize cargs library.\nYou can try setting less arguments or to recompile the library reducing MEM_BLOCK_SIZE from exp_stack.h"
 };
 
 bool _cargs_treat_anonymous_args_as_errors = false;

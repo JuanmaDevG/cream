@@ -12,6 +12,11 @@ enum _cargs_data_limit_config { CARGS_DATA_LIMIT_MAX, CARGS_DATA_LIMIT_MIN };
 
 
 /*
+    Returns true is the character is configured as an argument identificator
+*/
+bool _cargs_find_argument_id(const char arg_id);
+
+/*
     Simply returns true if the argument character has been declared on the available arguments 
     pointer vector (the arg has been configured and is part of the application).
 */
@@ -37,7 +42,6 @@ _cargs_argument* _cargs_find_extended_argument(const char* ext_arg);
 
     Returns the number of data pieces found.
 
-    WARNING:
     This function stores errors into the error system buffers if the cargs state machine is configured to do it.
 */
 uint32_t _cargs_add_argument_data(const int remaining_argc, const char** updated_argv, _cargs_argument* dst_arg, const bool is_it_extended);
@@ -46,10 +50,10 @@ uint32_t _cargs_add_argument_data(const int remaining_argc, const char** updated
     Scans a string looking for an argument option.
     If this option is a data option (non boolean) adds the data.
 
-    This function will register the errors that it registers if there's any and the state machine is correctly configured 
-    to recognise them.
+    This function will register the necessary errors following the state machine constraints configured by the user 
+    of this library.
 
-    Returns the number of argument values registered respect the updated_argv pointer (as an offset), minimum one
+    Returns the number of argument values registered respect the updated_argv pointer (as an offset). Minimum returns one.
 */
 uint32_t _cargs_read_argument(const int updated_argc, const char** updated_argv);
 

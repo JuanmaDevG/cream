@@ -1,6 +1,6 @@
 #include "utils.h"
 
-inline bool _cargs_streq(const char* _str1, const char* _str2)
+static inline bool _cargs_streq(const char* _str1, const char* _str2)
 {
     if(!(_str1 && _str2)) return false;
 
@@ -18,7 +18,7 @@ inline bool _cargs_streq(const char* _str1, const char* _str2)
     return false;
 }
 
-inline bool _cargs_check_option(_cargs_argument* _option_ptr, const char* _option_location, const bool _is_option_extended)
+static inline bool _cargs_check_option(_cargs_argument* _option_ptr, const char* _option_location, const bool _is_option_extended)
 {
     if(!_option_ptr)
     {
@@ -36,6 +36,12 @@ inline bool _cargs_check_option(_cargs_argument* _option_ptr, const char* _optio
 
 
 //-----------------------------------------------------------------------------------------------------------
+
+
+extern inline bool _cargs_find_argument_id(const char _actual_id)
+{
+    //TODO: Convert the shared data structure into a char pointer
+}
 
 extern inline _cargs_argument* _cargs_find_argument_option(const char _character)
 {
@@ -81,27 +87,37 @@ uint32_t _cargs_add_argument_data(const int _remaining_argc, const char** _updat
     //Looking for inline data or equals opeartor data and add it
     if(!_cargs_enable_multiple_opts_per_arg)
     {
-        if(_actual_arg->data_container->minimum_data_count > 1) //Invalid?
-        {
-            _cargs_declare_error(CARGS_NOT_ENOUGH_DATA, _updated_argv[0], _is_it_extended, NULL);
-            return 1;
-        }
+        bool inline_data_found = false;
 
+        _cargs_data_package pack = {1, (char*)_updated_argv, 2};
         if(!_is_it_extended && _updated_argv[0][2] != '\0' && _updated_argv[0][2] != '=') //Inline data?
         {
-            _cargs_data_package pack = {1, (char**)_updated_argv, 2};
-            _stack_push_block(&(_actual_arg->data_container->data), &pack, sizeof(_cargs_data_package));
+            inline_data_found = true;
         }
-
-        for(uint8_t i=2; _updated_argv[0][i] != '\0'; i++) //Equals Operator?
+        else
         {
-            if(_updated_argv[0][i] == '=' && _updated_argv[0][i+1] != '\0')
+            for(uint8_t i=2; _updated_argv[0][i] != '\0'; i++) //Equals Operator?
             {
-                _cargs_data_package pack = {1, (char**)_updated_argv, i+1};
-                _stack_push_block(&(_actual_arg->data_container->data), &pack, sizeof(_cargs_data_package));
-                _actual_arg->data_container->actual_data_count += 1;
+                if(_updated_argv[0][i] == '=' && _updated_argv[0][i+1] != '\0')
+                {
+                    pack.inline_data_offset = i+1;
+                    inline_data_found = true;
+                    break;
+                }
             }
         }
+
+        if(inline_data_found)
+        {
+            if(_actual_arg->data_container->minimum_data_count > 1) //Invalid?
+            {
+                _cargs_declare_error(CARGS_NOT_ENOUGH_DATA, _updated_argv[0], _is_it_extended, NULL);
+                return 1;
+            }
+            _stack_push_block(&(_actual_arg->data_container->data), &pack, sizeof(_cargs_data_package));
+            _actual_arg->data_container->actual_data_count += 1;
+        }
+        return 1;
     }
 
     while(data_count < _remaining_argc && _updated_argv[data_count +1/*opt is not arg*/][0] != _arg_id)
