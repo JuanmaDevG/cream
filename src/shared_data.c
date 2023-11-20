@@ -25,15 +25,6 @@ _cargs_argument* _cargs_valid_arg_options[ASCII_TABLE_SIZE] = {NULL};
 
 
 /*
-    ------------------------------------
-    Argument existence confirmation bits
-    ------------------------------------
-*/
-
-uint8_t _cargs_arg_confirmation_bits[(BIT_ASCII_TABLE_SIZE / 8) + (BIT_ASCII_TABLE_SIZE % 8 ? 1 : 0)] = {0};
-
-
-/*
     ------------------
     Extended arguments
     ------------------

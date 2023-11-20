@@ -46,7 +46,7 @@ void cargs_set_args(const uint32_t bool_options_count, const char* bool_options,
     - Treating anonymous arguments as errors: cargs_treat_anonymous_args_as_errors
     - Including the argument zero when call cargs_load_args: cargs_include_argument_zero
 */
-bool cargs_clean();
+void cargs_clean();
 
 /*
     Associates an extended version of an argument letter to make the argument 
@@ -126,21 +126,23 @@ void cargs_set_maximum_data(const char* data_arg_string, ...);
     
     Will treat as errors: "some-data-here", "potatoe", and "foo"
 */
-extern inline void cargs_treat_anonymous_args_as_errors(const bool value);
+void cargs_treat_anonymous_args_as_errors(const bool value);
 
 /*
-    After the call of this function to true, the repetition of any argument option 
-    in the program input will be treated as an error and loaded to cargs_error_code.
+    After the call of this function, the argument option chars given as parameters won't be allowed to be 
+    repeated in the program input.
 
     EXAMPLE:
-    > program_name -f file.txt -f another_file.txt (WILL STORE ERROR)
+    #After you call cargs_disable_options_repetition("fabc"); 
+    #Prohibited to repeat in the program input: {-f, -a, -b , -c}
+    > program_name -f file.txt -f another_file.txt (THE ERROR SYSTEM WILL STORE AN ERROR)
 */
-extern inline void cargs_treat_repeated_args_as_errors(const bool value);
+void cargs_disable_options_repetition(const char* arg_options);
 
 /*
     Includes the absolute first argument (like the program name in case of argv)
 */
-extern inline void cargs_include_argument_zero(const bool value);
+void cargs_include_argument_zero(const bool value);
 
 /*
     Loads the program arguments, checks them and sets the data pointers ready to use.

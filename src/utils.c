@@ -25,7 +25,7 @@ static inline bool _cargs_check_option(_cargs_argument* _option_ptr, const char*
         _cargs_declare_error(CARGS_NON_EXISTENT, (char*)_option_location, _is_option_extended, NULL);
         return false;
     }
-    if(_option_ptr->has_been_used_already && !(_option_ptr->has_permission_to_be_repeated))
+    if(_option_ptr->has_been_used_already && _option_ptr->cannot_be_repeated)
     {
         _cargs_declare_error(CARGS_REDUNDANT_ARGUMENT, (char*)_option_location, _is_option_extended, NULL);
         return false;
@@ -49,6 +49,13 @@ extern inline _cargs_argument* _cargs_find_argument_option(const char _character
     return _cargs_valid_arg_options[_character - INVALID_CHARS];
 }
 
+extern inline bool _cargs_set_option_pointer(const char _option_char, const _cargs_argument* _p_option)
+{
+    if(_option_char < INVALID_CHARS || _option_char >= INVALID_CHARS + ASCII_TABLE_SIZE) return false;
+    _cargs_valid_arg_options[_option_char - INVALID_CHARS] = (_cargs_argument*)_p_option;
+    return true;
+}
+
 _cargs_argument* _cargs_find_extended_argument(const char* ext_arg)
 {
     if(_cargs_ext_arg_count == 0 || ext_arg == NULL) return 0;
@@ -56,7 +63,7 @@ _cargs_argument* _cargs_find_extended_argument(const char* ext_arg)
     _cargs_argument* arg_ptr = _cargs_find_argument_option(ext_arg[0]);
     if(arg_ptr)
     {
-        char first_character = tolower(ext_arg[0]);
+        char first_character = (char)tolower(ext_arg[0]);
         if(
             first_character == arg_ptr->extended_version[0] &&
             (
@@ -187,7 +194,7 @@ uint32_t _cargs_read_argument(const int _updated_argc, const char** _updated_arg
 
 extern inline void _cargs_set_data_limit(const char* _options_array, va_list _arg_limits, uint8_t _config_type)
 {
-    //TODO: Change this function to make it work
+    if(!_options_array) return;
     _cargs_argument* current_opt;
     for(uint32_t i=0; _options_array[i] != '\0'; i++)
     {

@@ -23,6 +23,11 @@ bool _cargs_find_argument_id(const char arg_id);
 _cargs_argument* _cargs_find_argument_option(const char option_char);
 
 /*
+    Sets the given argument pointer to the cargs valid options
+*/
+bool _cargs_set_option_pointer(const char option_char, const _cargs_argument* p_arg);
+
+/*
     Finds the extended argument.
     The char pointer location must be the argument pointer plus the double 
     argument identificator offset, like:
