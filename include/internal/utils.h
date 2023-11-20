@@ -12,13 +12,13 @@ enum _cargs_data_limit_config { CARGS_DATA_LIMIT_MAX, CARGS_DATA_LIMIT_MIN };
 
 
 /*
-    Returns true is the character is configured as an argument identificator
+    Returns true if the character is configured as an argument identificator
 */
 bool _cargs_find_argument_id(const char arg_id);
 
 /*
-    Simply returns true if the argument character has been declared on the available arguments 
-    pointer vector (the arg has been configured and is part of the application).
+    Returns the pointer to the argument option data structure if it is available, 
+    otherwise returns NULL
 */
 _cargs_argument* _cargs_find_argument_option(const char option_char);
 

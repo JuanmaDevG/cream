@@ -30,10 +30,9 @@ void cargs_set_args(const uint32_t bool_option_count, const char* bool_options, 
 
     //Attach pointers
     _cargs_argument* p_args = _cargs_declared_option_chars + _cargs_option_count;
-    for(uint32_t i=0; /*TODO*/)
-    {
-        //TERMINAR
-    }
+    //Boolean arguments
+    //Data arguments
+
 }
 
 bool cargs_clean()
