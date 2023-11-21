@@ -52,6 +52,7 @@ void cargs_clean()
 {
     _stack_free_expandable(&_cargs_general_buffer);
     memset(_cargs_valid_arg_options, 0, ASCII_TABLE_SIZE);
+    cargs_cancel_argument_loads();
 
     if(_cargs_declared_option_chars)
     {
@@ -63,13 +64,13 @@ void cargs_clean()
         _cargs_ext_arg_count = 0;
     }
 
-    if(!_cargs_anonymous_relocated_args)
+    //Clean error system
+    _stack_free_expandable(&_cargs_error_buffer);
+    if(_cargs_out_error_msg)
     {
-        free(_cargs_anonymous_relocated_args);
-        _cargs_anonymous_relocated_args = NULL;
+        free(_cargs_out_error_msg);
+        _cargs_out_error_msg = NULL;
     }
-    else
-        _stack_free_expandable(&_cargs_anonymous_args);
 }
 
 void cargs_associate_extended(const char* arg_characters, ...) {
@@ -81,7 +82,10 @@ void cargs_associate_extended(const char* arg_characters, ...) {
     {
         p_arg = _cargs_find_argument_option(arg_characters[i]);
         if(p_arg)
+        {
             p_arg->extended_version = va_arg(arg_l, char*);
+            _cargs_ext_arg_count++;
+        }
     }
 
     va_end(arg_l);
@@ -129,40 +133,76 @@ extern inline void cargs_disable_options_repetition(const char* _arg_options)
 
 extern inline void cargs_include_argument_zero(const bool _value) { _cargs_include_argument_zero = _value; }
 
-void cargs_load_args(const int argc, const char** argv)
+extern inline void cargs_load_args(const int argc, const char** argv)
 {
-    for(uint32_t i=(_cargs_include_argument_zero ? 0 : 1); i < (uint32_t)argc; i++)
-    {
-        //TODO
-    }
+    int i = (_cargs_include_argument_zero ? 0 : 1);
+    while(i < argc)
+        i += _cargs_read_argument(argc - i, argv + i);
     _cargs_check_mandatory_arguments();
 }
 
 void cargs_cancel_argument_loads()
 {
-    //TODO
+    //Reset usage flag and clean data pointers
+    _cargs_argument* p_arg;
+    for(uint32_t i=0; i < _cargs_option_count; i++)
+    {
+        p_arg = _cargs_find_argument_option(_cargs_declared_option_chars[i]);
+        p_arg->has_been_used_already = false;
+        if(p_arg->data_container)
+        {
+            p_arg->data_container->actual_data_count = 0;
+            if(p_arg->data_container->data_relocation_buffer)
+            {
+                free(p_arg->data_container->data_relocation_buffer);
+                p_arg->data_container->data_relocation_buffer = NULL;
+            }
+            else _stack_free_expandable(&(p_arg->data_container->data));
+        }
+    }
+
+    //Clean anonymous arguments
+    if(!_cargs_anonymous_relocated_args)
+    {
+        free(_cargs_anonymous_relocated_args);
+        _cargs_anonymous_relocated_args = NULL;
+    }
+    else
+        _stack_free_expandable(&_cargs_anonymous_args);
 }
 
-const char* cargs_get_error()
+const char* cargs_get_errors()
 {
-    if(cargs_error_code == CARGS_NO_ERROR) return NULL;
-    if(_cargs_error_buffer_str) { free(_cargs_error_buffer_str); _cargs_error_buffer_str = NULL; }
+    if(_cargs_error_buffer.byte_count == 0) return NULL;
+    if(_cargs_out_error_msg)
+    {
+        free(_cargs_out_error_msg);
+        _cargs_out_error_msg = NULL;
+    }
 
-    const uint8_t message_offset = 11; /*(Initial error string:) The argument ...*/
-    size_t 
-        arg_length = (_cargs_is_error_extended ? strlen(_cargs_error_argument) : 1), 
-        err_message_length = strlen(_cargs_error_strings[cargs_error_code]);
-    
-    _cargs_error_buffer_str = (char*)malloc(message_offset + arg_length +2/*space + null last char*/ + err_message_length);
-    char* write_point = _cargs_error_buffer_str;
+    //Store generated strings into the general buffer
+    cargs_error err;
+    for(size_t confirmed_bytes = 0; confirmed_bytes < _cargs_error_buffer.byte_count; confirmed_bytes += sizeof(cargs_error))
+    {
+        _stack_copy_cached_block(&err, &_cargs_error_buffer, confirmed_bytes, sizeof(cargs_error));
+        _stack_push_block(&_cargs_general_buffer, "ERROR: ", 6);
+        if(err.err_type == CARGS_NOT_ENOUGH_MEMORY)
+        {
+            _stack_push_block(&_cargs_general_buffer, _cargs_error_strings[err.err_type], _cargs_error_lengths[err.err_type]);
+            break;
+        }
 
-    memcpy(write_point, "The option ", message_offset);
-    write_point += message_offset;
-    memcpy(write_point, _cargs_error_argument, arg_length);
-    write_point += arg_length;
-    write_point[0] = ' ';
-    write_point++;
-    memcpy(write_point, _cargs_error_strings[cargs_error_code], err_message_length +1);
+        _stack_push_block(&_cargs_general_buffer, "the argument ", 13);
+        _stack_push_block(&_cargs_general_buffer, err.arg_option, (err.is_extended ? strlen(err.arg_option) : 1));
+        _stack_push_block(&_cargs_general_buffer, " ", 1);
+        _stack_push_block(&_cargs_general_buffer, _cargs_error_strings[err.err_type], _cargs_error_lengths[err.err_type]);
+        _stack_push_block(&_cargs_general_buffer, "\n", 1);
+    }
 
-    return (const char*)_cargs_error_buffer_str;
+    _cargs_out_error_msg = malloc(_cargs_general_buffer.byte_count +1);
+    _stack_copy_cached_block(_cargs_out_error_msg, &_cargs_general_buffer, 0, _cargs_general_buffer.byte_count);
+    _cargs_out_error_msg[_cargs_general_buffer.byte_count] = '\0';
+    _stack_free_expandable(&_cargs_general_buffer);
+
+    return (const char*)_cargs_out_error_msg;
 }

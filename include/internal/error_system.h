@@ -26,6 +26,7 @@ extern _expandable_stack _cargs_error_buffer;           //Contains the cargs_err
 extern char* _cargs_out_error_msg;                      //A string buffer where the output error messages are written (and separated by newline characters)
 
 extern const char* _cargs_error_strings[];              //Contains the default error strings
+extern const uint32_t _cargs_error_lengths[];           //Contains the lengths
 
 extern bool _cargs_treat_anonymous_args_as_errors;      //True if anonymous arguments must be treated as errors
 extern bool _cargs_include_argument_zero;               //True if the argument zero (in case of program input, the program name) should be included in the following argument load

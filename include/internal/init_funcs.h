@@ -175,4 +175,4 @@ void cargs_cancel_argument_loads();
 
     If the pointer is NULL, there are no errors, so cargs_error_code == CARGS_NO_ERROR
 */
-const char* cargs_get_error();
+const char* cargs_get_errors();

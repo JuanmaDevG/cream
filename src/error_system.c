@@ -20,6 +20,17 @@ const char* _cargs_error_strings[] = {
     "There is not enough memory to initialize cargs library.\nYou can try setting less arguments or to recompile the library reducing MEM_BLOCK_SIZE from exp_stack.h"
 };
 
+const uint32_t _cargs_error_lengths[] =
+{
+    0, 
+    15, 
+    12, 
+    44, 
+    61, 
+    81, 
+    159
+};
+
 bool _cargs_treat_anonymous_args_as_errors = false;
 bool _cargs_include_argument_zero = false;
 bool _cargs_promise_first_ext_arg_char_is_ext_arg = false;
