@@ -3,35 +3,26 @@
 #include "utils.h"
 
 /*
-    Returns a boolean value checking the existence of the bool argument option in the argument input 
-    using it's boolean argument index.
+    Returns a boolean checking the existence of the argument option (wether is boolean or requires data) 
+    in the argument input.
 
-    If you set:
-    cargs_set_args("abc", NULL); //And then cargs_load_args(......);
+    If your code looks like:
+    cargs_set_args("abc", "def");
+    cargs_load_args(argc, argv);
 
-    The existence of 'b' is checked with:
-    cargs_check_bool_arg(1);
+    The existence of 'b' in the program's input is checked with:
+    cargs_check_option('b');
 */
-bool cargs_check_bool(const uint32_t __arg_index);
-
+bool cargs_check_option(const char option);
 
 /*
-    Returns a boolean value checking the existence of the data argument option in the argument input 
-    using it's data argument index.
-
-    If you set:
-    cargs_set_args(NULL, "abc"); //And then cargs_load_args(...whatever);
-
-    The existence of 'c' is checked with:
-    cargs_check_data_arg(2);
+    Returns the number of elements associated to the given data argument option.
+    
+    WARNING:
+    If returns zero does not necessarily mean that the option does not exist in the program 
+    input. Make sure you check the argument option existence with: cargs_check_option()
 */
-bool cargs_check_data(const uint32_t __arg_index);
-
-/*
-    Returns the number of elements associated to the given data argument 
-    index
-*/
-uint32_t cargs_get_data_count(const uint32_t arg_index);
+uint32_t cargs_get_data_count(const char option);
 
 /*
     Returns a char pointer vector with all the strings that the 
@@ -40,10 +31,10 @@ uint32_t cargs_get_data_count(const uint32_t arg_index);
     WARNING:
     If there has been no associated data to an option in the argument 
     load (the_returned_ptr == NULL) does not mean that the option has not 
-    been checked, the only ways to check options existence are the 
-    cargs_check_... functions
+    been checked, the only way to check options existence in the program's 
+    input is with cargs_check_option()
 */
-char** cargs_get_data(const uint32_t arg_index);
+char** cargs_get_data(const char option);
 
 /*
     Returns the number of anonymous arguments cached by cargs after the 

@@ -18,7 +18,6 @@ void cargs_set_args(const uint32_t bool_option_count, const char* bool_options, 
 
     if(!_cargs_declared_option_chars)
     {
-        cargs_clean();
         _cargs_declare_error(CARGS_NOT_ENOUGH_MEMORY, NULL, false, NULL);
         return;
     }
@@ -74,6 +73,7 @@ void cargs_clean()
 }
 
 void cargs_associate_extended(const char* arg_characters, ...) {
+    if(!_cargs_declared_option_chars) return;
     va_list arg_l;
     va_start(arg_l, arg_characters);
 
@@ -93,6 +93,7 @@ void cargs_associate_extended(const char* arg_characters, ...) {
 
 void cargs_make_mandatory(const char* arg_characters)
 {
+    if(!_cargs_declared_option_chars) return;
     _cargs_argument* p_arg;
     for(uint32_t i=0; arg_characters[i] != '\0'; i++)
     {
@@ -104,6 +105,7 @@ void cargs_make_mandatory(const char* arg_characters)
 
 extern inline void cargs_set_minimum_data(const char* data_arg_string, ...)
 {
+    if(!_cargs_declared_option_chars) return;
     va_list arg_limits;
     va_start(arg_limits, data_arg_string);
     _cargs_set_data_limit(data_arg_string, arg_limits, CARGS_DATA_LIMIT_MIN);
@@ -112,6 +114,7 @@ extern inline void cargs_set_minimum_data(const char* data_arg_string, ...)
 
 extern inline void cargs_set_maximum_data(const char* data_arg_string, ...)
 {
+    if(!_cargs_declared_option_chars) return;
     va_list arg_limits;
     va_start(arg_limits, data_arg_string);
     _cargs_set_data_limit(data_arg_string, arg_limits, CARGS_DATA_LIMIT_MAX);
@@ -120,8 +123,9 @@ extern inline void cargs_set_maximum_data(const char* data_arg_string, ...)
 
 extern inline void cargs_treat_anonymous_args_as_errors(const bool _value) { _cargs_treat_anonymous_args_as_errors = _value; }
 
-extern inline void cargs_disable_options_repetition(const char* _arg_options)
+extern inline void cargs_treat_repeated_options_as_errors(const char* _arg_options)
 {
+    if(!_cargs_declared_option_chars) return;
     _cargs_argument* p_arg;
     for(uint32_t i=0; _arg_options[i] != '\0'; i++)
     {
@@ -135,6 +139,8 @@ extern inline void cargs_include_argument_zero(const bool _value) { _cargs_inclu
 
 extern inline void cargs_load_args(const int argc, const char** argv)
 {
+    if(!_cargs_declared_option_chars) return;
+
     int i = (_cargs_include_argument_zero ? 0 : 1);
     while(i < argc)
         i += _cargs_read_argument(argc - i, argv + i);
@@ -143,6 +149,8 @@ extern inline void cargs_load_args(const int argc, const char** argv)
 
 void cargs_cancel_argument_loads()
 {
+    if(!_cargs_declared_option_chars) return;
+
     //Reset usage flag and clean data pointers
     _cargs_argument* p_arg;
     for(uint32_t i=0; i < _cargs_option_count; i++)

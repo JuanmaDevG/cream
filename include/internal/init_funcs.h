@@ -137,7 +137,7 @@ void cargs_treat_anonymous_args_as_errors(const bool value);
     #Prohibited to repeat in the program input: {-f, -a, -b , -c}
     > program_name -f file.txt -f another_file.txt (THE ERROR SYSTEM WILL STORE AN ERROR)
 */
-void cargs_disable_options_repetition(const char* arg_options);
+void cargs_treat_repeated_options_as_errors(const char* arg_options);
 
 /*
     Includes the absolute first argument (like the program name in case of argv)
