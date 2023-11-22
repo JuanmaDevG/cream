@@ -177,6 +177,7 @@ void cargs_cancel_argument_loads()
         _cargs_anonymous_relocated_args = NULL;
     }
     _stack_free_expandable(&_cargs_anonymous_args);
+    _cargs_reset_error_system();
 }
 
 const char* cargs_get_errors()
