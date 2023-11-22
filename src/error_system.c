@@ -17,7 +17,9 @@ const char* _cargs_error_strings[] = {
     "requires extra data and there is not enough.",
     "is repeated and it is not allowed to repeat argument options.", 
     "is redundant.\nMake sure not to duplicate it when calling cargs_set_args function.", 
-    "There is not enough memory to initialize cargs library.\nYou can try setting less arguments or to recompile the library reducing MEM_BLOCK_SIZE from exp_stack.h"
+    "There is not enough memory to initialize cargs library.\nYou can try setting less arguments or to recompile the library reducing MEM_BLOCK_SIZE from exp_stack.h", 
+    "contains too many data elements and less are required.", 
+    "contains arguments that are not bound to any argument option."
 };
 
 const uint32_t _cargs_error_lengths[] =

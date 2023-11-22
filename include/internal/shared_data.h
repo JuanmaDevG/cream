@@ -51,5 +51,6 @@ extern _cargs_option_data* _cargs_declared_options_data;                //The me
 
 extern size_t _cargs_ext_arg_count;                                     //Stores the extended argument count
 
+extern size_t _cargs_anon_arg_count;                                    //Contains the total number of anonymous arguments
 extern _expandable_stack _cargs_anonymous_args;                         //Contains _cargs_data_package objects that point to anonymous arguments groups
 extern char** _cargs_anonymous_relocated_args;                          //Extracts the buffer information to generate

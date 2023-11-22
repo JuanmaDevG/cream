@@ -122,7 +122,7 @@ static _stack_block_info process_first_block(void* _client_block, _expandable_st
     //Block size to read
     if(_client_block_size > MEM_BLOCK_SIZE - _stack_offset)
         _client_block_size = MEM_BLOCK_SIZE - _stack_offset;
-    else finished = true;
+    else finished = true; //We did ensure that bytes are reachable
 
     _stack_block_info info;
     if(

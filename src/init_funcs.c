@@ -145,6 +145,7 @@ extern inline void cargs_load_args(const int argc, const char** argv)
     while(i < argc)
         i += _cargs_read_argument(argc - i, argv + i);
     _cargs_check_mandatory_arguments();
+    _cargs_check_surpassed_data_bounds();
 }
 
 void cargs_cancel_argument_loads()
@@ -165,7 +166,7 @@ void cargs_cancel_argument_loads()
                 free(p_arg->data_container->data_relocation_buffer);
                 p_arg->data_container->data_relocation_buffer = NULL;
             }
-            else _stack_free_expandable(&(p_arg->data_container->data));
+            _stack_free_expandable(&(p_arg->data_container->data));
         }
     }
 
@@ -175,8 +176,7 @@ void cargs_cancel_argument_loads()
         free(_cargs_anonymous_relocated_args);
         _cargs_anonymous_relocated_args = NULL;
     }
-    else
-        _stack_free_expandable(&_cargs_anonymous_args);
+    _stack_free_expandable(&_cargs_anonymous_args);
 }
 
 const char* cargs_get_errors()

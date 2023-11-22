@@ -34,7 +34,6 @@ static inline bool _cargs_check_option(_cargs_argument* _option_ptr, const char*
     return true;
 }
 
-
 //-----------------------------------------------------------------------------------------------------------
 
 
@@ -89,10 +88,7 @@ _cargs_argument* _cargs_find_extended_argument(const char* ext_arg)
 
 uint32_t _cargs_add_argument_data(const int _remaining_argc, const char** _updated_argv, _cargs_argument* _actual_arg, const bool _is_it_extended)
 {
-    uint32_t data_count = 0;
-
-    //Looking for inline data or equals opeartor data and add it
-    if(!_cargs_enable_multiple_opts_per_arg)
+    if(!_cargs_enable_multiple_opts_per_arg) //Can read inline data?
     {
         bool inline_data_found = false;
 
@@ -116,18 +112,14 @@ uint32_t _cargs_add_argument_data(const int _remaining_argc, const char** _updat
 
         if(inline_data_found)
         {
-            if(_actual_arg->data_container->minimum_data_count > 1) //Invalid?
-            {
-                _cargs_declare_error(CARGS_NOT_ENOUGH_DATA, _updated_argv[0], _is_it_extended, NULL);
-                return 1;
-            }
             _stack_push_block(&(_actual_arg->data_container->data), &pack, sizeof(_cargs_data_package));
             _actual_arg->data_container->actual_data_count += 1;
+            return 1;
         }
-        return 1;
     }
 
-    while(data_count < _remaining_argc && _updated_argv[data_count +1/*opt is not arg*/][0] != _arg_id)
+    uint32_t data_count = 0; //+1 because the option is not treated like data
+    while(data_count +1 < _remaining_argc && _updated_argv[data_count +1][0] != _arg_id)
     {
         data_count++;
         if(data_count == _actual_arg->data_container->maximum_data_count) break;
@@ -136,9 +128,6 @@ uint32_t _cargs_add_argument_data(const int _remaining_argc, const char** _updat
     _cargs_data_package pack = {data_count, (char**)_updated_argv +1, 0};
     _actual_arg->data_container->actual_data_count += data_count;
     _stack_push_block(&(_actual_arg->data_container->data), &pack, 0, sizeof(_cargs_data_package));
-
-    if(data_count < _actual_arg->data_container->minimum_data_count)
-        _cargs_declare_error(CARGS_NOT_ENOUGH_DATA, _updated_argv[0], _is_it_extended, NULL);
     
     return data_count +1; /*plus the arg option offset*/
 }
@@ -161,11 +150,17 @@ uint32_t _cargs_read_argument(const int _updated_argc, const char** _updated_arg
         uint32_t arg_offset = 1;
         while(arg_offset < _updated_argc && _updated_argv[arg_offset][0] != _arg_id)
             arg_offset++;
-        if(_cargs_treat_anonymous_args_as_errors) return arg_offset;
 
-        _cargs_data_package pack = {arg_offset, (char**)_updated_argv};
+        if(_cargs_treat_anonymous_args_as_errors)
+        {
+            _cargs_declare_error(CARGS_ARGUMENTS_NOT_BOUND_TO_ANY_OPTION, _updated_argv[0], true, NULL);
+            return arg_offset;
+        }
+
+        _cargs_anon_arg_count += arg_offset;
+        _cargs_data_package pack = {arg_offset, (char**)_updated_argv, 0};
         _stack_push_block(&_cargs_anonymous_args, &pack, sizeof(_cargs_data_package));
-        return 1;
+        return arg_offset;
     }
 
     if( //Is argument invalid?
@@ -176,7 +171,6 @@ uint32_t _cargs_read_argument(const int _updated_argc, const char** _updated_arg
         return 1;
     }
 
-    //Can we loop without having in count the equals operator or inline data?
     if(_cargs_enable_multiple_opts_per_arg && !is_option_extended)
     {
         for(uint32_t i=2; _updated_argv[0][i] != '\0'; i++)
@@ -184,7 +178,8 @@ uint32_t _cargs_read_argument(const int _updated_argc, const char** _updated_arg
             arg_ptr = _cargs_find_argument_option(_updated_argv[0][i]);
             _cargs_check_option(arg_ptr, _updated_argv[0] +i, false);
         }
-        return 1;
+        //If more than one option inlined, do not add data
+        if(_updated_argv[0][2] != '\0') return 1;
     }
 
     if(arg_ptr && arg_ptr->data_container) 
@@ -219,5 +214,23 @@ void _cargs_check_mandatory_arguments()
         ) {
             _cargs_declare_error(CARGS_MANDATORY, _cargs_declared_arg_options +i, false, NULL);
         }
+    }
+}
+
+void _cargs_check_surpassed_data_bounds()
+{
+    _cargs_option_data* _actual_opt;
+    for(uint32_t i=0; i < _cargs_option_count; i++)
+    {
+        _actual_opt = _cargs_find_argument_option(_cargs_declared_option_chars[i])->data_container;
+        if(!_actual_opt) continue;
+
+        if(
+            _actual_opt->maximum_data_count && 
+            _actual_opt->actual_data_count > (uint32_t)_actual_opt->maximum_data_count
+        )
+            _cargs_declare_error(CARGS_TOO_MUCH_DATA, _cargs_declared_option_chars + i, true, NULL);
+        if(_actual_opt->actual_data_count < _actual_opt->minimum_data_count)
+            _cargs_declare_error(CARGS_NOT_ENOUGH_DATA, _cargs_declared_option_chars +i, true, NULL);
     }
 }

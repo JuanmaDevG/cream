@@ -76,3 +76,10 @@ void _cargs_set_data_limit(const char* options_array, va_list arg_limits, uint8_
     If any mandatory option is not present, it declares the error to the error system.
 */
 void _cargs_check_mandatory_arguments();
+
+/*
+    Checks that the data option arguments have not surpassed it's own data limits.
+
+    Declares errors if needed so.
+*/
+void _cargs_check_surpassed_data_bounds();
