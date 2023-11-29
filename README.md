@@ -3,6 +3,8 @@
 The best **library** that **solves the command-line argument managing time waste** in your programming projects and works perfectly with C/C++ and 
 any programming language that can load DLLs (Dynamic Link Libraries)
 
+TODO: fragment the readme in more files: user manual and build.md to let the basics inside the README...
+
 ## What is cargs?
 
 cargs is essentially an entire library that offers a very lightweigh runtime that can be used for any argument parsing purpose. 
