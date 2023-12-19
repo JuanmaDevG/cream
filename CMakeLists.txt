@@ -16,5 +16,5 @@ aux_source_directory(                                               # Getting al
 
 add_library(cargs ${src_files})
 
-#Tests directory
+#Test files (subdirs can access parent scope)
 add_subdirectory(${CMAKE_SOURCE_DIR}/test)
