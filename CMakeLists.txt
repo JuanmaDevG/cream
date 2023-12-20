@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(cargs VERSION 2.0 C)
+project(cargs C)
 
 option(BUILD_SHARED_LIBS "Build the DLL or Shared Object version of the library?")
 option(USE_O3_OPTIMIZATION "Use compiler's level of optimization 3?")
@@ -15,6 +15,7 @@ aux_source_directory(                                               # Getting al
 )
 
 add_library(cargs ${src_files})
+set_target_properties(cargs PROPERTIES VERSION 2.0)
 
 #Test files (subdirs can access parent scope)
 add_subdirectory(${CMAKE_SOURCE_DIR}/test)
