@@ -16,6 +16,11 @@ function(get_index_list actual_list _idx_list)
 endfunction()
 
 
+function(parse_executable_name SRC_FILENAME _out_exe_name)
+    #TODO
+endfunction()
+
+
 #Start
 
 set( CARGS_TEST_SOURCE_DIR ${CMAKE_SOURCE_DIR}/test)
@@ -33,16 +38,16 @@ set( CARGS_TEST_GROUPS
 
 get_index_list(CARGS_TEST_DIRECTORIES _index_list)
 
+# Associates each test source directory with it's test group
 foreach(_idx _index_list)
-    # Get source dir and group
     list(GET CARGS_TEST_DIRECTORIES ${_idx} _src_dir)
     list(GET CARGS_TEST_GROUPS ${_idx} _test_group)
     aux_source_directory(${_src_dir} _sources)
 
     foreach(_src_file _sources)
-        #TODO: manipulate source file to manage executable names
-        add_executable(executable_name_TODO ${_src_file})
-        target_link_libraries(executable_name cargs)
-        add_test(NAME test_name COMMAND ${executable_name})
+        parse_executable_name(_src_file _executable_name)
+        add_executable(${_executable_name} ${_src_file})
+        target_link_libraries(${_executable_name} cargs)
+        add_test(NAME ${_executable_name} COMMAND ${_executable_name})
     endforeach()
 endforeach()
