@@ -17,7 +17,7 @@ endfunction()
 
 
 function(parse_executable_name SRC_FILENAME _out_exe_name)
-    #TODO
+    string(FIND ${SRC_FILENAME} ) #Continue the string parsing
 endfunction()
 
 
