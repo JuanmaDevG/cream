@@ -23,31 +23,31 @@ endfunction()
 
 #Start
 
-set( CARGS_TEST_SOURCE_DIR ${CMAKE_SOURCE_DIR}/test)
+set( CREAM_TEST_SOURCE_DIR ${CMAKE_SOURCE_DIR}/test)
 
-set( CARGS_TEST_DIRECTORIES 
-    ${CARGS_TEST_SOURCE_DIR}/exp_stack 
-    ${CARGS_TEST_SOURCE_DIR}/utils 
-    ${CARGS_TEST_SOURCE_DIR}/init_funcs 
-    ${CARGS_TEST_SOURCE_DIR}/main_funcs
+set( CREAM_TEST_DIRECTORIES 
+    ${CREAM_TEST_SOURCE_DIR}/exp_stack 
+    ${CREAM_TEST_SOURCE_DIR}/utils 
+    ${CREAM_TEST_SOURCE_DIR}/init_funcs 
+    ${CREAM_TEST_SOURCE_DIR}/main_funcs
 )
 
-set( CARGS_TEST_GROUPS 
+set( CREAM_TEST_GROUPS 
     "expandable stack" "utilities" "init functions" "main functions"
 )
 
-get_index_list(CARGS_TEST_DIRECTORIES _index_list)
+get_index_list(CREAM_TEST_DIRECTORIES _index_list)
 
 # Associates each test source directory with it's test group
 foreach(_idx _index_list)
-    list(GET CARGS_TEST_DIRECTORIES ${_idx} _src_dir)
-    list(GET CARGS_TEST_GROUPS ${_idx} _test_group)
+    list(GET CREAM_TEST_DIRECTORIES ${_idx} _src_dir)
+    list(GET CREAM_TEST_GROUPS ${_idx} _test_group)
     aux_source_directory(${_src_dir} _sources)
 
     foreach(_src_file _sources)
         parse_executable_name(_src_file _executable_name)
         add_executable(${_executable_name} ${_src_file})
-        target_link_libraries(${_executable_name} cargs)
+        target_link_libraries(${_executable_name} cream)
         add_test(NAME ${_executable_name} COMMAND ${_executable_name})
     endforeach()
 endforeach()

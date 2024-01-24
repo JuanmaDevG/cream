@@ -42,7 +42,10 @@ extern char _arg_id;
 
 extern _expandable_stack _cream_general_buffer;                         //A buffer for general usage data
 
-extern _cream_argument* _cream_valid_arg_options[ASCII_TABLE_SIZE];     //A list of independent pointers to the memory block that contains the information from available arguments
+//TODO: complete this
+extern uint8_t CREAM_BOTTOM_LIMIT_CHAR; //MOD
+extern uint8_t CREAM_TOP_LIMIT_CHAR;
+extern _cream_argument** _cream_valid_arg_options;                       //A list of independent pointers to the memory block that contains the information from available arguments
 
 extern char* _cream_declared_option_chars;                              //Points to the declared options (first bool options, then data options)
 extern uint32_t _cream_option_count;                                    //Counts the number of argument options
