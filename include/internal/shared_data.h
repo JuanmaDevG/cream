@@ -40,9 +40,9 @@ extern const char* _cream_arg_id; //TODO: redefine (and support for multiple arg
 
 extern _expandable_stack _cream_general_buffer;                         //A buffer for general usage data
 
-//TODO: think about to change to a hash board or to maintain the indexed vector structure
-// A hash table may be better for charset compatibility and maintainability, but a bit less performant
-extern _cream_argument** _cream_valid_arg_options;                       //A list of independent pointers to the memory block that contains the information from available arguments
+extern const uint8_t limit_char_back;                                   //Character from the arg option input with lowest value
+extern const uint8_t limit_char_front;                                  //Character from the arg option input with the highest value
+extern _cream_argument** _cream_valid_arg_options;                      //A list of independent pointers to the memory block that contains the information from available arguments
 
 extern char* _cream_declared_option_chars;                              //Points to the declared options (first bool options, then data options)
 extern uint32_t _cream_option_count;                                    //Counts the number of argument options

@@ -18,7 +18,7 @@ enum cream_error_type {
     CREAM_REDUNDANT_ARGUMENT
 };
 
-extern enum _cream_error cream_error_code;
+//TODO: add or remove error code accessibility
 
 
 /*
