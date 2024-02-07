@@ -1,4 +1,4 @@
-#include "bit_vec_ops.h"
+#include "bit_vec.h"
 
 extern inline size_t _cream_get_byte_size(const size_t __bit_count)
 {
