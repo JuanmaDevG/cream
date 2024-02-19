@@ -44,11 +44,10 @@ extern _expandable_stack _cream_general_buffer;                 // A buffer for 
 
 extern const char _cream_back_arg_opt_limit;                    // Argument option character with lowest value
 extern const char _cream_front_arg_opt_limit;                   // Argument option character with highest value
-extern _cream_argument** _cream_valid_arg_options;              // A table of pointers (wide as char limits) to the memory block that contains the information from available arguments
+extern _cream_argument* _cream_declared_arg_options;            // Contains the available argument options information
 
 extern char* _cream_declared_option_chars;                      // Stores the argument option chars declared (not searched sequentially, just for some internal checking)
 extern uint32_t _cream_option_count;                            // Total argument option count
-extern _cream_argument* _cream_declared_arg_options;            // Contains the available argument options information
 extern _cream_option_data* _cream_declared_options_data;        // Contains the input data received by the corresponding data argument options
 
 extern size_t _cream_extended_arg_count;                             // Stores the extended argument count
