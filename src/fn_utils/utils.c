@@ -1,24 +1,7 @@
 #include "utils.h"
 
-static inline bool _cream_streq(const char* _str1, const char* _str2)
-{
-    if(!(_str1 && _str2)) return false;
 
-    uint32_t i=0;
-    while(_str1[i] == _str2[i])
-    {
-        if(
-            _str1[i+1] == '\0' && 
-            _str2[i+1] == '\0'
-        ) {
-            return true;
-        }
-        i++;
-    }
-    return false;
-}
-
-static inline bool _cream_check_option(_cream_argument* _option_ptr, const char* _option_location, const bool _is_option_extended)
+static inline bool _cream_check_option(_cream_argument_option* _option_ptr, const char* _option_location, const bool _is_option_extended)
 {
     if(!_option_ptr)
     {
@@ -36,57 +19,7 @@ static inline bool _cream_check_option(_cream_argument* _option_ptr, const char*
 
 //-----------------------------------------------------------------------------------------------------------
 
-
-extern inline bool _cream_find_argument_id(const char _actual_id)
-{
-    //TODO: Convert the shared data structure into a char pointer
-}
-
-extern inline _cream_argument* _cream_find_argument_option(const char _character)
-{
-    if(_character < INVALID_CHARS || _character >= INVALID_CHARS + ASCII_TABLE_SIZE) return NULL;
-    return _cream_valid_arg_options[_character - INVALID_CHARS];
-}
-
-extern inline bool _cream_set_option_pointer(const char _option_char, const _cream_argument* _p_option)
-{
-    if(_option_char < INVALID_CHARS || _option_char >= INVALID_CHARS + ASCII_TABLE_SIZE) return false;
-    _cream_valid_arg_options[_option_char - INVALID_CHARS] = (_cream_argument*)_p_option;
-    return true;
-}
-
-_cream_argument* _cream_find_extended_argument(const char* ext_arg)
-{
-    if(_cream_ext_arg_count == 0 || ext_arg == NULL) return 0;
-
-    _cream_argument* arg_ptr = _cream_find_argument_option(ext_arg[0]);
-    if(arg_ptr)
-    {
-        char first_character = (char)tolower(ext_arg[0]);
-        if(
-            first_character == arg_ptr->extended_version[0] &&
-            (
-               _cream_promise_first_ext_arg_char_is_ext_arg  || 
-               _cream_streq(arg_ptr->extended_version +1, ext_arg +1) 
-            )
-        ) 
-            return arg_ptr;
-    }
-
-    //Not constant time found, so iterate thorough the whole buffer
-    for(char i=0; i < ASCII_TABLE_SIZE; i++)
-    {
-        arg_ptr = _cream_find_argument_option(i);
-        if(arg_ptr && _cream_streq(ext_arg, arg_ptr->extended_version))
-        {
-            return arg_ptr;
-        }
-    }
-
-    return NULL;
-}
-
-uint32_t _cream_add_argument_data(const int _remaining_argc, const char** _updated_argv, _cream_argument* _actual_arg, const bool _is_it_extended)
+uint32_t _cream_add_argument_data(const int _remaining_argc, const char** _updated_argv, _cream_argument_option* _actual_arg, const bool _is_it_extended)
 {
     if(!_cream_enable_multiple_opts_per_arg) //Can read inline data?
     {
@@ -134,16 +67,16 @@ uint32_t _cream_add_argument_data(const int _remaining_argc, const char** _updat
 
 uint32_t _cream_read_argument(const int _updated_argc, const char** _updated_argv)
 {
-    _cream_argument* arg_ptr = NULL;
+    _cream_argument_option* arg_ptr = NULL;
     bool is_option_extended = false;
     if(_updated_argv[0][0] == _arg_id) //Argument should be an option
     {
         if(_updated_argv[0][1] == _arg_id) //It is extended
         {
             is_option_extended = true; 
-            arg_ptr = _cream_find_extended_argument(_updated_argv[0] +2);
+            arg_ptr = _cream_find_ext_arg_option(_updated_argv[0] +2);
         }
-        else arg_ptr = _cream_find_argument_option(_updated_argv[0][1]);
+        else arg_ptr = _cream_get_arg_option(_updated_argv[0][1]);
     }
     else    //Argument is anonymous
     {
@@ -175,7 +108,7 @@ uint32_t _cream_read_argument(const int _updated_argc, const char** _updated_arg
     {
         for(uint32_t i=2; _updated_argv[0][i] != '\0'; i++)
         {
-            arg_ptr = _cream_find_argument_option(_updated_argv[0][i]);
+            arg_ptr = _cream_get_arg_option(_updated_argv[0][i]);
             _cream_check_option(arg_ptr, _updated_argv[0] +i, false);
         }
         //If more than one option inlined, do not add data
@@ -190,10 +123,10 @@ uint32_t _cream_read_argument(const int _updated_argc, const char** _updated_arg
 extern inline void _cream_set_data_limit(const char* _options_array, va_list _arg_limits, uint8_t _config_type)
 {
     if(!_options_array) return;
-    _cream_argument* current_opt;
+    _cream_argument_option* current_opt;
     for(uint32_t i=0; _options_array[i] != '\0'; i++)
     {
-        current_opt = _cream_find_argument_option(_options_array[i]);
+        current_opt = _cream_get_arg_option(_options_array[i]);
         if(current_opt && current_opt->data_container)
         {
             if(_config_type == CREAM_DATA_LIMIT_MAX) 
@@ -222,7 +155,7 @@ void _cream_check_surpassed_data_bounds()
     _cream_option_data* _actual_opt;
     for(uint32_t i=0; i < _cream_option_count; i++)
     {
-        _actual_opt = _cream_find_argument_option(_cream_declared_option_chars[i])->data_container;
+        _actual_opt = _cream_get_arg_option(_cream_declared_option_chars[i])->data_container;
         if(!_actual_opt) continue;
 
         if(

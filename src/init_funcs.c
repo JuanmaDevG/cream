@@ -12,7 +12,7 @@ void cream_set_args(const uint32_t bool_option_count, const char* bool_options, 
     _cream_option_count == bool_option_count + data_option_count;
     size_t buf_length = 
         _cream_option_count +                               //Where the argument options are written to check them
-        (_cream_option_count * sizeof(_cream_argument)) +   //Where arguments options are stored and configured
+        (_cream_option_count * sizeof(_cream_argument_option)) +   //Where arguments options are stored and configured
         (data_option_count * sizeof(_cream_option_data));   //Where data argument options store their associated data
     _cream_declared_option_chars = calloc(1, buf_length);   //And the general buffer where everything is placed
 
@@ -28,17 +28,17 @@ void cream_set_args(const uint32_t bool_option_count, const char* bool_options, 
         memcpy(_cream_declared_option_chars + bool_option_count, data_options, data_option_count);
 
     //Attach pointers
-    _cream_argument* p_arg = (_cream_argument*)(_cream_declared_option_chars + _cream_option_count);
+    _cream_argument_option* p_arg = (_cream_argument_option*)(_cream_declared_option_chars + _cream_option_count);
     for(uint32_t i=0; i < _cream_option_count; i++)
     {
-        _cream_set_option_pointer(_cream_declared_option_chars, p_arg);
+        _cream_set_arg_option(_cream_declared_option_chars, p_arg); //TODO: this func is removed
         p_arg++;
     }
     //Associate data mem regions with the actual arguments
-    _cream_option_data* p_data = (_cream_option_data*)((_cream_argument*)(_cream_declared_option_chars + _cream_option_count) + _cream_option_count);
+    _cream_option_data* p_data = (_cream_option_data*)((_cream_argument_option*)(_cream_declared_option_chars + _cream_option_count) + _cream_option_count);
     for(uint32_t i=0; i < data_option_count; i++)
     {
-        p_arg = _cream_find_argument_option(data_options[i]);
+        p_arg = _cream_get_arg_option(data_options[i]);
         if(p_arg)
         {
             p_arg->data_container = p_data;
@@ -59,7 +59,7 @@ void cream_clean()
         _cream_declared_option_chars = NULL;
         _cream_option_count = 0;
         _cream_declared_arg_options = NULL;
-        _cream_declared_options_data = NULL;
+        _cream_arg_options_data = NULL;
         _cream_ext_arg_count = 0;
     }
 
@@ -77,10 +77,10 @@ void cream_associate_extended(const char* arg_characters, ...) {
     va_list arg_l;
     va_start(arg_l, arg_characters);
 
-    _cream_argument* p_arg;
+    _cream_argument_option* p_arg;
     for(uint32_t i=0; arg_characters[i] != '\0'; i++)
     {
-        p_arg = _cream_find_argument_option(arg_characters[i]);
+        p_arg = _cream_get_arg_option(arg_characters[i]);
         if(p_arg)
         {
             p_arg->extended_version = va_arg(arg_l, char*);
@@ -94,10 +94,10 @@ void cream_associate_extended(const char* arg_characters, ...) {
 void cream_make_mandatory(const char* arg_characters)
 {
     if(!_cream_declared_option_chars) return;
-    _cream_argument* p_arg;
+    _cream_argument_option* p_arg;
     for(uint32_t i=0; arg_characters[i] != '\0'; i++)
     {
-        p_arg = _cream_find_argument_option(arg_characters[i]);
+        p_arg = _cream_get_arg_option(arg_characters[i]);
         if(p_arg)
             p_arg->is_mandatory = true;
     }
@@ -126,10 +126,10 @@ extern inline void cream_treat_anonymous_args_as_errors(const bool _value) { _cr
 extern inline void cream_treat_repeated_options_as_errors(const char* _arg_options)
 {
     if(!_cream_declared_option_chars) return;
-    _cream_argument* p_arg;
+    _cream_argument_option* p_arg;
     for(uint32_t i=0; _arg_options[i] != '\0'; i++)
     {
-        p_arg = _cream_find_argument_option(_arg_options[i]);
+        p_arg = _cream_get_arg_option(_arg_options[i]);
         if(p_arg)
             p_arg->cannot_be_repeated = true;
     }
@@ -153,10 +153,10 @@ void cream_cancel_argument_loads()
     if(!_cream_declared_option_chars) return;
 
     //Reset usage flag and clean data pointers
-    _cream_argument* p_arg;
+    _cream_argument_option* p_arg;
     for(uint32_t i=0; i < _cream_option_count; i++)
     {
-        p_arg = _cream_find_argument_option(_cream_declared_option_chars[i]);
+        p_arg = _cream_get_arg_option(_cream_declared_option_chars[i]);
         p_arg->has_been_used_already = false;
         if(p_arg->data_container)
         {

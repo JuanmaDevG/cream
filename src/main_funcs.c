@@ -3,7 +3,7 @@
 
 extern inline bool cream_check_option(const char _arg_option)
 {
-    _cream_argument* p_arg = _cream_find_argument_option(_arg_option);
+    _cream_argument_option* p_arg = _cream_get_arg_option(_arg_option);
     if(p_arg)
         return p_arg->has_been_used_already;
     return false;
@@ -11,7 +11,7 @@ extern inline bool cream_check_option(const char _arg_option)
 
 extern inline uint32_t cream_get_data_count(const char _arg_option)
 {
-    _cream_argument* p_arg = _cream_find_argument_option(_arg_option);
+    _cream_argument_option* p_arg = _cream_get_arg_option(_arg_option);
     if(p_arg && p_arg->data_container)
         p_arg->data_container->actual_data_count;
 
@@ -20,7 +20,7 @@ extern inline uint32_t cream_get_data_count(const char _arg_option)
 
 extern inline char** cream_get_data(const char _arg_option)
 {
-    _cream_argument* p_arg = _cream_find_argument_option(_arg_option);
+    _cream_argument_option* p_arg = _cream_get_arg_option(_arg_option);
     if(!(p_arg && p_arg->data_container && p_arg->data_container->data.byte_count)) return NULL;
     if(p_arg->data_container->data_relocation_buffer)
     {

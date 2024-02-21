@@ -1,46 +1,16 @@
 #pragma once
 
-#include <stdlib.h>
 #include <stdarg.h>
 #include <ctype.h>
 
 #include "shared_data.h"
 #include "error_system.h"
-#include "bit_vec_ops.h"
+#include "bit_vec.h"
 
+//TODO: this might get deleted
 enum _cream_data_limit_config { CREAM_DATA_LIMIT_MAX, CREAM_DATA_LIMIT_MIN };
 
-
-/*
-    Returns true if the character is configured as an argument identificator
-*/
-bool _cream_find_argument_id(const char arg_id);
-
-/*
-    Returns the pointer to the argument option data structure if it is available, 
-    otherwise returns NULL
-*/
-_cream_argument* _cream_find_argument_option(const char option_char);
-
-/*
-    Sets the given argument pointer to the cream valid options
-*/
-bool _cream_set_option_pointer(const char option_char, const _cream_argument* p_arg);
-
-/*
-    Finds the extended argument.
-    The char pointer location must be the argument pointer plus the double 
-    argument identificator offset, like:
-    
-    --some-extended-arg -> (pass this) some-extended-arg (resulting argument without double id)
-
-    It is highly recommended for performance that the string first character is equal (first char not case sensitive) 
-    to the extended arg's first character, otherwise the finder will have to look into the entire extended arguments 
-    buffer.
-
-    Returns true if found, otherwise false
-*/
-_cream_argument* _cream_find_extended_argument(const char* ext_arg);
+//TODO: probably refactor almost all the following functions
 
 /*
     Adds a data package to the selected argument data package buffer starting from the point where the argument option was found
@@ -49,7 +19,7 @@ _cream_argument* _cream_find_extended_argument(const char* ext_arg);
 
     This function stores errors into the error system buffers if the cream state machine is configured to do it.
 */
-uint32_t _cream_add_argument_data(const int remaining_argc, const char** updated_argv, _cream_argument* dst_arg, const bool is_it_extended);
+uint32_t _cream_add_argument_data(const int remaining_argc, const char** updated_argv, _cream_argument_option* dst_arg, const bool is_it_extended);
 
 /*
     Scans a string looking for an argument option.
