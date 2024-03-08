@@ -258,7 +258,7 @@ bool _stack_memcmp(const void* _client_block, const _expandable_stack* _exp_stac
     return process_all_blocks(_client_block, _exp_stack, _offset, _block_size, PROCESS_MODE_COMPARE);
 }
 
-bool _stack_memcmp_stack(_expandable_stack* _exp_stack1, _expandable_stack* _exp_stack2)
+bool _stack_memcmp_stack(const _expandable_stack* _exp_stack1, const _expandable_stack* _exp_stack2)
 {
     if(_exp_stack1->byte_count != _exp_stack2->byte_count) return false;
     size_t confirmed_bytes = (_exp_stack1->byte_count <= MEM_BLOCK_SIZE ? _exp_stack1->byte_count : MEM_BLOCK_SIZE);
