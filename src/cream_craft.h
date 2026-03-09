@@ -5,8 +5,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifndef CREAM_MAX_ARG_SIZE
-#define CREAM_MAX_ARG_SIZE 256
+#ifndef CREAM_MAX_ARG_LENGTH
+#define CREAM_MAX_ARG_LENGTH 256
 #endif
 
 #define CREAM_DEFAULT_SLOTS 20
@@ -19,38 +19,43 @@ typedef struct cream_arg {
   unsigned char* _data;
 } cream_arg;
 
-static unsigned char _cream_charbuf[CREAM_MAX_ARG_SIZE];
-
 static size_t _cream_argc = 0;
 static struct cream_arg* _cream_arg_block = NULL;
+static struct cream_arg* _cream_next_arg = NULL;
+static const struct cream_arg* _cream_arg_block_limit = NULL;
 static size_t _cream_txt_size = 0;
-static size_t _cream_txt_busy_bytes = 0;
-static unsigned char* _cream_text_block = NULL;
+static unsigned char* _cream_txt_block = NULL;
+static unsigned char* _cream_next_string = NULL;
+static const unsigned char* _cream_txt_block_limit = NULL;
 
 
 void cream_init()
 {
   _cream_argc = CREAM_DEFAULT_SLOTS;
-  _cream_arg_block = (struct cream_arg*)malloc(sizeof(cream_arg) * CREAM_DEFAULT_SLOTS);
-  memset(_cream_main_block, 0, sizeof(cream_arg) * CREAM_DEFAULT_SLOTS);
-
+  _cream_arg_block = (struct cream_arg*)calloc(sizeof(cream_arg) * CREAM_DEFAULT_SLOTS);
+  _cream_next_arg = _cream_arg_block;
+  _cream_arg_block_limit = _cream_arg_block + _cream_argc;
   _cream_txt_size = CREAM_DEFAULT_TXT_LENGTH;
-  _cream_text_block = (unsigned char*)malloc(CREAM_DEFAULT_TXT_LENGTH);
+  _cream_txt_block = (unsigned char*)malloc(CREAM_DEFAULT_TXT_LENGTH);
+  _cream_next_string = _cream_txt_block;
+  _cream_txt_block_limit = _cream_txt_block + _cream_txt_size;
 }
 
-//TODO: main function for shared object named "cream()" that loads the object
-void cream_make_arg(const char *const _cream_new_arg)
+bool cream_make_arg(const char *const _cream_new_arg)
 {
-  size_t arg_len;
-  arg_len = stpncpy(_cream_charbuf, _cream_new_arg, CREAM_MAX_ARG_SIZE) - _cream_charbuf;
+  if(!_cream_arg_block)
+    return false;
 
-  //TODO: does it fit? If not, realloc
+  size_t arg_len = strnlen(_cream_new_arg, CREAM_MAX_ARG_LENGTH);
+  //TODO: guarantee a free slot and enough text space
+  _cream_next_arg->_arg_length = arg_len;
 }
 
 
+//TODO: first version of this will manage children with simple allocations
+//  Later may be more improvements after measuring
 void cream_make_subarg(const char *const _cream_parent, const char *const _cream_child)
 {
-  //TODO: think about later about the data structure
 }
 
 
