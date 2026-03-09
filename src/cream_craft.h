@@ -12,29 +12,59 @@
 #define CREAM_DEFAULT_SLOTS 20
 #define CREAM_DEFAULT_TXT_LENGTH 4098
 
+typedef struct cream_arg cream_arg;
 
-typedef struct cream_arg {
+typedef struct {
   unsigned short _arg_length;
-  cream_arg* _children;
   unsigned char* _data;
-} cream_arg;
+  bool _mandatory;
+} _cream_arg;
 
-static size_t _cream_argc = 0;
-static struct cream_arg* _cream_arg_block = NULL;
-static struct cream_arg* _cream_next_arg = NULL;
-static const struct cream_arg* _cream_arg_block_limit = NULL;
+typedef struct {
+  _cream_arg* parent;
+  _cream_arg* child;
+} cream_relationship;
+
+static size_t _cream_args_cap = 0;
+static struct _cream_arg* _cream_arg_block = NULL;
+static struct _cream_arg* _cream_next_arg = NULL;
+static const struct _cream_arg* _cream_arg_block_limit = NULL;
+
 static size_t _cream_txt_size = 0;
 static unsigned char* _cream_txt_block = NULL;
 static unsigned char* _cream_next_string = NULL;
 static const unsigned char* _cream_txt_block_limit = NULL;
 
+static size_t _cream_rel_count = 0;
+static cream_relationship* _cream_rel_table = NULL;
+
+
+bool _cream_check_argtables(const size_t _new_text_size = 0)
+{
+  if(_cream_next_arg == _cream_arg_block_limit)
+  {
+    _cream_args_cap += CREAM_DEFAULT_SLOTS;
+    _cream_arg_block = realloc(_cream_arg_block, _cream_args_cap);
+    //TODO: recalculate all pointers
+  }
+  if(_cream_next_string == _cream_txt_block_limit
+      || (_cream_txt_block_limit - _cream_next_string) < _new_text_size)
+  {
+  }
+  return true;
+}
+
+bool _cream_check_reltables()
+{
+}
+
 
 void cream_init()
 {
-  _cream_argc = CREAM_DEFAULT_SLOTS;
+  _cream_args_cap = CREAM_DEFAULT_SLOTS;
   _cream_arg_block = (struct cream_arg*)calloc(sizeof(cream_arg) * CREAM_DEFAULT_SLOTS);
   _cream_next_arg = _cream_arg_block;
-  _cream_arg_block_limit = _cream_arg_block + _cream_argc;
+  _cream_arg_block_limit = _cream_arg_block + _cream_args_cap;
   _cream_txt_size = CREAM_DEFAULT_TXT_LENGTH;
   _cream_txt_block = (unsigned char*)malloc(CREAM_DEFAULT_TXT_LENGTH);
   _cream_next_string = _cream_txt_block;
@@ -47,14 +77,7 @@ bool cream_make_arg(const char *const _cream_new_arg)
     return false;
 
   size_t arg_len = strnlen(_cream_new_arg, CREAM_MAX_ARG_LENGTH);
-  if(_cream_next_arg == _cream_arg_block_limit)
-  {
-    //resize
-  }
-  if(_cream_next_string == _cream_txt_block_limit)
-  {
-    //resize
-  }
+  cream_check_argtables(arg_len);
   _cream_next_arg->_arg_length = arg_len;
 }
 
