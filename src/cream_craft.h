@@ -2,27 +2,49 @@
 #define CREAMLIB_CRAFT_H
 
 #include <stdbool.h>
+#include <string.h>
+#include <stdlib.h>
 
-#ifndef CREAM_BUF_MAX_SIZE
-#define CREAM_BUF_MAX_SIZE 4098
+#ifndef CREAM_MAX_ARG_SIZE
+#define CREAM_MAX_ARG_SIZE 256
 #endif
+
+#define CREAM_DEFAULT_SLOTS 20
+#define CREAM_DEFAULT_TXT_LENGTH 4098
 
 
 typedef struct cream_arg {
   unsigned short _arg_length;
   cream_arg* _children;
-  size_t _data_size;
-  unsigned char _data[];
+  unsigned char* _data;
 } cream_arg;
 
-static unsigned char _cream_buf[CREAM_BUF_MAX_SIZE];
-static unsigned char* _cream_main_block;
+static unsigned char _cream_charbuf[CREAM_MAX_ARG_SIZE];
 
+static size_t _cream_argc = 0;
+static struct cream_arg* _cream_arg_block = NULL;
+static size_t _cream_txt_size = 0;
+static size_t _cream_txt_busy_bytes = 0;
+static unsigned char* _cream_text_block = NULL;
+
+
+void cream_init()
+{
+  _cream_argc = CREAM_DEFAULT_SLOTS;
+  _cream_arg_block = (struct cream_arg*)malloc(sizeof(cream_arg) * CREAM_DEFAULT_SLOTS);
+  memset(_cream_main_block, 0, sizeof(cream_arg) * CREAM_DEFAULT_SLOTS);
+
+  _cream_txt_size = CREAM_DEFAULT_TXT_LENGTH;
+  _cream_text_block = (unsigned char*)malloc(CREAM_DEFAULT_TXT_LENGTH);
+}
 
 //TODO: main function for shared object named "cream()" that loads the object
 void cream_make_arg(const char *const _cream_new_arg)
 {
-  //TODO: use a big fixed size buffer
+  size_t arg_len;
+  arg_len = stpncpy(_cream_charbuf, _cream_new_arg, CREAM_MAX_ARG_SIZE) - _cream_charbuf;
+
+  //TODO: does it fit? If not, realloc
 }
 
 
