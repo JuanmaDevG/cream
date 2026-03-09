@@ -47,7 +47,14 @@ bool cream_make_arg(const char *const _cream_new_arg)
     return false;
 
   size_t arg_len = strnlen(_cream_new_arg, CREAM_MAX_ARG_LENGTH);
-  //TODO: guarantee a free slot and enough text space
+  if(_cream_next_arg == _cream_arg_block_limit)
+  {
+    //resize
+  }
+  if(_cream_next_string == _cream_txt_block_limit)
+  {
+    //resize
+  }
   _cream_next_arg->_arg_length = arg_len;
 }
 
