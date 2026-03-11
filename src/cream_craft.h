@@ -9,12 +9,24 @@
 #define CREAM_MAX_ARG_LENGTH 256
 #endif
 
-#define CREAM_DEFAULT_SLOTS 20
-#define CREAM_DEFAULT_TXT_LENGTH 4098
+#ifndef CREAM_DEFAULT_ARG_SLOTS
+#define CREAM_DEFAULT_ARG_SLOTS 20
+#endif
 
-#define CREAM_ARG_NEEDS_DATA 0x01
-#define CREAM_ARG_IS_MANDATORY 0x02
-#define _CREAM_ARG_HAS_CHECKS 0x04
+#ifndef CREAM_DEFAULT_TXT_BUF
+#define CREAM_DEFAULT_TXT_BUF 4098
+#endif
+
+
+#define CREAM_ARG_NOFLAGS           0x00
+#define CREAM_ARG_NEEDS_DATA        0x01
+#define CREAM_ARG_IS_MANDATORY      0x02
+#define CREAM_ARG_DENY_DUPLICATES   0x04
+#define CREAM_ARG_ALLOW_EQUAL_OP    0x08   //-f=file.txt (the equalop value is not stored as data, it prevents cream from throwing an error)
+#define CREAM_ARG_ALLOW_KEYWORD     0x10   //-ffile.txt (the keyword is not stored as data, is within the arg and can be an enum value)
+#define CREAM_ARG_STACKABLE         0x20   //-czvf TODO: probably replace with arg groups (specific arguments that can be grouped into an option discarding first char)
+#define CREAM_ARG_EXECUTES_ROUTINE  0x80   // void fun_ptr(struct receivedinfoaboutarg)
+
 
 typedef struct {
   size_t count;
@@ -27,29 +39,30 @@ typedef struct cream_arg cream_arg;
 
 typedef struct {
   unsigned short length;
-  unsigned char flags;
   unsigned int text;
-} _cream_arg;
+} cream_arg;
 
 typedef struct {
-  unsigned int parent_idx;
-  unsigned int child_idx;
-} _cream_relationship;
+  unsigned short parent_idx;
+  unsigned short child_idx;
+} cream_relationship;
 
 typedef struct {
-  unsigned short max_args;
-  unsigned short min_args;
-  const unsigned char* available_values; //NULL means anything
-} _cream_runtime_check;
+  unsigned char flags;
+  unsigned short max_data;
+  unsigned short min_data;
+  unsigned short arg_id;
+  const unsigned char* enum_values;
+} cream_runtime_check;
 
 
 struct _cream_buf _cream_args = {0};
 struct _cream_buf _cream_text = {0};
 struct _cream_buf _cream_rels = {0};
-struct _cream_buf _cream_checks = {0};
+struct _cream_buf _cream_runtime_checks = {0};
 
 
-bool _cream_check_table(_cream_table* _tb, const size_t _min_available, const size_t _increment = 0, const bool _zalloc = false)
+bool _cream_craft_check_table(_cream_table* _tb, const size_t _min_available, const size_t _increment, const bool _zalloc)
 {
   if((size_t)((char*)_tb->limit - (char*)_tb->next) >= _min_available)
     return true;
@@ -65,16 +78,19 @@ bool _cream_check_table(_cream_table* _tb, const size_t _min_available, const si
   return true;
 }
 
+#define CREAM_ID_NOT_FOUND 0xffff
 
-struct _cream_arg* _cream_find_arg(const unsigned char *const _arg)
+unsigned short _cream_craft_find_arg(const unsigned char *const _arg)
 {
   bool _found = false;
-  for(_cream_arg* _p = (_cream_arg*)_cream_args.base; _p < _cream_args.limit; _p++)
+  unsigned short _id=0;
+  for(cream_arg* _p = (cream_arg*)_cream_args.base; _p < _cream_args.limit && _p->length > 0; _p++, _id++)
   {
     const unsigned char *_txt = (const unsigned char*)_cream_text.base + _p->text;
+    const unsigned char *const _txt_base = _txt;
     while(_txt < _cream_text.limit && *_txt == *_arg)
     {
-      if(_p->length == (unsigned int)(_txt - ((unsigned char*)_cream_args.base + _p->length) - && *_arg == '\0') //TODO: check this
+      if(_txt == _txt_base + _p->length && *_arg == '\0')
       {
         _found = true;
         break;
@@ -82,26 +98,40 @@ struct _cream_arg* _cream_find_arg(const unsigned char *const _arg)
       _txt++;
       _arg++;
     }
-    if(_found) return _p;
+    if(_found) return _id;
   }
-  return NULL;
+  return CREAM_ID_ERROR;
 }
 
 
-bool cream_craft_arg(const char *const _cream_new_arg, const unsigned char _flags = 0x00)
+//TODO: may delete the a lot of code because of allowing external definitions instead of allocating memory
+void cream_craft_args(const cream_arg* _args)
+{
+  //TODO: register them to a pointer
+}
+
+void cream_craft_relationships(const cream_relationship* _rels)
+{
+}
+
+
+void cream_craft_runtime_checks(const cream_runtime_check* _rchecks)
+{
+}
+
+bool cream_craft_arg(const char *const _cream_new_arg)
 {
   if(!_cream_new_arg) return false;
   size_t _arg_len = strnlen(_cream_new_arg, CREAM_MAX_ARG_LENGTH);
-  if(!(_cream_check_table(&_cream_args, sizeof(_cream_arg), sizeof(_cream_arg) * CREAM_DEFAULT_SLOTS, true)
-        && _cream_check_table(&_cream_text, _arg_len, CREAM_DEFAULT_TEXT_LENGTH)
+  if(!(_cream_craft_check_table(&_cream_args, sizeof(cream_arg), sizeof(struct cream_arg) * CREAM_DEFAULT_ARG_SLOTS, true)
+        && _cream_craft_check_table(&_cream_text, _arg_len, CREAM_DEFAULT_TEXT_LENGTH, false)
         && _arg_len > 0))
   {
     return false;
   }
-  _cream_arg* _p = (struct _cream_arg*)_cream_args.next;
+  cream_arg* _p = (struct cream_arg*)_cream_args.next;
   _p->length = _arg_len;
-  _p->text = (unsigned int*)_cream_text->next - (unsigned int)_cream_text->base;
-  _p->flags = _flags;
+  _p->text = (unsigned char*)_cream_text->next - (unsigned char*)_cream_text->base;
   memcpy(_p->text, _cream_new_arg, _arg_len);
   (char*)_cream_text->next += _arg_len;
   _p++;
@@ -109,20 +139,25 @@ bool cream_craft_arg(const char *const _cream_new_arg, const unsigned char _flag
 }
 
 
-bool cream_craft_subarg(const char *const _parent, const char *const _child, const unsigned char _flags = 0x00)
+bool cream_craft_subarg(const char *const _parent, const char *const _child)
 {
-  struct _cream_arg *_parent_info, *_child_info;
-  _parent_info = _cream_find_arg(_parent);
-  if(!_cream_arg) return false;
-  _child_info = _cream_find_arg(_child);
-  if(!_child_info)
+  struct cream_arg *_parent_info, *_child_info;
+  _parent_info = _cream_craft_find_arg(_parent);
+  if(cream_arg == CREAM_ID_NOT_FOUND) return false;
+  _child_info = _cream_craft_find_arg(_child);
+  if(_child_info == CREAM_ID_NOT_FOUND)
   {
-    if(!cream_craft_arg(_child, _flags)) return false;
-    _child_info = _cream_find_arg(_child);
+    if(!cream_craft_arg(_child)) return false;
+    _child_info = _cream_craft_find_arg(_child);
   }
-  if(!_cream_check_table(&_cream_rels, sizeof(_cream_reloationship), sizeof(_cream_relationship) * CREAM_DEFAULT_SLOTS, true))
+  if(!_cream_craft_check_table(
+        &_cream_rels,
+        sizeof(_cream_reloationship),
+        sizeof(cream_relationship) * CREAM_DEFAULT_ARG_SLOTS, true))
+  {
     return false;
-  struct _cream_relationship* _r = (_cream_relationship*)_cream_rels->next;
+  }
+  struct cream_relationship* _r = (cream_relationship*)_cream_rels->next;
   _r->parent = _parent_info;
   _r->child = _child_info;
   _r++;
