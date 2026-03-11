@@ -27,13 +27,13 @@ typedef struct cream_arg cream_arg;
 
 typedef struct {
   unsigned short length;
-  unsigned char* data;
   unsigned char flags;
+  unsigned int text;
 } _cream_arg;
 
 typedef struct {
-  _cream_arg* parent;
-  _cream_arg* child;
+  unsigned int parent_idx;
+  unsigned int child_idx;
 } _cream_relationship;
 
 typedef struct {
@@ -66,8 +66,25 @@ bool _cream_check_table(_cream_table* _tb, const size_t _min_available, const si
 }
 
 
-struct _cream_arg* _cream_find_arg(const char *const _arg)
+struct _cream_arg* _cream_find_arg(const unsigned char *const _arg)
 {
+  bool _found = false;
+  for(_cream_arg* _p = (_cream_arg*)_cream_args.base; _p < _cream_args.limit; _p++)
+  {
+    const unsigned char *_txt = (const unsigned char*)_cream_text.base + _p->text;
+    while(_txt < _cream_text.limit && *_txt == *_arg)
+    {
+      if(_p->length == (unsigned int)(_txt - ((unsigned char*)_cream_args.base + _p->length) - && *_arg == '\0') //TODO: check this
+      {
+        _found = true;
+        break;
+      }
+      _txt++;
+      _arg++;
+    }
+    if(_found) return _p;
+  }
+  return NULL;
 }
 
 
@@ -81,11 +98,11 @@ bool cream_craft_arg(const char *const _cream_new_arg, const unsigned char _flag
   {
     return false;
   }
-  _cream_arg* _p = (struct _cream_arg*)_cream_args->next;
+  _cream_arg* _p = (struct _cream_arg*)_cream_args.next;
   _p->length = _arg_len;
-  _p->data = (unsigned char*)_cream_text->next;
+  _p->text = (unsigned int*)_cream_text->next - (unsigned int)_cream_text->base;
   _p->flags = _flags;
-  memcpy(_p->data, _cream_new_arg, _arg_len);
+  memcpy(_p->text, _cream_new_arg, _arg_len);
   (char*)_cream_text->next += _arg_len;
   _p++;
   return true;
