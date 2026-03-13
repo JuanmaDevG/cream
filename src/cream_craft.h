@@ -1,61 +1,56 @@
 #ifndef CREAMLIB_CRAFT_H
 #define CREAMLIB_CRAFT_H
 
-#include <stdbool.h>
+#include <stdbool.h> //TODO: may only include stdbool
 #include <string.h>
 #include <stdlib.h>
 
-#ifndef CREAM_MAX_ARG_LENGTH
-#define CREAM_MAX_ARG_LENGTH 256
-#endif
 
-#ifndef CREAM_DEFAULT_ARG_SLOTS
-#define CREAM_DEFAULT_ARG_SLOTS 20
-#endif
-
-#ifndef CREAM_DEFAULT_TXT_BUF
-#define CREAM_DEFAULT_TXT_BUF 4098
-#endif
+// First two bits are for type info
+#define CREAM_TYPE_BOOLEAN              0x00
+#define CREAM_TYPE_DATAVEC              0x01  /* -f file.txt file2.txt */
+#define CREAM_TYPE_SUBCOMMAND           0x02  /* appname subcommand --subcommand-arg... */
+#define CREAM_TYPE_KEYWORD_HOST         0x03  /* -funroll-loops or -f unroll-loops or -f=unroll-loops */
+#define CREAM_ARG_IS_MANDATORY         0x01
+#define CREAM_ARG_DENY_DUPLICATES      0x02
 
 
-#define CREAM_ARG_NOFLAGS           0x00
-#define CREAM_ARG_NEEDS_DATA        0x01
-#define CREAM_ARG_IS_MANDATORY      0x02
-#define CREAM_ARG_DENY_DUPLICATES   0x04
-#define CREAM_ARG_ALLOW_EQUAL_OP    0x08   //-f=file.txt (the equalop value is not stored as data, it prevents cream from throwing an error)
-#define CREAM_ARG_ALLOW_KEYWORD     0x10   //-ffile.txt (the keyword is not stored as data, is within the arg and can be an enum value)
-#define CREAM_ARG_STACKABLE         0x20   //-czvf TODO: probably replace with arg groups (specific arguments that can be grouped into an option discarding first char)
-#define CREAM_ARG_EXECUTES_ROUTINE  0x80   // void fun_ptr(struct receivedinfoaboutarg)
+struct _cream_datavec {
+  unsigned char max;
+  unsigned char min;
+};
 
+struct _cream_subcommand {
+  unsigned short nchild;
+  struct cream_arg *children;
+};
 
-typedef struct {
-  size_t count;
-  void* base;
-  void* next;
-  void* limit;
-} _cream_buf;
+#define CREAM_KWTYPE_SEPARATE     0x00
+#define CREAM_KWTYPE_EMBEDDED     0x01
+#define CREAM_KWTYPE_EQUALOP      0x02
 
-typedef struct cream_arg cream_arg;
+struct _cream_keyword_host {
+  unsigned char kwtype;
+  const unsigned char* values; // separated by ; (no nullchar for defined end)
+};
 
-typedef struct {
-  unsigned short length;
-  unsigned int text;
-} cream_arg;
+union cream_type_info {
+  struct _cream_datavec dv;
+  struct _cream_subcommand sc;
+  struct _cream_keyword_host kh;
+};
 
-typedef struct {
-  unsigned short parent_idx;
-  unsigned short child_idx;
-} cream_relationship;
-
-typedef struct {
+struct cream_arg {
   unsigned char flags;
-  unsigned short max_data;
-  unsigned short min_data;
-  unsigned short arg_id;
-  const unsigned char* enum_values;
-} cream_runtime_check;
+  const unsigned char *text;
+  union cream_type_info info; // May just pointer
+};
 
 
+unsigned short _cream_opt_count;
+struct cream_arg* _cream_args;
+
+//TODO: erase the rest
 struct _cream_buf _cream_args = {0};
 struct _cream_buf _cream_text = {0};
 struct _cream_buf _cream_rels = {0};
@@ -104,6 +99,9 @@ unsigned short _cream_craft_find_arg(const unsigned char *const _arg)
 }
 
 
+//TODO: remove all the extra property structs to group them into a single one with restrictions
+// - Abandon craft compile time
+// - The user MUST craft all the argument information
 //TODO: may delete the a lot of code because of allowing external definitions instead of allocating memory
 void cream_craft_args(const cream_arg* _args)
 {
