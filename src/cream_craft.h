@@ -1,179 +1,106 @@
 #ifndef CREAMLIB_CRAFT_H
 #define CREAMLIB_CRAFT_H
 
-#include <stdbool.h> //TODO: may only include stdbool
-#include <string.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 
-// First two bits are for type info
+// ==FLAGS==
+
+// 0b00000011 for type info
 #define CREAM_TYPE_BOOLEAN              0x00
 #define CREAM_TYPE_DATAVEC              0x01  /* -f file.txt file2.txt */
 #define CREAM_TYPE_SUBCOMMAND           0x02  /* appname subcommand --subcommand-arg... */
-#define CREAM_TYPE_KEYWORD_HOST         0x03  /* -funroll-loops or -f unroll-loops or -f=unroll-loops */
-#define CREAM_ARG_IS_MANDATORY         0x01
-#define CREAM_ARG_DENY_DUPLICATES      0x02
+#define CREAM_TYPE_KEYWORD_HOST         0x03  /* -f <unroll-loops|fast-math|...> */
+
+// 0b00001100 use with KEYWORD_HOST only (otherwise ignored)
+#define CREAM_KWTYPE_SEPARATE           0x04  /* -f fast-math */
+#define CREAM_KWTYPE_EMBEDDED           0x08  /* -ffast-math */
+#define CREAM_KWTYPE_EQUALOP            0x0c  /* -f=fast-math */
+
+// 0b11110000 general options
+#define CREAM_ARG_IS_MANDATORY          0x10  /* alert error system if argument not present */
+#define CREAM_ARG_DENY_DUPLICATES       0x20  /* alert error system if duplicate found */
 
 
-struct _cream_datavec {
-  unsigned char max;
-  unsigned char min;
+struct _cream_info_datavec {
+  unsigned short max_elems;
+  unsigned short min_elems;
 };
 
-struct _cream_subcommand {
-  unsigned short nchild;
-  struct cream_arg *children;
+struct _cream_info_subcommand {
+  struct cream_arg *children;   // NULL ending
 };
 
-#define CREAM_KWTYPE_SEPARATE     0x00
-#define CREAM_KWTYPE_EMBEDDED     0x01
-#define CREAM_KWTYPE_EQUALOP      0x02
-
-struct _cream_keyword_host {
-  unsigned char kwtype;
-  const unsigned char* values; // separated by ; (no nullchar for defined end)
+struct _cream_info_keyword_host {
+  const unsigned char* values; // separated by ; (and nullchar at the end)
 };
 
 union cream_type_info {
-  struct _cream_datavec dv;
-  struct _cream_subcommand sc;
-  struct _cream_keyword_host kh;
+  struct _cream_info_datavec datavec;
+  struct _cream_info_subcommand subcommand;
+  struct _cream_info_keyword_host kwhost;
+};
+
+struct cream_bool {
+  const char *opt;
+};
+
+struct cream_datavec {
+  unsigned short size;
+  const char *opt;
+  const char *data[];
+};
+
+struct cream_kwhost {
+  const char *opt;
+  const char *keyword;
+};
+
+struct cream_subcommand {
+  const char **anonymous_args;
+  struct cream_bool *bools;
+  struct cream_datavec *datavecs;
+  struct cream_subcommand *subcommands;
+  struct cream_kwhost *kwhosts;
+};
+
+union cream_argtype { //TODO: will be passed to run_oncheck
+  struct type_bool;
+  struct type_datavec;
+  struct type_kwhost;
+  struct type_subcommand;
 };
 
 struct cream_arg {
   unsigned char flags;
   const unsigned char *text;
-  union cream_type_info info; // May just pointer
+  union cream_type_info info;
+  void (run_oncheck*)(const union cream_argtype);
+};
+
+#define cream_no_arg {.text = NULL}
+struct cream_result {
+  const char **anonymous_args;
+  struct cream_bool *bools;
+  struct cream_datavec *datavecs;
+  struct cream_subcommand *subcommands;
+  struct cream_kwhost *kwhosts;
+  const unsigned char data[];
 };
 
 
-unsigned short _cream_opt_count;
-struct cream_arg* _cream_args;
-
-//TODO: erase the rest
-struct _cream_buf _cream_args = {0};
-struct _cream_buf _cream_text = {0};
-struct _cream_buf _cream_rels = {0};
-struct _cream_buf _cream_runtime_checks = {0};
-
-
-bool _cream_craft_check_table(_cream_table* _tb, const size_t _min_available, const size_t _increment, const bool _zalloc)
+cream_result* cream_parse(const int argc, const char *argv[], const cream_arg *_arg_options)
 {
-  if((size_t)((char*)_tb->limit - (char*)_tb->next) >= _min_available)
-    return true;
-
-  off_t _next_idx = (char*)_tb->next - (char*)_tb->base;
-  _tb->count += (_increment > 0 ? _increment : _min_available);
-  _tb->base = realloc(_tb->base, _tb->count);
-  if(!_tb->base) return false;
-  _tb->next = ((char*)_tb->base) + _next_idx;
-  _tb->limit = ((char*)_tb->base) + _tb->count;
-  if(_zalloc)
-      memset(_tb->next, 0, (unsigned char*)_tb->limit - (unsigned char*)_tb->next);
-  return true;
-}
-
-#define CREAM_ID_NOT_FOUND 0xffff
-
-unsigned short _cream_craft_find_arg(const unsigned char *const _arg)
-{
-  bool _found = false;
-  unsigned short _id=0;
-  for(cream_arg* _p = (cream_arg*)_cream_args.base; _p < _cream_args.limit && _p->length > 0; _p++, _id++)
-  {
-    const unsigned char *_txt = (const unsigned char*)_cream_text.base + _p->text;
-    const unsigned char *const _txt_base = _txt;
-    while(_txt < _cream_text.limit && *_txt == *_arg)
-    {
-      if(_txt == _txt_base + _p->length && *_arg == '\0')
-      {
-        _found = true;
-        break;
-      }
-      _txt++;
-      _arg++;
-    }
-    if(_found) return _id;
-  }
-  return CREAM_ID_ERROR;
+  size_t _r_size, _r_avail;
+  //TODO: alloc the cream_result and monitor byte placement and available
 }
 
 
-//TODO: remove all the extra property structs to group them into a single one with restrictions
-// - Abandon craft compile time
-// - The user MUST craft all the argument information
-//TODO: may delete the a lot of code because of allowing external definitions instead of allocating memory
-void cream_craft_args(const cream_arg* _args)
+void cream_free(cream_result* _r)
 {
-  //TODO: register them to a pointer
+  free(_r); // May change
 }
 
-void cream_craft_relationships(const cream_relationship* _rels)
-{
-}
-
-
-void cream_craft_runtime_checks(const cream_runtime_check* _rchecks)
-{
-}
-
-bool cream_craft_arg(const char *const _cream_new_arg)
-{
-  if(!_cream_new_arg) return false;
-  size_t _arg_len = strnlen(_cream_new_arg, CREAM_MAX_ARG_LENGTH);
-  if(!(_cream_craft_check_table(&_cream_args, sizeof(cream_arg), sizeof(struct cream_arg) * CREAM_DEFAULT_ARG_SLOTS, true)
-        && _cream_craft_check_table(&_cream_text, _arg_len, CREAM_DEFAULT_TEXT_LENGTH, false)
-        && _arg_len > 0))
-  {
-    return false;
-  }
-  cream_arg* _p = (struct cream_arg*)_cream_args.next;
-  _p->length = _arg_len;
-  _p->text = (unsigned char*)_cream_text->next - (unsigned char*)_cream_text->base;
-  memcpy(_p->text, _cream_new_arg, _arg_len);
-  (char*)_cream_text->next += _arg_len;
-  _p++;
-  return true;
-}
-
-
-bool cream_craft_subarg(const char *const _parent, const char *const _child)
-{
-  struct cream_arg *_parent_info, *_child_info;
-  _parent_info = _cream_craft_find_arg(_parent);
-  if(cream_arg == CREAM_ID_NOT_FOUND) return false;
-  _child_info = _cream_craft_find_arg(_child);
-  if(_child_info == CREAM_ID_NOT_FOUND)
-  {
-    if(!cream_craft_arg(_child)) return false;
-    _child_info = _cream_craft_find_arg(_child);
-  }
-  if(!_cream_craft_check_table(
-        &_cream_rels,
-        sizeof(_cream_reloationship),
-        sizeof(cream_relationship) * CREAM_DEFAULT_ARG_SLOTS, true))
-  {
-    return false;
-  }
-  struct cream_relationship* _r = (cream_relationship*)_cream_rels->next;
-  _r->parent = _parent_info;
-  _r->child = _child_info;
-  _r++;
-  _cream_rels.next = _r;
-  return true;
-}
-
-
-bool cream_craft_runtime_check(const char *const _arg) //More param with future available checks
-{
-  return true;
-}
-
-
-bool cream_export(const char *const out_filename = "cream.args")
-{
-}
-
-//struct sometype* cream_compact() instead of writing to file (for a compile-time executable), compact to an in-memory readable format for cream
 
 #endif // CREAMLIB_CRAFT_H

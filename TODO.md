@@ -2,15 +2,11 @@
 
 Must be compile-time, so the library will be:
 
-- header only part to produce binaries
-- .so file that reads and loads binaries
-- the header-only may embed the binary data inside a c source
 - will be sequential
-- will support subcommand contexts (composition)
+- will support booleans, keyword hosts, subcommands, and data vectors
+- will support runtime restrictions by flags
 - rewrite the god damn readme
-- will have a way to deal with anonymous arguments
-
-I might delete this project if I don't consider it useful enough
+- deal with anonymous arguments
 
 
 ## Improvements that may happen
