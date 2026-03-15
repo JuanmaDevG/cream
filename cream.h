@@ -1,11 +1,11 @@
-#ifndef CREAMLIB_CRAFT_H
-#define CREAMLIB_CRAFT_H
+#ifndef CREAMLIB_H
+#define CREAMLIB_H
 
 #include <stdbool.h>
 #include <stdlib.h>
 
 
-// ==FLAGS==
+// Flags for struct cream_arg_opt
 
 // 0b00000011 for type info
 #define CREAM_TYPE_BOOLEAN              0x00
@@ -29,7 +29,7 @@ struct _cream_info_datavec {
 };
 
 struct _cream_info_subcommand {
-  struct cream_arg *children;   // NULL ending
+  struct cream_arg_opt *children;   // NULL ending
 };
 
 struct _cream_info_keyword_host {
@@ -65,14 +65,14 @@ struct cream_subcommand {
   struct cream_kwhost *kwhosts;
 };
 
-union cream_argtype { //TODO: will be passed to run_oncheck
-  struct type_bool;
-  struct type_datavec;
-  struct type_kwhost;
-  struct type_subcommand;
+union cream_argtype {
+  struct cream_bool boolean;
+  struct cream_datavec datavec;
+  struct cream_kwhost kwhost;
+  struct cream_subcommand subcommand;
 };
 
-struct cream_arg {
+struct cream_arg_opt {
   unsigned char flags;
   const unsigned char *text;
   union cream_type_info info;
@@ -90,7 +90,7 @@ struct cream_result {
 };
 
 
-cream_result* cream_parse(const int argc, const char *argv[], const cream_arg *_arg_options)
+cream_result* cream_parse(const int argc, const char *argv[], const cream_arg_opt *_arg_options)
 {
   size_t _r_size, _r_avail;
   //TODO: alloc the cream_result and monitor byte placement and available
@@ -103,4 +103,4 @@ void cream_free(cream_result* _r)
 }
 
 
-#endif // CREAMLIB_CRAFT_H
+#endif // CREAMLIB_H
