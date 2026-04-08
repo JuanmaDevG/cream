@@ -9,6 +9,10 @@
 
 // Flags for struct cream_arg_opt
 
+#define CREAM_FLAGS_TYPE 0x03
+#define CREAM_FLAGS_KWTYPE 0x0c
+#define CREAM_FLAGS_GENERIC 0xf0
+
 // 0b00000011 for type info
 #define CREAM_TYPE_BOOLEAN 0x00
 #define CREAM_TYPE_DATAVEC 0x01      /* -f file.txt file2.txt */
@@ -23,6 +27,14 @@
 // 0b11110000 general options
 #define CREAM_ARG_IS_MANDATORY 0x10    /* alert error sys if not set */
 #define CREAM_ARG_DENY_DUPLICATES 0x20 /* alert error sys if duplicate */
+
+#define attach_result_pointer(prev_field, field, data_type, count)             \
+  if (count > 0) {                                                             \
+    _res->field = (data_type *)_res->prev_field;                               \
+    _res->field##_end = _res->field + count;                                   \
+  }
+
+const char *cream_usage_message = NULL;
 
 struct _cream_info_datavec {
   unsigned short max_elems;
@@ -95,7 +107,7 @@ struct cream_result {
   unsigned char data[];
 };
 
-void _count_types(cream_arg_opt *_opts, unsigned int *_bools,
+void _count_types(const cream_arg_opt *_opts, unsigned int *_bools,
                   unsigned int *_datavecs, unsigned int *_kwhosts,
                   unsigned int *_subcommands) {
   *_bools = *_datavecs = *_kwhosts = *_subcommands = 0;
@@ -117,12 +129,42 @@ void _count_types(cream_arg_opt *_opts, unsigned int *_bools,
   }
 }
 
-bool _streq(const char *_s1, const char *_s2) {
-  for (int i = 0; _s1[i] != '\0' && _s2[i] != '\0'; i++) {
-    if (_s1[i] != _s2[i])
-      return false;
+#define _CREAM_ARGCHECK_NO_COINCIDENCE ((const char *)NULL)
+#define _CREAM_ARGCHECK_OK ((const char *)1)
+
+const char *_arg_check(const char *_arg_cli, const cream_arg_opt *_opt) {
+  if ((_opt->flags & CREAM_FLAGS_TYPE) == CREAM_TYPE_KEYWORD_HOST) {
+    bool skip_equals = false;
+    if ((_opt->flags & CREAM_FLAGS_KWTYPE) == CREAM_KWTYPE_EQUALOP) {
+      skip_equals = true;
+    } else if ((_opt->flags & CREAM_FLAGS_KWTYPE) != CREAM_KWTYPE_EMBEDDED) {
+      goto normal_loop;
+    }
+
+    unsigned int i = 0;
+    while (!(_arg_cli[i] == '\0' || _opt->text[i] == '\0')) {
+      if (_opt->text[i] != _arg_cli[i])
+        return _CREAM_ARGCHECK_NO_COINCIDENCE;
+      i++;
+    }
+    if (_opt->text[i] != '\0' && _arg_cli[i] == '\0')
+      return _CREAM_ARGCHECK_NO_COINCIDENCE;
+    else {
+      if (skip_equals && _arg_cli[i] != '=') {
+        fprintf(stderr, "\n%s\n", cream_usage_message);
+        fprintf(stderr, "Argument option %s syntax is: %s=value\n", _opt->text,
+                _opt->text);
+        exit(1);
+      }
+      return _arg_cli + i + (skip_equals ? 1 : 0);
+    }
   }
-  return true;
+normal_loop:
+  for (int i = 0; _arg_cli[i] != '\0' && _opt->text[i] != '\0'; i++) {
+    if (_arg_cli[i] != _opt->text[i])
+      return _CREAM_ARGCHECK_NO_COINCIDENCE;
+  }
+  return _CREAM_ARGCHECK_OK;
 }
 
 void _register_argument(const int _rem_argc, const char **_rem_argv,
@@ -144,53 +186,38 @@ cream_result *cream_parse(const int argc, const char *argv[],
   unsigned int bools_count, datavecs_count, subcommands_count, kwhosts_count,
       anon_args_count;
   _count_types(_arg_options, &bools_count, &datavecs_count, &kwhosts_count,
-               &subcommands_count, &anon_args_count);
+               &subcommands_count);
 
-  cream_result *res = (cream_result *)malloc(
+  cream_result *_res = (cream_result *)malloc(
       sizeof(cream_result) + (sizeof(cream_bool) * bools_count) +
       (sizeof(cream_datavec) * datavecs_count) +
-      (sizeof(cream_subcommand) * subcommands_count) +
       (sizeof(cream_kwhost) * kwhosts_count) +
+      (sizeof(cream_subcommand) * subcommands_count) +
       (sizeof(char *) * anon_args_count));
 
-  if (!res) {
+  if (!_res) {
     perror("There is not enough memory to start argument parsing");
     return NULL;
   }
 
-  memset(res, 0, sizeof(cream_result));
+  memset(_res, 0, sizeof(cream_result));
+  attach_result_pointer(data, bools, cream_bool, bools_count);
+  attach_result_pointer(bools_end, datavecs, cream_datavec, datavecs_count);
+  attach_result_pointer(datavecs_end, kwhosts, cream_kwhost, kwhosts_count);
+  attach_result_pointer(kwhosts_end, subcommands, cream_subcommand,
+                        subcommands_count);
+  attach_result_pointer(subcommands_end, anonymous_args, const char *,
+                        anon_args_count);
 
-  // TODO: create a macro to automate field filling (and clean up counters)
-  res->bools = (cream_bool *)res->data;
-  res->bools_end = res->bools + bools_count;
-  if (res->bools == res->bools_end)
-    res->bools = NULL;
-  res->datavecs = (cream_datavec *)res->bools_end;
-  res->datavecs_end = res->datavecs + datavecs_count;
-  if (res->datavecs == res->datavecs_end)
-    res->datavecs = NULL;
-  res->kwhosts = (cream_kwhost *)res->datavecs_end;
-  res->kwhosts_end = res->kwhosts + kwhosts_count;
-  if (res->kwhosts == res->kwhosts_end)
-    res->kwhosts = NULL;
-  res->subcommands = (cream_subcommand *)res->kwhosts_end;
-  res->subcommands_end = res->subcommands + subcommands_count;
-  if (res->subcommands == res->subcommands_end)
-    res->subcommands = NULL;
-  res->anonymous_args = (const char **)res->subcommands_end;
-  res->anonymous_args_end = res->anonymous_args + anon_args_count;
-  if (res->anonymous_args == res->anonymous_args_end)
-    res->anonymous_args = NULL;
-
-  for (int _i = 0; _i < argc; _i++) {
+  for (unsigned int _i = 0; _i < argc; _i++) {
     const char *cur_arg = argv[_i];
     bool is_anon = false;
     for (const cream_arg_opt *_opt = _arg_options; _opt->text != NULL; _opt++) {
-      // TODO: watch out keyword hosts
-      if (!_streq((const char *)cur_arg, _opt->text))
+      const char *delim = _arg_check(cur_arg, _opt);
+      if (delim == _CREAM_ARGCHECK_NO_COINCIDENCE)
         continue;
       // Is an option, receive info
-      _register_argument(argc - _i, argv + _i, _opt, res);
+      _register_argument(argc - _i, argv + _i, _opt, _res);
       is_anon = true;
       break;
     }
@@ -199,7 +226,7 @@ cream_result *cream_parse(const int argc, const char *argv[],
     }
   }
 
-  return res;
+  return _res;
 }
 
 void cream_free(cream_result *_r) { free(_r); }
