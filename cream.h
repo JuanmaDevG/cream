@@ -28,10 +28,10 @@
 #define CREAM_ARG_IS_MANDATORY 0x10    /* alert error sys if not set */
 #define CREAM_ARG_DENY_DUPLICATES 0x20 /* alert error sys if duplicate */
 
-#define attach_result_pointer(prev_field, field, data_type, count)             \
+#define _cream_stack_rtdat_ptr(prev_field, field, data_type, count)            \
   if (count > 0) {                                                             \
-    _res->field = (data_type *)_res->prev_field;                               \
-    _res->field##_end = _res->field + count;                                   \
+    result->field = (data_type *)result->prev_field;                           \
+    result->field##_end = result->field + count;                               \
   }
 
 const char *cream_usage_message = NULL;
@@ -108,7 +108,7 @@ struct cream_result {
   unsigned char data[];
 };
 
-struct _cream_checker {
+struct _cream_runtime_data {
   cream_bool *cur_bool;
   cream_datavec *cur_datavec;
   cream_kwhost *cur_kwhost;
@@ -116,10 +116,11 @@ struct _cream_checker {
   unsigned int bools, datavecs, kwhosts, subcommands, anonymous;
 };
 
-void _cream_count_types(const cream_arg_opt *_opts, _cream_checker *_ck) {
+void _cream_set_rtdata(const struct cream_arg_opt *_opts,
+                       struct _cream_runtime_data *_ck) {
   _ck->anonymous = 10;
   _ck->bools = _ck->datavecs = _ck->kwhosts = _ck->subcommands = 0;
-  for (const cream_arg_opt *_i = _opts; _i->text != NULL; _i++) {
+  for (const struct cream_arg_opt *_i = _opts; _i->text != NULL; _i++) {
     switch (_i->flags & CREAM_FLAGS_TYPE) {
     case CREAM_TYPE_BOOLEAN:
       (_ck->bools)++;
@@ -137,31 +138,31 @@ void _cream_count_types(const cream_arg_opt *_opts, _cream_checker *_ck) {
   }
 }
 
-cream_result *_cream_setup_data(const cream_arg_opt *_opts,
-                                _cream_checker *_ck) {
-  _cream_count_types(_opts, _ck);
-  cream_result *_res = (cream_result *)malloc(
-      sizeof(cream_result) + (sizeof(cream_bool) * _ck->bools) +
-      (sizeof(cream_datavec) * _ck->datavecs) +
-      (sizeof(cream_kwhost) * _ck->kwhosts) +
-      (sizeof(cream_subcommand) * _ck->subcommands) +
-      (sizeof(char *) * _ck->anonymous));
+cream_result *_cream_setup_data(const cream_arg_opt *opts,
+                                _cream_runtime_data *rtdat) {
+  _cream_set_rtdata(opts, rtdat);
+  cream_result *result = (cream_result *)malloc(
+      sizeof(cream_result) + (sizeof(cream_bool) * rtdat->bools) +
+      (sizeof(cream_datavec) * rtdat->datavecs) +
+      (sizeof(cream_kwhost) * rtdat->kwhosts) +
+      (sizeof(cream_subcommand) * rtdat->subcommands) +
+      (sizeof(char *) * rtdat->anonymous));
 
-  if (!_res) {
+  if (!result) {
     perror("There is not enough memory to start argument parsing");
     return NULL;
   }
 
-  memset(_res, 0, sizeof(cream_result));
-  attach_result_pointer(data, bools, cream_bool, _ck->bools);
-  attach_result_pointer(bools_end, datavecs, cream_datavec, _ck->datavecs);
-  attach_result_pointer(datavecs_end, kwhosts, cream_kwhost, _ck->kwhosts);
-  attach_result_pointer(kwhosts_end, subcommands, cream_subcommand,
-                        _ck->subcommands);
-  attach_result_pointer(subcommands_end, anonymous_args, const char *,
-                        _ck->anonymous);
+  memset(result, 0, sizeof(cream_result));
+  _cream_stack_rtdat_ptr(data, bools, cream_bool, rtdat->bools);
+  _cream_stack_rtdat_ptr(bools_end, datavecs, cream_datavec, rtdat->datavecs);
+  _cream_stack_rtdat_ptr(datavecs_end, kwhosts, cream_kwhost, rtdat->kwhosts);
+  _cream_stack_rtdat_ptr(kwhosts_end, subcommands, cream_subcommand,
+                         rtdat->subcommands);
+  _cream_stack_rtdat_ptr(subcommands_end, anonymous_args, const char *,
+                         rtdat->anonymous);
 
-  return _res;
+  return result;
 }
 
 #define _CREAM_ARGCHECK_NO_COINCIDENCE ((const char *)NULL)
@@ -216,35 +217,54 @@ void _register_argument(const int _rem_argc, const char **_rem_argv,
   }
 }
 
+struct cream_arg_opt *_cream_find_opt(const char *arg,
+                                      const struct cream_arg_opt *opts) {
+  cream_arg_opt *result = NULL;
+
+  // TODO: search logic
+
+  return result;
+}
+
 void _cream_register_argument(const char *const cur_arg,
-                              const cream_arg_opt *opts, cream_result *res) {
-  // TODO: do the steps to register the argument
+                              const struct cream_arg_opt *opts,
+                              _cream_runtime_data *rtdat, cream_result *res) {
+  struct cream_arg_opt *cur_opt = _cream_find_opt(cur_arg, opts);
+  if (!cur_opt) {
+    // anonymous arg analysis loop
+    return;
+  }
+
+  if (cur_opt->flags & CREAM_TYPE_KEYWORD_HOST) {
+    // Keyword host analysis loop
+  } else if (cur_opt->flags & CREAM_TYPE_BOOLEAN) {
+    // Boolean analysis loop
+  }
+
+  // TODO: analyze the option
 }
 
 cream_result *cream_parse(const int argc, const char *argv[],
                           const cream_arg_opt *opts) {
-  struct _cream_checker checker;
-  cream_result *result = _cream_setup_data(opts, &checker);
+  struct _cream_runtime_data rtdat;
+  cream_result *result = _cream_setup_data(opts, &rtdat);
 
   for (unsigned int i = 0; i < argc; i++) {
-    _cream_register_argument(argv[i], opts, result);
+    _cream_register_argument(argv[i], opts, &rtdat, result);
 
     // TODO: trash out this logic, it's useless
     const char *cur_arg = argv[i];
     bool is_anon = false;
     for (const cream_arg_opt *_opt = opts; _opt->text != NULL; _opt++) {
       const char *delim = _arg_check(cur_arg, _opt);
-      // TODO: change all this with _cream_register_argument
       if (delim == _CREAM_ARGCHECK_NO_COINCIDENCE)
         continue;
-      // Is an option, receive info
-      // TODO: change the whole function to work with new arguments
       _register_argument(argc - i, argv + i, _opt, result);
       is_anon = true;
       break;
     }
     if (is_anon) {
-      // TODO: register as anonymous argument
+      // Anon arg
     }
   }
 
