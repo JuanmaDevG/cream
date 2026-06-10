@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Flags for struct cream_arg_opt
+// Flags for struct cream_option
 
 #define CREAM_FLAGS_TYPE 0x03
 #define CREAM_FLAGS_KWTYPE 0x0c
@@ -42,11 +42,11 @@ struct _cream_info_datavec {
 };
 
 struct _cream_info_subcommand {
-  struct cream_arg_opt *children; // NULL ending
+  struct cream_option *children; // NULL ending
 };
 
 struct _cream_info_keyword_host {
-  const unsigned char *values; // separated by ; (and nullchar at the end)
+  const char **values;
 };
 
 union cream_type_info {
@@ -85,7 +85,7 @@ union cream_argtype {
   struct cream_subcommand subcommand;
 };
 
-struct cream_arg_opt {
+struct cream_option {
   unsigned char flags;
   const char *text;
   union cream_type_info info;
@@ -109,44 +109,48 @@ struct cream_result {
 };
 
 struct _cream_runtime_data {
+  size_t opts_size;
   cream_bool *cur_bool;
   cream_datavec *cur_datavec;
   cream_kwhost *cur_kwhost;
   cream_subcommand *cur_subcommand;
+  const char **cur_anon;
   unsigned int bools, datavecs, kwhosts, subcommands, anonymous;
 };
 
-void _cream_set_rtdata(const struct cream_arg_opt *_opts,
-                       struct _cream_runtime_data *_ck) {
-  _ck->anonymous = 10;
-  _ck->bools = _ck->datavecs = _ck->kwhosts = _ck->subcommands = 0;
-  for (const struct cream_arg_opt *_i = _opts; _i->text != NULL; _i++) {
+void _cream_set_counters(const struct cream_option *opts,
+                         struct _cream_runtime_data *rtdat) {
+  rtdat->anonymous = 10;
+  rtdat->bools = rtdat->datavecs = rtdat->kwhosts = rtdat->subcommands = 0;
+  for (const struct cream_option *_i = opts; _i->text != NULL; _i++) {
     switch (_i->flags & CREAM_FLAGS_TYPE) {
     case CREAM_TYPE_BOOLEAN:
-      (_ck->bools)++;
+      (rtdat->bools)++;
       break;
     case CREAM_TYPE_DATAVEC:
-      (_ck->datavecs)++;
+      (rtdat->datavecs)++;
       break;
     case CREAM_TYPE_KEYWORD_HOST:
-      (_ck->kwhosts)++;
+      (rtdat->kwhosts)++;
       break;
     case CREAM_TYPE_SUBCOMMAND:
-      (_ck->subcommands)++;
+      (rtdat->subcommands)++;
       break;
     }
   }
 }
 
-cream_result *_cream_setup_data(const cream_arg_opt *opts,
+cream_result *_cream_setup_data(const cream_option *opts,
                                 _cream_runtime_data *rtdat) {
-  _cream_set_rtdata(opts, rtdat);
-  cream_result *result = (cream_result *)malloc(
-      sizeof(cream_result) + (sizeof(cream_bool) * rtdat->bools) +
-      (sizeof(cream_datavec) * rtdat->datavecs) +
-      (sizeof(cream_kwhost) * rtdat->kwhosts) +
-      (sizeof(cream_subcommand) * rtdat->subcommands) +
-      (sizeof(char *) * rtdat->anonymous));
+  _cream_set_counters(opts, rtdat);
+  rtdat->opts_size = sizeof(cream_result) +
+                     (sizeof(cream_bool) * rtdat->bools) +
+                     (sizeof(cream_datavec) * rtdat->datavecs) +
+                     (sizeof(cream_kwhost) * rtdat->kwhosts) +
+                     (sizeof(cream_subcommand) * rtdat->subcommands) +
+                     (sizeof(char *) * rtdat->anonymous);
+
+  cream_result *result = (cream_result *)malloc(rtdat->opts_size);
 
   if (!result) {
     perror("There is not enough memory to start argument parsing");
@@ -162,13 +166,22 @@ cream_result *_cream_setup_data(const cream_arg_opt *opts,
   _cream_stack_rtdat_ptr(subcommands_end, anonymous_args, const char *,
                          rtdat->anonymous);
 
+  rtdat->cur_bool = result->bools;
+  rtdat->cur_datavec = result->datavecs;
+  rtdat->cur_kwhost = result->kwhosts;
+  rtdat->cur_subcommand = result->subcommands;
+  rtdat->cur_anon = result->anonymous_args;
+
   return result;
 }
 
+// CRAP code
+// ================================================================================================================
+// ================================================================================================================
 #define _CREAM_ARGCHECK_NO_COINCIDENCE ((const char *)NULL)
 #define _CREAM_ARGCHECK_OK ((const char *)1)
 
-const char *_arg_check(const char *_arg_cli, const cream_arg_opt *_opt) {
+const char *_arg_check(const char *_arg_cli, const cream_option *_opt) {
   if ((_opt->flags & CREAM_FLAGS_TYPE) == CREAM_TYPE_KEYWORD_HOST) {
     bool skip_equals = false;
     if ((_opt->flags & CREAM_FLAGS_KWTYPE) == CREAM_KWTYPE_EQUALOP) {
@@ -202,9 +215,8 @@ normal_loop:
   return _CREAM_ARGCHECK_OK;
 }
 
-// TODO: finish
 void _register_argument(const int _rem_argc, const char **_rem_argv,
-                        const cream_arg_opt *_opt, cream_result *_res) {
+                        const cream_option *_opt, cream_result *_res) {
   switch (_opt->flags & 0x03) {
   case CREAM_TYPE_BOOLEAN:
     break;
@@ -216,61 +228,48 @@ void _register_argument(const int _rem_argc, const char **_rem_argv,
     break;
   }
 }
+// ================================================================================================================
+// ================================================================================================================
 
-struct cream_arg_opt *_cream_find_opt(const char *arg,
-                                      const struct cream_arg_opt *opts) {
-  cream_arg_opt *result = NULL;
+struct cream_option *_cream_find_opt(const char *arg,
+                                     const struct cream_option *opts) {
+  cream_option *result = NULL;
 
   // TODO: search logic
 
   return result;
 }
 
-void _cream_register_argument(const char *const cur_arg,
-                              const struct cream_arg_opt *opts,
-                              _cream_runtime_data *rtdat, cream_result *res) {
-  struct cream_arg_opt *cur_opt = _cream_find_opt(cur_arg, opts);
-  if (!cur_opt) {
-    // anonymous arg analysis loop
-    return;
+void _cream_guarantee_space(cream_option **opts, _cream_runtime_data *rtdat,
+                            void **start, void **finish, void **next,
+                            const size_t req_mem) {
+  if ((unsigned char *)*finish - (unsigned char *)*start < req_mem) {
+    rtdat->opts_size += req_mem;
+    *opts = (cream_option *)realloc(*opts, rtdat->opts_size);
+    // TODO: illegal assignment, fix and assign the rest of pointers
+    //(unsigned char *)*finish += 1;
   }
-
-  if (cur_opt->flags & CREAM_TYPE_KEYWORD_HOST) {
-    // Keyword host analysis loop
-  } else if (cur_opt->flags & CREAM_TYPE_BOOLEAN) {
-    // Boolean analysis loop
-  }
-
-  // TODO: analyze the option
 }
+// TODO: move pointers and reset them
 
 cream_result *cream_parse(const int argc, const char *argv[],
-                          const cream_arg_opt *opts) {
+                          const cream_option *opts) {
   struct _cream_runtime_data rtdat;
   cream_result *result = _cream_setup_data(opts, &rtdat);
 
   for (unsigned int i = 0; i < argc; i++) {
-    _cream_register_argument(argv[i], opts, &rtdat, result);
+    cream_option *found_opt = _cream_find_opt(argv[i], opts);
+    if (!found_opt) {
+      _cream_guarantee_space(result, rtdat.cur_anon, result.anonymous_args_end,
+                             sizeof(char **));
+      rtdat.cur_anon = argv + i;
+      rtdat.cur_anon++;
+      continue;
+    }
 
-    // TODO: trash out this logic, it's useless
-    const char *cur_arg = argv[i];
-    bool is_anon = false;
-    for (const cream_arg_opt *_opt = opts; _opt->text != NULL; _opt++) {
-      const char *delim = _arg_check(cur_arg, _opt);
-      if (delim == _CREAM_ARGCHECK_NO_COINCIDENCE)
-        continue;
-      _register_argument(argc - i, argv + i, _opt, result);
-      is_anon = true;
-      break;
-    }
-    if (is_anon) {
-      // Anon arg
-    }
+    return result;
   }
 
-  return result;
-}
-
-void cream_free(cream_result *_r) { free(_r); }
+  void cream_free(cream_result * _r) { free(_r); }
 
 #endif // CREAMLIB_H
