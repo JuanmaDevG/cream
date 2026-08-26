@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <memory.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -28,17 +29,11 @@
 #define CREAM_ARG_IS_MANDATORY 0x10    /* alert error sys if not set */
 #define CREAM_ARG_DENY_DUPLICATES 0x20 /* alert error sys if duplicate */
 
-#define _cream_stack_rtdat_ptr(prev_field, field, data_type, count)            \
-  if (count > 0) {                                                             \
-    result->field = (data_type *)result->prev_field;                           \
-    result->field##_end = result->field + count;                               \
-  }
-
 const char *cream_usage_message = NULL;
 
 struct _cream_info_datavec {
-  unsigned short max_elems;
-  unsigned short min_elems;
+  uint16_t max_elems;
+  uint16_t min_elems;
 };
 
 struct _cream_info_subcommand {
@@ -60,7 +55,7 @@ struct cream_bool {
 };
 
 struct cream_datavec {
-  unsigned short size;
+  uint16_t size;
   const char *opt;
   const char *data[];
 };
@@ -86,7 +81,7 @@ union cream_argtype {
 };
 
 struct cream_option {
-  unsigned char flags;
+  uint8_t flags;
   const char *text;
   union cream_type_info info;
   void (*run_oncheck)(const union cream_argtype);
@@ -95,57 +90,57 @@ struct cream_option {
 #define cream_no_arg {.text = NULL}
 
 struct cream_result {
-  const char **anonymous_args;
-  const char **anonymous_args_end;
   struct cream_bool *bools;
-  struct cream_bool *bools_end;
   struct cream_datavec *datavecs;
-  struct cream_datavec *datavecs_end;
   struct cream_kwhost *kwhosts;
-  struct cream_kwhost *kwhosts_end;
   struct cream_subcommand *subcommands;
-  struct cream_subcommand *subcommands_end;
+  const char **anonymous_args;
+  size_t bools_count, datavecs_count, kwhosts_count, subcommands_count,
+      anon_args_count;
   char data[];
 };
 
 struct _cream_runtime_data {
   size_t result_size;
-  cream_bool *cur_bool;
-  cream_datavec *cur_datavec;
-  cream_kwhost *cur_kwhost;
-  cream_subcommand *cur_subcommand;
-  const char **cur_anon;
-  size_t bools, datavecs, kwhosts, subcommands, anon_args;
+  size_t cur_bool, cur_datavec, cur_kwhost, cur_subcommand, cur_anon;
+  size_t bools_typecount, datavecs_typecount, kwhosts_typecount,
+      subcommands_typecount, anon_args_typecount;
 };
 
 struct _cream_runtime_data
 _cream_get_runtime_data(const struct cream_option *opts) {
   struct _cream_runtime_data rtdat;
-  rtdat.anon_args = 10;
-  rtdat.bools = rtdat.datavecs = rtdat.kwhosts = rtdat.subcommands = 0;
+  rtdat.anon_args_typecount = 10;
+  rtdat.bools_typecount = rtdat.datavecs_typecount = rtdat.kwhosts_typecount =
+      rtdat.subcommands_typecount = 0;
+
   for (const struct cream_option *_i = opts; _i->text != NULL; _i++) {
     switch (_i->flags & CREAM_FLAGS_TYPE) {
     case CREAM_TYPE_BOOLEAN:
-      (rtdat.bools)++;
+      (rtdat.bools_typecount)++;
       break;
     case CREAM_TYPE_DATAVEC:
-      (rtdat.datavecs)++;
+      (rtdat.datavecs_typecount)++;
       break;
     case CREAM_TYPE_KEYWORD_HOST:
-      (rtdat.kwhosts)++;
+      (rtdat.kwhosts_typecount)++;
       break;
     case CREAM_TYPE_SUBCOMMAND:
-      (rtdat.subcommands)++;
+      (rtdat.subcommands_typecount)++;
       break;
     }
   }
 
   rtdat.result_size = sizeof(cream_result) +
-                      (sizeof(cream_bool) * rtdat.bools) +
-                      (sizeof(cream_datavec) * rtdat.datavecs) +
-                      (sizeof(cream_kwhost) * rtdat.kwhosts) +
-                      (sizeof(cream_subcommand) * rtdat.subcommands) +
-                      (sizeof(char *) * rtdat.anon_args);
+                      (sizeof(cream_bool) * rtdat.bools_typecount) +
+                      (sizeof(cream_datavec) * rtdat.datavecs_typecount) +
+                      (sizeof(cream_kwhost) * rtdat.kwhosts_typecount) +
+                      (sizeof(cream_subcommand) * rtdat.subcommands_typecount) +
+                      (sizeof(char *) * rtdat.anon_args_typecount);
+
+  rtdat.cur_bool = rtdat.cur_datavec = rtdat.cur_kwhost = rtdat.cur_subcommand =
+      rtdat.cur_anon = 0;
+
   return rtdat;
 }
 
@@ -158,20 +153,15 @@ struct cream_result *_cream_setup_result(const cream_option *opts,
     return NULL;
   }
 
-  memset(result, 0, sizeof(cream_result));
-  _cream_stack_rtdat_ptr(data, bools, cream_bool, rtdat->bools);
-  _cream_stack_rtdat_ptr(bools_end, datavecs, cream_datavec, rtdat->datavecs);
-  _cream_stack_rtdat_ptr(datavecs_end, kwhosts, cream_kwhost, rtdat->kwhosts);
-  _cream_stack_rtdat_ptr(kwhosts_end, subcommands, cream_subcommand,
-                         rtdat->subcommands);
-  _cream_stack_rtdat_ptr(subcommands_end, anonymous_args, const char *,
-                         rtdat->anon_args);
-
-  rtdat->cur_bool = result->bools;
-  rtdat->cur_datavec = result->datavecs;
-  rtdat->cur_kwhost = result->kwhosts;
-  rtdat->cur_subcommand = result->subcommands;
-  rtdat->cur_anon = result->anonymous_args;
+  result->bools = (struct cream_bool *)result->data;
+  result->datavecs =
+      (struct cream_datavec *)(result->bools + rtdat->bools_typecount);
+  result->kwhosts =
+      (struct cream_kwhost *)(result->datavecs + rtdat->datavecs_typecount);
+  result->subcommands =
+      (struct cream_subcommand *)(result->kwhosts + rtdat->kwhosts_typecount);
+  result->anonymous_args =
+      (const char **)(result->subcommands + rtdat->subcommands_typecount);
 
   return result;
 }
@@ -231,16 +221,45 @@ void _cream_guarantee_space(struct cream_result **result,
                             const struct cream_option *opts,
                             struct _cream_runtime_data *rtdat,
                             const void *const start, const void *const finish,
-                            size_t *update_counter, const size_t new_elems,
+                            size_t *attrib_count, const size_t new_elems,
                             const size_t elem_size) {
-  if ((unsigned char *)finish - (unsigned char *)start >=
-      new_elems * elem_size) {
+
+  off_t offset = new_elems * elem_size;
+  if ((char *)finish - (char *)start >= offset) {
     return;
   }
 
-  off_t offset = new_elems * elem_size;
+  *attrib_count +=
+      (offset - (size_t)((char *)finish - (char *)start)) / elem_size;
   rtdat->result_size += offset;
   *result = (struct cream_result *)realloc(*result, rtdat->result_size);
+
+  char *writepoint = (*result)->data + rtdat->result_size - 1;
+  const char *limit = (*result)->data - 1, *readpoint = writepoint - offset;
+  while (limit > readpoint) {
+    *writepoint = *readpoint;
+    readpoint--;
+    writepoint--;
+  }
+
+  (*result)->bools = (struct cream_bool *)(*result)->data;
+  (*result)->datavecs =
+      (struct cream_datavec *)((*result)->bools + rtdat->bools_typecount);
+  (*result)->kwhosts =
+      (struct cream_kwhost *)((*result)->datavecs + rtdat->datavecs_typecount);
+  (*result)->subcommands =
+      (cream_subcommand *)((*result)->kwhosts + rtdat->kwhosts_typecount);
+  (*result)->anonymous_args =
+      (const char **)((*result)->subcommands + rtdat->subcommands_typecount);
+
+  // TODO: resolver el problema de los current en rtdat
+
+  for (const char **
+           i = (*result)->anonymous_args_end - 1,
+         **dst = (const char **)((const char *)(*result)->anonymous_args_end) +
+                 (offset - sizeof(char **));
+       i >= (*result)->anonymous_args; i--) {
+  }
   // TODO: recopy all from finish to start
   // do not memcpy, copy byte by byte because forward copy could break the
   // following elements
