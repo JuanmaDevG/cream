@@ -65,13 +65,18 @@ struct cream_kwhost {
   const char *keyword;
 };
 
-struct cream_subcommand {
-  const char **anonymous_args;
+struct cream_result {
   struct cream_bool *bools;
   struct cream_datavec *datavecs;
-  struct cream_subcommand *subcommands;
   struct cream_kwhost *kwhosts;
+  struct cream_subcommand *subcommands;
+  const char **anonymous_args;
+  size_t bools_count, datavecs_count, kwhosts_count, subcommands_count,
+      anon_args_count;
+  char data[];
 };
+
+struct cream_subcommand cream_result; // TODO: how the fuck do I alias a struct
 
 union cream_argtype {
   struct cream_bool boolean;
@@ -88,17 +93,6 @@ struct cream_option {
 };
 
 #define cream_no_arg {.text = NULL}
-
-struct cream_result {
-  struct cream_bool *bools;
-  struct cream_datavec *datavecs;
-  struct cream_kwhost *kwhosts;
-  struct cream_subcommand *subcommands;
-  const char **anonymous_args;
-  size_t bools_count, datavecs_count, kwhosts_count, subcommands_count,
-      anon_args_count;
-  char data[];
-};
 
 struct _cream_runtime_data {
   size_t result_size;
@@ -135,7 +129,6 @@ _cream_get_runtime_data(const struct cream_option *opts) {
                       (sizeof(cream_bool) * rtdat.bools_typecount) +
                       (sizeof(cream_datavec) * rtdat.datavecs_typecount) +
                       (sizeof(cream_kwhost) * rtdat.kwhosts_typecount) +
-                      (sizeof(cream_subcommand) * rtdat.subcommands_typecount) +
                       (sizeof(char *) * rtdat.anon_args_typecount);
 
   rtdat.cur_bool = rtdat.cur_datavec = rtdat.cur_kwhost = rtdat.cur_subcommand =
