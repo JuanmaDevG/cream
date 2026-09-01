@@ -9,7 +9,6 @@
 #include <stdlib.h>
 
 // Flags for struct cream_option
-
 #define CREAM_FLAGS_TYPE 0x03
 #define CREAM_FLAGS_KWTYPE 0x0c
 #define CREAM_FLAGS_GENERIC 0xf0
@@ -29,26 +28,43 @@
 #define CREAM_ARG_IS_MANDATORY 0x10    /* alert error sys if not set */
 #define CREAM_ARG_DENY_DUPLICATES 0x20 /* alert error sys if duplicate */
 
-const char *cream_usage_message = NULL;
+// TODO: error system
 
-struct _cream_info_datavec {
+// ===================
+// = Defined by user =
+// ===================
+
+struct cream_info_datavec {
   uint16_t max_elems;
   uint16_t min_elems;
 };
 
-struct _cream_info_subcommand {
+struct cream_info_subcommand {
   struct cream_option *children; // NULL ending
 };
 
-struct _cream_info_keyword_host {
+struct cream_info_keyword_host {
   const char **values;
 };
 
 union cream_type_info {
-  struct _cream_info_datavec datavec;
-  struct _cream_info_subcommand subcommand;
-  struct _cream_info_keyword_host kwhost;
+  struct cream_info_datavec datavec;
+  struct cream_info_subcommand subcommand;
+  struct cream_info_keyword_host kwhost;
 };
+
+struct cream_option {
+  uint8_t flags;
+  const char *text;
+  union cream_type_info info;
+  void (*run_oncheck)(const union cream_argtype);
+};
+
+#define cream_no_arg {.text = NULL}
+
+// =====================
+// = Returned by cream =
+// =====================
 
 struct cream_bool {
   const char *opt;
@@ -65,18 +81,23 @@ struct cream_kwhost {
   const char *keyword;
 };
 
-struct cream_result {
+struct cream_subcommand {
+  off_t _rtdat_index;
+  size_t bools_count, datavecs_count, kwhosts_count, subcommands_count,
+      anon_args_count;
   struct cream_bool *bools;
   struct cream_datavec *datavecs;
   struct cream_kwhost *kwhosts;
   struct cream_subcommand *subcommands;
   const char **anonymous_args;
-  size_t bools_count, datavecs_count, kwhosts_count, subcommands_count,
-      anon_args_count;
   char data[];
 };
 
-struct cream_subcommand cream_result; // TODO: how the fuck do I alias a struct
+typedef struct cream_subcommand cream_result;
+
+// =====================
+// = Used in callbacks =
+// =====================
 
 union cream_argtype {
   struct cream_bool boolean;
@@ -85,31 +106,73 @@ union cream_argtype {
   struct cream_subcommand subcommand;
 };
 
-struct cream_option {
-  uint8_t flags;
-  const char *text;
-  union cream_type_info info;
-  void (*run_oncheck)(const union cream_argtype);
-};
-
-#define cream_no_arg {.text = NULL}
-
 struct _cream_runtime_data {
   size_t result_size;
   size_t cur_bool, cur_datavec, cur_kwhost, cur_subcommand, cur_anon;
   size_t bools_typecount, datavecs_typecount, kwhosts_typecount,
       subcommands_typecount, anon_args_typecount;
+  struct cream_runtime_data *subcommands_rtdat;
 };
 
+// ==============
+// = Code Logic =
+// ==============
+
+size_t _cream_count_subcommands(const struct cream_option *opts) {
+  if (!opts)
+    return 0;
+
+  size_t result = 1; // Current argument result is the main subcommand (appname)
+  for (const struct cream_option *o = opts; o->text != NULL; o++) {
+    if (o->flags & CREAM_TYPE_SUBCOMMAND) {
+      result++;
+      if (!o->info.subcommand.children)
+        continue;
+      for (const struct cream_option *sub_o = o->info.subcommand.children;
+           sub_o->text != NULL; sub_o++) {
+        result += _cream_count_subcommands(opts);
+      }
+    }
+  }
+
+  return result;
+}
+
+void _cream_fill_runtime_data(_cream_runtime_data *rtdat,
+                              const cream_option *opt) {
+  // TODO: code
+}
+
+struct _cream_runtime_data *
+_cream_alloc_runtime_data(const struct cream_option *opts) {
+  struct _cream_runtime_data *rtdat;
+  size_t sc_count = _cream_count_subcommands(opts);
+
+  rtdat = (struct _cream_runtime_data *)malloc(sizeof(_cream_runtime_data) *
+                                               sc_count);
+  if (!rtdat)
+    return NULL;
+
+  struct _cream_runtime_data *cur_rtdat = rtdat;
+  for (const struct cream_option *o = opts; o->text != NULL; o++) {
+    if (o->flags & CREAM_TYPE_SUBCOMMAND) {
+      // TODO: reuse _get_runtime_data code
+      _cream_fill_runtime_data(rtdat, opts);
+    }
+  }
+
+  return rtdat;
+}
+
 struct _cream_runtime_data
-_cream_get_runtime_data(const struct cream_option *opts) {
+__cream_get_runtime_data(const struct cream_option *opts, int subcommand) {
   struct _cream_runtime_data rtdat;
   rtdat.anon_args_typecount = 10;
   rtdat.bools_typecount = rtdat.datavecs_typecount = rtdat.kwhosts_typecount =
       rtdat.subcommands_typecount = 0;
 
-  for (const struct cream_option *_i = opts; _i->text != NULL; _i++) {
-    switch (_i->flags & CREAM_FLAGS_TYPE) {
+  for (const struct cream_option *opt = opts; opt->text != NULL; opt++) {
+    switch (opt->flags & CREAM_FLAGS_TYPE) {
     case CREAM_TYPE_BOOLEAN:
       (rtdat.bools_typecount)++;
       break;
@@ -125,11 +188,12 @@ _cream_get_runtime_data(const struct cream_option *opts) {
     }
   }
 
-  rtdat.result_size = sizeof(cream_result) +
-                      (sizeof(cream_bool) * rtdat.bools_typecount) +
-                      (sizeof(cream_datavec) * rtdat.datavecs_typecount) +
-                      (sizeof(cream_kwhost) * rtdat.kwhosts_typecount) +
-                      (sizeof(char *) * rtdat.anon_args_typecount);
+  rtdat.result_size =
+      sizeof(struct cream_subcommand) +
+      (sizeof(struct cream_bool) * rtdat.bools_typecount) +
+      (sizeof(struct cream_datavec) * rtdat.datavecs_typecount) +
+      (sizeof(struct cream_kwhost) * rtdat.kwhosts_typecount) +
+      (sizeof(char *) * rtdat.anon_args_typecount);
 
   rtdat.cur_bool = rtdat.cur_datavec = rtdat.cur_kwhost = rtdat.cur_subcommand =
       rtdat.cur_anon = 0;
@@ -137,9 +201,14 @@ _cream_get_runtime_data(const struct cream_option *opts) {
   return rtdat;
 }
 
-struct cream_result *_cream_setup_result(const cream_option *opts,
-                                         _cream_runtime_data *rtdat) {
-  cream_result *result = (cream_result *)calloc(1, rtdat->result_size);
+struct _cream_runtime_data
+_cream_get_runtime_data(const struct cream_option *opts) {}
+
+struct cream_subcommand *_cream_alloc_subcommands(const cream_option *opts,
+                                                  _cream_runtime_data *rtdat,
+                                                  const int n) {
+  struct cream_subcommand *result =
+      (struct cream_subcommand *)calloc(1, rtdat->result_size * n);
 
   if (!result) {
     perror("There is not enough memory to start argument parsing");
@@ -155,6 +224,8 @@ struct cream_result *_cream_setup_result(const cream_option *opts,
       (struct cream_subcommand *)(result->kwhosts + rtdat->kwhosts_typecount);
   result->anonymous_args =
       (const char **)(result->subcommands + rtdat->subcommands_typecount);
+
+  // TODO: before subcommands alloc, multiple runtime datas
 
   return result;
 }
@@ -180,7 +251,7 @@ struct cream_option *_cream_find_opt(const char *arg,
   return result;
 }
 
-void _cream_guarantee_space(struct cream_result **result,
+void _cream_guarantee_space(struct cream_subcommand **result,
                             const struct cream_option *opts,
                             struct _cream_runtime_data *rtdat,
                             const void *const cur_elem,
@@ -195,7 +266,7 @@ void _cream_guarantee_space(struct cream_result **result,
   *max_attrs +=
       (offset - (size_t)((char *)buf_end - (char *)cur_elem)) / elem_size;
   rtdat->result_size += offset;
-  *result = (struct cream_result *)realloc(*result, rtdat->result_size);
+  *result = (struct cream_subcommand *)realloc(*result, rtdat->result_size);
 
   char *writepoint = (*result)->data + rtdat->result_size - 1;
   const char *const limit = (const char *const)buf_end,
@@ -217,9 +288,10 @@ void _cream_guarantee_space(struct cream_result **result,
       (const char **)((*result)->subcommands + rtdat->subcommands_typecount);
 }
 
-void _cream_register_opt(cream_result *result, const cream_option *opt,
-                         cream_option *opts, _cream_runtime_data *rtdat,
-                         const char **argv, int *iter, const int argc) {
+void _cream_register_opt(struct cream_subcommand *result,
+                         const cream_option *opt, cream_option *opts,
+                         _cream_runtime_data *rtdat, const char **argv,
+                         int *iter, const int argc) {
 
   switch (opt->flags & CREAM_FLAGS_TYPE) {
   case CREAM_TYPE_BOOLEAN:
@@ -302,8 +374,9 @@ void _cream_register_opt(cream_result *result, const cream_option *opt,
 
 cream_result *cream_parse(const int argc, const char *argv[],
                           const struct cream_option *opts) {
+  struct cream_runtime_data *rtdat = _cream_alloc_runtime_data();
   struct _cream_runtime_data rtdat = _cream_get_runtime_data(opts);
-  struct cream_result *result = _cream_setup_result(opts, &rtdat);
+  struct cream_subcommand *result = _cream_alloc_subcommands(opts, rtdat);
 
   for (unsigned int i = 0; i < argc; i++) {
     cream_option *found_opt = _cream_find_opt(argv[i], opts);
@@ -321,6 +394,6 @@ cream_result *cream_parse(const int argc, const char *argv[],
   return result;
 }
 
-void cream_free(cream_result *_r) { free(_r); }
+void cream_free(cream_result *_r) { /* TODO: free subcommands */ }
 
 #endif // CREAMLIB_H
