@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 #include <memory.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -113,7 +114,7 @@ struct _cream_subcommand_metadata {
 };
 
 struct _cream_runtime_binding {
-  struct cream_option *opt;
+  const struct cream_option *opt;
   struct _cream_subcommand_metadata metadata;
 };
 
@@ -141,77 +142,75 @@ size_t _cream_count_subcommands(const struct cream_option *opts) {
   return result;
 }
 
-void _cream_fill_runtime_binding(struct _cream_runtime_binding *rtb,
-                                 const cream_option *opt) {
-  rtb->opt = (struct cream_option *)opt;
-  rtb->metadata.anon_args_typecount = 10;
-  rtb->metadata.bools_typecount = rtb->metadata.datavecs_typecount =
-      rtb->metadata.kwhosts_typecount = rtb->metadata.subcommands_typecount = 0;
+void __cream_fill_runtime_bindings(_cream_runtime_binding **rtbs,
+                                   const cream_option *opts) {
+  if (opts->text == NULL) {
+    return;
+  }
 
-  for (const struct cream_option *o = opt->info.subcommand.child_opts;
-       o->text != NULL; o++) {
+  // Current context block
+  (*rtbs)->metadata.anon_args_typecount = 10;
+  (*rtbs)->metadata.bools_typecount = 0;
+  (*rtbs)->metadata.datavecs_typecount = 0;
+  (*rtbs)->metadata.kwhosts_typecount = 0;
+  (*rtbs)->metadata.subcommands_typecount = 0;
+  (*rtbs)->metadata.cur_bool = 0;
+  (*rtbs)->metadata.cur_datavec = 0;
+  (*rtbs)->metadata.cur_kwhost = 0;
+  (*rtbs)->metadata.cur_subcommand = 0;
+  (*rtbs)->metadata.cur_anon = 0;
+
+  for (const struct cream_option *o = opts; o->text != NULL; o++) {
     switch (o->flags & CREAM_FLAGS_TYPE) {
     case CREAM_TYPE_BOOLEAN:
-      (rtb->metadata.bools_typecount)++;
+      ((*rtbs)->metadata.bools_typecount)++;
       break;
     case CREAM_TYPE_DATAVEC:
-      (rtb->metadata.datavecs_typecount)++;
+      ((*rtbs)->metadata.datavecs_typecount)++;
       break;
     case CREAM_TYPE_KEYWORD_HOST:
-      (rtb->metadata.kwhosts_typecount)++;
+      ((*rtbs)->metadata.kwhosts_typecount)++;
       break;
     case CREAM_TYPE_SUBCOMMAND:
-      (rtb->metadata.subcommands_typecount)++;
-      // Fill options recursively but respect the array
+      ((*rtbs)->metadata.subcommands_typecount)++;
       break;
     }
   }
-
-  rtb->metadata.size =
+  (*rtbs)->metadata.size =
       sizeof(struct cream_subcommand) +
-      (sizeof(struct cream_bool) * rtb->metadata.bools_typecount) +
-      (sizeof(struct cream_datavec) * rtb->metadata.datavecs_typecount) +
-      (sizeof(struct cream_kwhost) * rtb->metadata.kwhosts_typecount) +
-      (sizeof(char *) * rtb->metadata.anon_args_typecount);
+      (sizeof(struct cream_bool) * (*rtbs)->metadata.bools_typecount) +
+      (sizeof(struct cream_datavec) * (*rtbs)->metadata.datavecs_typecount) +
+      (sizeof(struct cream_kwhost) * (*rtbs)->metadata.kwhosts_typecount) +
+      (sizeof(char *) * (*rtbs)->metadata.anon_args_typecount);
 
-  rtb->metadata.cur_bool = rtb->metadata.cur_datavec =
-      rtb->metadata.cur_kwhost = rtb->metadata.cur_subcommand =
-          rtb->metadata.cur_anon = 0;
+  for (const cream_option *o = opts; o->text != NULL; o++) {
+    if (o->flags & CREAM_TYPE_SUBCOMMAND) {
+      (*rtbs)++;
+      (*rtbs)->opt = o;
+      __cream_fill_runtime_bindings(rtbs, o->info.subcommand.child_opts);
+    }
+  }
 }
 
-void _cream_fill_runtime_bindings(_cream_runtime_binding **rtbs,
+void _cream_fill_runtime_bindings(_cream_runtime_binding *rtbs,
                                   const cream_option *opts) {
-  const struct cream_option *o = opts;
-  while (o->text != NULL) {
-    if (o->flags & CREAM_TYPE_SUBCOMMAND) {
-      (*rtbs)->metadata.anon_args_typecount = 10;
-      (*rtbs)->opt = (struct cream_option *)o;
-      (*rtbs)->metadata.bools_typecount = (*rtbs)->metadata.datavecs_typecount =
-          (*rtbs)->metadata.kwhosts_typecount = 0;
-      (*rtbs)->metadata.cur_anon = (*rtbs)->metadata.cur_bool =
-          (*rtbs)->metadata.cur_datavec = (*rtbs)->metadata.cur_kwhost;
-
-      // TODO: count every typecount and count bytes (each subcommand is
-      // allocated in a differnt buffer)
-
-      (*rtbs)++;
-    }
-    o++;
-  }
+  rtbs[0].opt = NULL;
+  _cream_runtime_binding *cur_rtb = rtbs;
+  __cream_fill_runtime_bindings(&rtbs, opts);
 }
 
 struct _cream_runtime_binding *
 _cream_get_runtime_bindings(const struct cream_option *opts) {
-  struct _cream_runtime_binding *rtb;
+  struct _cream_runtime_binding *rtbs;
   size_t sc_count = _cream_count_subcommands(opts);
 
-  rtb = (struct _cream_runtime_binding *)malloc(
+  rtbs = (struct _cream_runtime_binding *)malloc(
       sizeof(struct _cream_runtime_binding) * sc_count);
-  if (!rtb)
+  if (!rtbs)
     return NULL;
 
-  _cream_fill_runtime_bindings(&rtb, opts);
-  return rtb;
+  _cream_fill_runtime_bindings(rtbs, opts);
+  return rtbs;
 }
 
 struct cream_subcommand *
