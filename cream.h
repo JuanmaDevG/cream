@@ -83,6 +83,7 @@ struct cream_kwhost {
 };
 
 struct cream_subcommand {
+  const char *name;
   size_t bools_count, datavecs_count, kwhosts_count, subcommands_count,
       anon_args_count;
   struct cream_bool *bools;
@@ -235,6 +236,11 @@ _cream_alloc_subcommand(const struct _cream_runtime_binding *rtb) {
     return NULL;
   }
 
+  if (!rtb->opt)
+    sc->name = NULL;
+  else
+    sc->name = rtb->opt->text;
+
   sc->bools_count = 0;
   sc->datavecs_count = 0;
   sc->kwhosts_count = 0;
@@ -316,24 +322,23 @@ struct cream_option *_cream_find_opt(const char *arg,
   return result;
 }
 
-void _cream_guarantee_space(struct cream_subcommand **result,
-                            const struct cream_option *opts,
-                            struct _cream_subcommand_metadata *rtdat,
-                            const void *const cur_elem,
-                            const void *const buf_end, size_t *max_attrs,
-                            const size_t new_elems, const size_t elem_size) {
+// TODO: change the whole function
+void _cream_guarantee_mem(struct cream_subcommand **cur_sc,
+                          struct _cream_subcommand_metadata *rtdat,
+                          const void *const cur_elem, const void *const buf_end,
+                          size_t *max_attrs, const size_t new_elems,
+                          const size_t elem_size) {
 
   off_t offset = new_elems * elem_size;
   if ((char *)buf_end - (char *)cur_elem >= offset) {
     return;
   }
 
-  *max_attrs +=
-      (offset - (size_t)((char *)buf_end - (char *)cur_elem)) / elem_size;
+  *max_attrs += new_elems;
   rtdat->size += offset;
-  *result = (struct cream_subcommand *)realloc(*result, rtdat->size);
+  *cur_sc = (struct cream_subcommand *)realloc(*cur_sc, rtdat->size);
 
-  char *writepoint = (*result)->data + rtdat->size - 1;
+  char *writepoint = (*cur_sc)->data + rtdat->size - 1;
   const char *const limit = (const char *const)buf_end,
                     *readpoint = writepoint - offset;
   while (limit > readpoint) {
@@ -342,15 +347,13 @@ void _cream_guarantee_space(struct cream_subcommand **result,
     writepoint--;
   }
 
-  (*result)->bools = (struct cream_bool *)(*result)->data;
-  (*result)->datavecs =
-      (struct cream_datavec *)((*result)->bools + rtdat->bools_capacity);
-  (*result)->kwhosts =
-      (struct cream_kwhost *)((*result)->datavecs + rtdat->datavecs_capacity);
-  (*result)->anonymous_args =
-      (const char **)((*result)->kwhosts + rtdat->kwhosts_capacity);
-
-  // TODO: no subcommands resize?
+  (*cur_sc)->bools = (struct cream_bool *)(*cur_sc)->data;
+  (*cur_sc)->datavecs =
+      (struct cream_datavec *)((*cur_sc)->bools + rtdat->bools_capacity);
+  (*cur_sc)->kwhosts =
+      (struct cream_kwhost *)((*cur_sc)->datavecs + rtdat->datavecs_capacity);
+  (*cur_sc)->anonymous_args =
+      (const char **)((*cur_sc)->kwhosts + rtdat->kwhosts_capacity);
 }
 
 void _cream_register_opt(struct cream_subcommand *result,
