@@ -96,6 +96,22 @@ struct cream_subcommand {
 
 typedef struct cream_subcommand cream_result;
 
+// Config flags
+#define CREAM_DISABLE_USAGE_MESSAGE 0x01
+#define CREAM_CUSTOM_USAGE_MESSAGE 0x02
+#define CREAM_DISABLE_ERROR_MESSAGE 0x04
+#define CREAM_CUSTOM_ERROR_MESSAGE 0x08
+#define CREAM_EXIT_ON_ERROR 0x10
+
+#define CREAM_SHUT_UP 0x05
+#define CREAM_SHUT_UP_AND_EXIT 0x15
+
+struct cream_config {
+  uint8_t flags;
+  char *error_msg;
+  char *usage_msg;
+};
+
 // =====================
 // = Used in callbacks =
 // =====================
@@ -323,121 +339,170 @@ struct cream_option *_cream_find_opt(const char *arg,
 }
 
 // TODO: change the whole function
-void _cream_guarantee_mem(struct cream_subcommand **cur_sc,
-                          struct _cream_subcommand_metadata *rtdat,
-                          const void *const cur_elem, const void *const buf_end,
-                          size_t *max_attrs, const size_t new_elems,
-                          const size_t elem_size) {
+bool _cream_guarantee_mem(struct cream_subcommand **cur_sc,
+                          struct _cream_runtime_binding *rtb, const void *attr,
+                          size_t *capacity, const size_t cur_item,
+                          const size_t item_size) {
 
-  off_t offset = new_elems * elem_size;
-  if ((char *)buf_end - (char *)cur_elem >= offset) {
-    return;
+  if (cur_item < *capacity) {
+    return true;
   }
+  struct cream_subcommand *alloc_sc;
 
-  *max_attrs += new_elems;
-  rtdat->size += offset;
-  *cur_sc = (struct cream_subcommand *)realloc(*cur_sc, rtdat->size);
+  off_t offset = *capacity / 2;
+  if (!offset)
+    offset = 1;
+  rtb->metadata.size += offset;
+  alloc_sc = (struct cream_subcommand *)realloc(*cur_sc, rtb->metadata.size);
 
-  char *writepoint = (*cur_sc)->data + rtdat->size - 1;
-  const char *const limit = (const char *const)buf_end,
-                    *readpoint = writepoint - offset;
-  while (limit > readpoint) {
-    *writepoint = *readpoint;
-    readpoint--;
-    writepoint--;
-  }
+  if (!alloc_sc)
+    return false;
+  *cur_sc = alloc_sc;
+  uint8_t *dest = (uint8_t *)attr + (offset * item_size);
+  memmove(dest, attr, ((uint8_t *)(*cur_sc)->data + rtb->metadata.size) - dest);
+  *capacity += offset;
 
   (*cur_sc)->bools = (struct cream_bool *)(*cur_sc)->data;
   (*cur_sc)->datavecs =
-      (struct cream_datavec *)((*cur_sc)->bools + rtdat->bools_capacity);
-  (*cur_sc)->kwhosts =
-      (struct cream_kwhost *)((*cur_sc)->datavecs + rtdat->datavecs_capacity);
+      (struct cream_datavec *)((*cur_sc)->bools + rtb->metadata.bools_capacity);
+  (*cur_sc)->kwhosts = (struct cream_kwhost *)((*cur_sc)->datavecs +
+                                               rtb->metadata.datavecs_capacity);
   (*cur_sc)->anonymous_args =
-      (const char **)((*cur_sc)->kwhosts + rtdat->kwhosts_capacity);
+      (const char **)((*cur_sc)->kwhosts + rtb->metadata.kwhosts_capacity);
+
+  return true;
 }
 
-void _cream_register_opt(struct cream_subcommand *result,
-                         const cream_option *opt, cream_option *opts,
-                         _cream_subcommand_metadata *rtdat, const char **argv,
-                         int *iter, const int argc) {
-
+bool _cream_check_duplicate(const struct cream_subcommand *cur_sc,
+                            const cream_option *opt) {
   switch (opt->flags & CREAM_FLAGS_TYPE) {
   case CREAM_TYPE_BOOLEAN:
-    _cream_guarantee_space(&result, opts, rtdat,
-                           result->bools + rtdat->cur_bool,
-                           result->bools + rtdat->bools_capacity,
-                           &rtdat->bools_capacity, 1, sizeof(cream_bool));
-    result->bools[rtdat->cur_bool].opt = opt->text;
+    for (int i = 0; i < cur_sc->bools_count; i++) {
+      if (strcmp(cur_sc->bools[i].opt, opt->text) == 0) {
+        return true;
+      }
+    }
     break;
   case CREAM_TYPE_DATAVEC:
-    _cream_guarantee_space(&result, opts, rtdat,
-                           result->datavecs + rtdat->cur_datavec,
-                           result->datavecs + rtdat->datavecs_capacity,
-                           &rtdat->datavecs_capacity, 1, sizeof(cream_datavec));
-    result->datavecs[rtdat->cur_datavec].opt = opt->text;
-
-    result->datavecs[rtdat->cur_datavec].data = argv + 1;
-    result->datavecs[rtdat->cur_datavec].size = 0;
-    (*iter)++; // Ignore option name
-    while (argv + *iter < argv + argc && !_cream_find_opt(argv[*iter], opts)) {
-      result->datavecs[rtdat->cur_datavec].size++;
-      if (result->datavecs[rtdat->cur_datavec].size >
-          opt->info.datavec.max_elems) {
-        // TODO: design the error system
+    for (int i = 0; i < cur_sc->datavecs_count; i++) {
+      if (strcmp(cur_sc->datavecs[i].opt, opt->text) == 0) {
+        return true;
       }
-      (*iter)++;
-    }
-    if (result->datavecs[rtdat->cur_datavec].size <
-        opt->info.datavec.min_elems) {
-      // TODO: design the error system
     }
     break;
   case CREAM_TYPE_KEYWORD_HOST:
-    _cream_guarantee_space(&result, opts, rtdat,
-                           result->kwhosts + rtdat->cur_kwhost,
-                           result->kwhosts + rtdat->kwhosts_capacity,
-                           &rtdat->kwhosts_capacity, 1, sizeof(cream_kwhost));
-    result->kwhosts[rtdat->cur_kwhost].opt = opt->text;
+    for (int i = 0; i < cur_sc->kwhosts_count; i++) {
+      if (strcmp(cur_sc->kwhosts[i].opt, opt->text) == 0) {
+        return true;
+      }
+    }
+    break;
+  }
+
+  return false;
+}
+
+void _cream_register_opt(struct cream_subcommand **cur_sc,
+                         struct _cream_runtime_binding **rtb,
+                         const struct _cream_runtime_binding *rtbs,
+                         const struct cream_option *opt,
+                         const struct cream_option *opts, const char **argv,
+                         int *iter, const int argc,
+                         const struct _cream_context *ctx) {
+
+  if (opt->flags & CREAM_ARG_DENY_DUPLICATES) {
+    if (_cream_check_duplicate(*cur_sc, opt)) {
+      // TODO: _cream_raise_err the arg was duplicated
+    }
+  }
+
+  switch (opt->flags & CREAM_FLAGS_TYPE) {
+  case CREAM_TYPE_BOOLEAN:
+    _cream_guarantee_mem(cur_sc, *rtb, &(*cur_sc)->bools,
+                         &(*cur_sc)->bools_count, (*rtb)->metadata.cur_bool,
+                         sizeof(cream_bool));
+    (*cur_sc)->bools[(*rtb)->metadata.cur_bool].opt = opt->text;
+    (*rtb)->metadata.cur_bool++;
+    break;
+
+  case CREAM_TYPE_DATAVEC:
+    _cream_guarantee_mem(cur_sc, *rtb, &(*cur_sc)->datavecs,
+                         &(*cur_sc)->datavecs_count,
+                         (*rtb)->metadata.cur_datavec, sizeof(cream_datavec));
+    (*cur_sc)->datavecs[(*rtb)->metadata.cur_datavec].opt = opt->text;
+
+    (*cur_sc)->datavecs[(*rtb)->metadata.cur_datavec].data = argv + 1;
+    (*cur_sc)->datavecs[(*rtb)->metadata.cur_datavec].size = 0;
+    (*iter)++; // Ignore option name
+
+    while (argv + *iter < argv + argc && !_cream_find_opt(argv[*iter], opts)) {
+      (*cur_sc)->datavecs[(*rtb)->metadata.cur_datavec].size++;
+      if ((*cur_sc)->datavecs[(*rtb)->metadata.cur_datavec].size >
+          opt->info.datavec.max_elems) {
+        // TODO: _cream_register_err
+      }
+      (*iter)++;
+    }
+    if ((*cur_sc)->datavecs[(*rtb)->metadata.cur_datavec].size <
+        opt->info.datavec.min_elems) {
+      // TODO: _cream_register_err
+    }
+    break;
+
+  case CREAM_TYPE_KEYWORD_HOST:
+    _cream_guarantee_mem(cur_sc, *rtb, &(*cur_sc)->kwhosts,
+                         &(*cur_sc)->kwhosts_count, (*rtb)->metadata.cur_kwhost,
+                         sizeof(cream_kwhost));
+    (*cur_sc)->kwhosts[(*rtb)->metadata.cur_kwhost].opt = opt->text;
 
     if (opt->flags & CREAM_KWTYPE_EMBEDDED) {
       for (int i = 0; opt->text[i] != '\0' && argv[(*iter)][i] != '\0'; i++) {
         if (opt->text[i] != argv[(*iter)][i]) {
-          result->kwhosts[rtdat->cur_kwhost].keyword = argv[(*iter)] + i;
+          (*cur_sc)->kwhosts[(*rtb)->metadata.cur_kwhost].keyword =
+              argv[(*iter)] + i;
           break;
         }
       }
     } else if (opt->flags & CREAM_KWTYPE_EQUALOP) {
       for (int i = 0; argv[(*iter)][i] != '\0'; i++) {
         if (argv[(*iter)][i] == '=') {
-          result->kwhosts[rtdat->cur_kwhost].keyword = argv[(*iter)] + i + 1;
+          (*cur_sc)->kwhosts[(*rtb)->metadata.cur_kwhost].keyword =
+              argv[(*iter)] + i + 1;
           break;
         }
       }
     } else if (opt->flags & CREAM_KWTYPE_SEPARATE) {
       (*iter)++;
-      result->kwhosts[rtdat->cur_kwhost].keyword = NULL;
+      (*cur_sc)->kwhosts[(*rtb)->metadata.cur_kwhost].keyword = NULL;
+      if (*iter >= argc)
+        ; // TODO: _cream_register_err
       for (const char **p = opt->info.kwhost.values; *p != NULL; p++) {
         if (strcmp(*p, argv[*iter]) == 0) {
-          result->kwhosts[rtdat->cur_kwhost].keyword = *p;
+          (*cur_sc)->kwhosts[(*rtb)->metadata.cur_kwhost].keyword = *p;
           break;
         }
       }
-      if (result->kwhosts[rtdat->cur_kwhost].keyword == NULL) {
-        // TODO: error keyword host argument, incomplete argument
+      if ((*cur_sc)->kwhosts[(*rtb)->metadata.cur_kwhost].keyword == NULL) {
+        // TODO: _cream_register_err bad keyword
       }
     }
     break;
-  case CREAM_TYPE_SUBCOMMAND:
-    _cream_guarantee_space(
-        &result, opts, rtdat, result->subcommands + rtdat->cur_subcommand,
-        result->subcommands + rtdat->subcommands_capacity,
-        &rtdat->subcommands_capacity, 1, sizeof(cream_subcommand));
-    // TODO: allocate subcommands separately
-    // TODO: subcommands should be pointers allocated in different buffers
-    break;
-  }
 
-  // TODO: check generic flags
+  case CREAM_TYPE_SUBCOMMAND:
+    // TODO: change the current subcommand and rtb
+    *rtb = _cream_find_rtb(rtbs, opt, ctx);
+    const cream_subcommand *new_sc = NULL;
+    for (int i = 0; i < (*cur_sc)->subcommands_count; i++) {
+      if (strcmp((*rtb)->opt->text, (*cur_sc)->subcommands[i]->name) == 0) {
+        new_sc = (*cur_sc)->subcommands[i];
+        break;
+      }
+    }
+    if (!new_sc) {
+      // TODO: _cream_raise_err
+    }
+    return; // Recursive subcommands have no generic checks
+  }
 }
 
 // ==================
@@ -449,24 +514,35 @@ cream_result *cream_parse(const int argc, const char *argv[],
   struct _cream_context ctx = {0, 0};
   for (const struct cream_option *o = opts; o->text != NULL; o++)
     ctx.arg_opts++;
-  struct _cream_runtime_binding *rtbs = _cream_get_runtime_bindings(opts);
-  struct _cream_subcommand_metadata rtdat = _cream_get_runtime_data(opts);
-  struct cream_subcommand *result = _cream_alloc_subcommands(opts, rtdat);
+  struct _cream_runtime_binding *rtbs = _cream_get_runtime_bindings(opts, &ctx);
+  struct cream_subcommand *result = _cream_alloc_subcommand(rtbs);
 
-  for (unsigned int i = 0; i < argc; i++) {
+  struct cream_subcommand *cur_sc = result;
+  struct _cream_runtime_binding *rtb = rtbs;
+  for (int i = 0; i < argc; i++) {
+    if (!cur_sc) {
+      _cream_destroy_subcommand(result);
+      return NULL;
+    }
+
     cream_option *found_opt = _cream_find_opt(argv[i], opts);
     if (!found_opt) {
-      _cream_guarantee_space(&result, opts, &rtdat,
-                             result->anonymous_args + result->anon_args_count,
-                             result->anonymous_args + rtdat.anon_args_capacity,
-                             &rtdat.anon_args_capacity, 1, sizeof(char **));
-      result->anonymous_args[rtdat.cur_anon] = argv[i];
-      rtdat.cur_anon++;
+      _cream_guarantee_mem(&cur_sc, rtb, cur_sc->anonymous_args,
+                           &rtb->metadata.anon_args_capacity,
+                           rtb->metadata.cur_anon, sizeof(char **));
+      cur_sc->anonymous_args[rtb->metadata.cur_anon] = argv[i];
+      rtb->metadata.cur_anon++;
       continue;
     }
-    _cream_register_opt(result, found_opt, opts, &rtdat);
+    _cream_register_opt(&cur_sc, &rtb, rtbs, found_opt, opts, argv, &i, argc,
+                        &ctx);
   }
+
   return result;
+}
+
+union cream_argtype cream_find(const char *opt_name) {
+  // TODO: finds by name, no error raised if not found
 }
 
 void cream_free(cream_result *sc) { _cream_destroy_subcommand(sc); }
