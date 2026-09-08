@@ -542,7 +542,7 @@ cream_result *cream_parse(const int argc, const char *argv[],
 }
 
 union cream_argtype cream_find(const char *opt_name) {
-  // TODO: finds by name, no error raised if not found
+  // TODO: finds by name, does not produce errors
 }
 
 void cream_free(cream_result *sc) { _cream_destroy_subcommand(sc); }
