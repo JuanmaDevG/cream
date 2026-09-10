@@ -29,8 +29,6 @@
 #define CREAM_ARG_IS_MANDATORY 0x10    /* alert error sys if not set */
 #define CREAM_ARG_DENY_DUPLICATES 0x20 /* alert error sys if duplicate */
 
-// TODO: error system
-
 // ===================
 // = Defined by user =
 // ===================
@@ -100,16 +98,15 @@ typedef struct cream_subcommand cream_result;
 #define CREAM_DISABLE_USAGE_MESSAGE 0x01
 #define CREAM_CUSTOM_USAGE_MESSAGE 0x02
 #define CREAM_DISABLE_ERROR_MESSAGE 0x04
-#define CREAM_CUSTOM_ERROR_MESSAGE 0x08
-#define CREAM_EXIT_ON_ERROR 0x10
+#define CREAM_EXIT_ON_ERROR 0x08
 
 #define CREAM_SHUT_UP 0x05
 #define CREAM_SHUT_UP_AND_EXIT 0x15
 
 struct cream_config {
   uint8_t flags;
-  char *error_msg;
-  char *usage_msg;
+  const char *error_msg;
+  const char *usage_msg;
 };
 
 // =====================
@@ -143,6 +140,26 @@ struct _cream_context {
 // =======================
 // = Internal code logic =
 // =======================
+
+void _cream_raise_err(const cream_option *opt, const cream_config *cfg,
+                      const char *reason) {
+  if (!(cfg->flags & CREAM_DISABLE_ERROR_MESSAGE)) {
+    printf("error, argument %s %s", opt->text, reason);
+  }
+  if (!(cfg->flags & CREAM_DISABLE_USAGE_MESSAGE)) {
+    if (cfg->flags & CREAM_CUSTOM_USAGE_MESSAGE) {
+      if (cfg->usage_msg)
+        fprintf(stderr, "%s", cfg->usage_msg);
+    }
+  }
+
+  if (cfg->flags & CREAM_EXIT_ON_ERROR) {
+    if (!(cfg->flags & CREAM_DISABLE_USAGE_MESSAGE)) {
+      // TODO: _cream_print_usage_message
+    }
+    exit(1);
+  }
+}
 
 size_t _cream_count_subcommands(const struct cream_option *opts) {
   if (!opts)
@@ -338,7 +355,6 @@ struct cream_option *_cream_find_opt(const char *arg,
   return result;
 }
 
-// TODO: change the whole function
 bool _cream_guarantee_mem(struct cream_subcommand **cur_sc,
                           struct _cream_runtime_binding *rtb, const void *attr,
                           size_t *capacity, const size_t cur_item,
@@ -537,6 +553,8 @@ cream_result *cream_parse(const int argc, const char *argv[],
     _cream_register_opt(&cur_sc, &rtb, rtbs, found_opt, opts, argv, &i, argc,
                         &ctx);
   }
+
+  // TODO: if error -> _cream_print_usage_message
 
   return result;
 }
