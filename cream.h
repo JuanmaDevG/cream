@@ -55,6 +55,7 @@ union cream_type_info {
 struct cream_option {
   uint8_t flags;
   const char *text;
+  const char *description;
   union cream_type_info info;
   void (*run_oncheck)(const union cream_argtype);
 };
@@ -105,7 +106,6 @@ typedef struct cream_subcommand cream_result;
 
 struct cream_config {
   uint8_t flags;
-  const char *error_msg;
   const char *usage_msg;
 };
 
@@ -141,8 +141,50 @@ struct _cream_context {
 // = Internal code logic =
 // =======================
 
+void _cream_print_suboptions(const char *cmdname, const cream_option *opts,
+                             const unsigned int layer) {
+  for (const struct cream_option *o = opts; o->text != NULL; o++) {
+    char restrictions[2] = {'[', ']'};
+    const char *extra_info;
+    if (o->flags & CREAM_ARG_IS_MANDATORY) {
+      restrictions[0] = '<';
+      restrictions[1] = '>';
+    }
+
+    for (unsigned int i = 0; i < layer; i++) {
+      puts("  ");
+    }
+    switch (o->flags & CREAM_FLAGS_TYPE) {
+    case CREAM_TYPE_DATAVEC:
+      // TODO: solve problems about data types
+      break;
+    case CREAM_TYPE_KEYWORD_HOST:
+      // TODO: and check subtypes
+      break;
+    case CREAM_TYPE_SUBCOMMAND:
+      break;
+    }
+    // TODO: show values with characteristics
+    printf("%c%s%c%s: %s\n", restrictions[0], o->text, restrictions[1],
+           (o->flags & CREAM_ARG_DENY_DUPLICATES ? " (just once)" : ""),
+           (!o->description ? "" : o->description));
+    // TODO: recursive subcomands
+  }
+}
+
+void _cream_print_usage_message(const cream_option *opts,
+                                const struct cream_config *cfg) {
+  if (cfg->flags & CREAM_CUSTOM_USAGE_MESSAGE) {
+    printf(cfg->usage_msg);
+    return;
+  }
+
+  printf("Usage:\n");
+  _cream_print_suboptions(NULL, opts, 0);
+}
+
 void _cream_raise_err(const cream_option *opt, const cream_config *cfg,
-                      const char *reason) {
+                      const char *reason, const cream_option *opts) {
   if (!(cfg->flags & CREAM_DISABLE_ERROR_MESSAGE)) {
     printf("error, argument %s %s", opt->text, reason);
   }
@@ -155,7 +197,7 @@ void _cream_raise_err(const cream_option *opt, const cream_config *cfg,
 
   if (cfg->flags & CREAM_EXIT_ON_ERROR) {
     if (!(cfg->flags & CREAM_DISABLE_USAGE_MESSAGE)) {
-      // TODO: _cream_print_usage_message
+      _cream_print_usage_message(opts);
     }
     exit(1);
   }
