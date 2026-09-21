@@ -62,6 +62,20 @@ struct cream_option {
 
 #define cream_no_arg {.text = NULL}
 
+// Config flags
+#define CREAM_DISABLE_USAGE_MESSAGE 0x01
+#define CREAM_CUSTOM_USAGE_MESSAGE 0x02
+#define CREAM_DISABLE_ERROR_MESSAGE 0x04
+#define CREAM_EXIT_ON_ERROR 0x08
+
+#define CREAM_SHUT_UP 0x05
+#define CREAM_SHUT_UP_AND_EXIT 0x15
+
+struct cream_config {
+  uint8_t flags;
+  const char *usage_msg;
+};
+
 // =====================
 // = Returned by cream =
 // =====================
@@ -95,20 +109,6 @@ struct cream_subcommand {
 
 typedef struct cream_subcommand cream_result;
 
-// Config flags
-#define CREAM_DISABLE_USAGE_MESSAGE 0x01
-#define CREAM_CUSTOM_USAGE_MESSAGE 0x02
-#define CREAM_DISABLE_ERROR_MESSAGE 0x04
-#define CREAM_EXIT_ON_ERROR 0x08
-
-#define CREAM_SHUT_UP 0x05
-#define CREAM_SHUT_UP_AND_EXIT 0x15
-
-struct cream_config {
-  uint8_t flags;
-  const char *usage_msg;
-};
-
 // =====================
 // = Used in callbacks =
 // =====================
@@ -141,34 +141,67 @@ struct _cream_context {
 // = Internal code logic =
 // =======================
 
-void _cream_print_suboptions(const char *cmdname, const cream_option *opts,
+void _cream_print_suboptions(const cream_option *opts,
                              const unsigned int layer) {
   for (const struct cream_option *o = opts; o->text != NULL; o++) {
     char restrictions[2] = {'[', ']'};
-    const char *extra_info;
     if (o->flags & CREAM_ARG_IS_MANDATORY) {
       restrictions[0] = '<';
       restrictions[1] = '>';
     }
 
-    for (unsigned int i = 0; i < layer; i++) {
+    for (uint i = 0; i < layer; i++) {
       puts("  ");
     }
+    char extra_info[512];
+    char *writepoint = extra_info;
+    extra_info[0] = '\0';
     switch (o->flags & CREAM_FLAGS_TYPE) {
     case CREAM_TYPE_DATAVEC:
-      // TODO: solve problems about data types
+      sprintf(writepoint, " (needs ");
+      writepoint += 7;
+      if (o->info.datavec.min_elems) {
+        sprintf(writepoint, "min %u elems, ", o->info.datavec.min_elems);
+        writepoint += strlen(writepoint);
+        if (o->info.datavec.max_elems) {
+          sprintf(writepoint, "max %u elems)", o->info.datavec.max_elems);
+        } else {
+          writepoint[-2] = ')';
+          writepoint[-1] = '\0';
+        }
+      } else if (o->info.datavec.max_elems) {
+        sprintf(writepoint, "max %u elems, ", o->info.datavec.max_elems);
+        writepoint += strlen(writepoint);
+        if (o->info.datavec.min_elems) {
+          sprintf(writepoint, "min %u elems)", o->info.datavec.min_elems);
+        } else {
+          writepoint[-2] = ')';
+          writepoint[-1] = '\0';
+        }
+      } else
+        extra_info[0] = '\0';
       break;
     case CREAM_TYPE_KEYWORD_HOST:
-      // TODO: and check subtypes
+      if (o->flags & CREAM_KWTYPE_EQUALOP) {
+        sprintf(writepoint, "={");
+        writepoint += strlen(writepoint);
+        // TODO: continue here, they're different
+      } else if (o->flags & CREAM_KWTYPE_EMBEDDED) {
+        sprintf(writepoint, "{");
+        writepoint += strlen(writepoint);
+      } // TODO: else space and curly bracket
       break;
     case CREAM_TYPE_SUBCOMMAND:
-      break;
+      if (o->text)
+        printf("%s\n", o->text);
+      _cream_print_suboptions(o->info.subcommand.child_opts, layer + 1);
+      continue;
     }
-    // TODO: show values with characteristics
-    printf("%c%s%c%s: %s\n", restrictions[0], o->text, restrictions[1],
-           (o->flags & CREAM_ARG_DENY_DUPLICATES ? " (just once)" : ""),
-           (!o->description ? "" : o->description));
-    // TODO: recursive subcomands
+
+    printf("%c%s%c%s: %s %s\n", restrictions[0], o->text, restrictions[1],
+           extra_info,
+           (o->flags & CREAM_ARG_DENY_DUPLICATES ? " (just once) " : ""),
+           (o->description ? o->description : ""));
   }
 }
 
