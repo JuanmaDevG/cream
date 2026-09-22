@@ -207,6 +207,9 @@ void _cream_print_suboptions(const cream_option *opts,
 
 void _cream_print_usage_message(const cream_option *opts,
                                 const struct cream_config *cfg) {
+  return;
+  // TODO: do later
+  /*
   if (cfg->flags & CREAM_CUSTOM_USAGE_MESSAGE) {
     printf(cfg->usage_msg);
     return;
@@ -214,6 +217,7 @@ void _cream_print_usage_message(const cream_option *opts,
 
   printf("Usage:\n");
   _cream_print_suboptions(NULL, opts, 0);
+  */
 }
 
 void _cream_raise_err(const cream_option *opt, const cream_config *cfg,
@@ -230,7 +234,7 @@ void _cream_raise_err(const cream_option *opt, const cream_config *cfg,
 
   if (cfg->flags & CREAM_EXIT_ON_ERROR) {
     if (!(cfg->flags & CREAM_DISABLE_USAGE_MESSAGE)) {
-      _cream_print_usage_message(opts);
+      _cream_print_usage_message(opts, cfg);
     }
     exit(1);
   }
